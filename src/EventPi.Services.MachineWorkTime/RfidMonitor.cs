@@ -17,14 +17,14 @@ public interface IRfidHandler : IAsyncDisposable
 class RfidHandler : IAsyncDisposable, IRfidHandler
 {
     
-    private readonly RfidState _state;
+    private readonly IRfidState _state;
     private readonly IEventStoreStream _eventStoreStream;
     private readonly ILogger<RfidHandler> _logger;
     private readonly ConcurrentHashSet<string> _uniqueRequests;
     private readonly IEnvironment _environment;
     private bool _shutdown;
     private int _postInvocationParallelCounter = 0;
-    public RfidHandler(IEventStoreStream eventStoreStream, RfidState state, ILogger<RfidHandler> logger, IEnvironment environment)
+    public RfidHandler(IEventStoreStream eventStoreStream, IRfidState state, ILogger<RfidHandler> logger, IEnvironment environment)
     {
         _state = state;
         _logger = logger;
@@ -178,7 +178,7 @@ class RfidHandler : IAsyncDisposable, IRfidHandler
     
 }
 
-public class RfidRequest
+public record RfidRequest
 {
-    public string CardId { get; set; }
+    public string CardId { get; init; }
 }

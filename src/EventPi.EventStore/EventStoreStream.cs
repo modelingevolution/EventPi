@@ -1,5 +1,6 @@
 using EventPi.Abstractions;
 using EventPi.EventStore;
+using Microsoft.Extensions.DependencyInjection;
 using ModelingEvolution.Plumberd;
 using ModelingEvolution.Plumberd.EventStore;
 
@@ -21,5 +22,14 @@ class EventStoreStream : IEventStoreStream
     {
         await _eventStore.GetStaticStream<T>(id)
             .Append(e, MetadataDictionary.Create(typeof(T)));
+    }
+}
+
+public static class ContainerExtensions
+{
+    public static IServiceCollection AddEventStoreStream(this IServiceCollection services)
+    {
+        services.AddSingleton<IEventStoreStream, EventStoreStream>();
+        return services;
     }
 }

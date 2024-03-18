@@ -9,7 +9,7 @@ public static class ContainerExtensions
     public static IServiceCollection AddMachineWorkTime(this IServiceCollection services)
     {
         services.AddSingleton<IRfidHandler, RfidHandler>();
-        services.AddSingleton<RfidState>();
+        services.AddSingleton<IRfidState,RfidState>();
         return services;
     }
 }

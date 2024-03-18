@@ -3,8 +3,17 @@ using Microsoft.Extensions.Logging;
 
 namespace EventPi.Services.MachineWorkTime;
 
+public interface IRfidState
+{
+    bool IsMachineWorking { get; set; }
+    DateTime? LastSwipeDate { get; }
+    bool ShouldSwipe(string cardId);
+    void ClearCardId();
+    void SetCardId(string cardId);
+    string GetCardId();
+}
 
-class RfidState
+class RfidState : IRfidState
 {
     private IDateTimeProvider _time;
     private ILogger<RfidState> _logger;
