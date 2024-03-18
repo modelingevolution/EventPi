@@ -1,12 +1,12 @@
 ﻿using ModelingEvolution.Plumberd;
 using ModelingEvolution.Plumberd.EventStore;
 using ProtoBuf;
-
+using EventPi.Abstractions;
 namespace EventPi.Events.MachineWork;
 
 [Stream("Device")]
 [ProtoContract]
-public class WorkOnMachineStopped : IEvent
+public record WorkOnMachineStopped : IEvent, ICloneable<WorkOnMachineStopped>
 {
     public WorkOnMachineStopped()
     {
@@ -33,4 +33,5 @@ public class WorkOnMachineStopped : IEvent
     [ProtoMember(6)]
 
     public string SwipedWithCard { get; set; }
+    WorkOnMachineStopped ICloneable<WorkOnMachineStopped>.Clone() => this with { Id = Guid.NewGuid() };
 }

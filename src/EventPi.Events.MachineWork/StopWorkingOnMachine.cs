@@ -4,11 +4,11 @@ using ProtoBuf;
 
 namespace EventPi.Events.MachineWork;
 
-[Stream("Device")]
 [ProtoContract]
-public record WorkOnMachineStarted : IEvent
+[Stream("Device")]
+public class StopWorkingOnMachine : ICommand
 {
-    public WorkOnMachineStarted()
+    public StopWorkingOnMachine()
     {
         this.Id =  Guid.NewGuid();
     }
