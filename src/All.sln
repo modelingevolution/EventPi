@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Abstractions", "Eve
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.EventStore", "EventPi.EventStore\EventPi.EventStore.csproj", "{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Services.MachineWorkTime.Tests", "EventPi.Services.MachineWorkTime.Tests\EventPi.Services.MachineWorkTime.Tests.csproj", "{602C8DFC-1F96-46D5-A923-0164806E1124}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{602C8DFC-1F96-46D5-A923-0164806E1124}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{602C8DFC-1F96-46D5-A923-0164806E1124}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{602C8DFC-1F96-46D5-A923-0164806E1124}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{602C8DFC-1F96-46D5-A923-0164806E1124}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

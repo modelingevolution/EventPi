@@ -15,8 +15,8 @@ public interface IRfidState
 
 class RfidState : IRfidState
 {
-    private IDateTimeProvider _time;
-    private ILogger<RfidState> _logger;
+    private readonly IDateTimeProvider _time;
+    private readonly ILogger<RfidState> _logger;
     public bool IsMachineWorking { get; set; } = false;
     public DateTime? LastSwipeDate { get; private set; } = null;
     
