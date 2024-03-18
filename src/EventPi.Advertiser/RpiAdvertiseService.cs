@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EventPi.Advertiser
 {
-    public class RpiAdvertiseService : IHostedService
+    internal class RpiAdvertiseService : IHostedService
     {
         private CancellationTokenSource _cancellationTokenSource;
         private readonly ILogger<RpiAdvertiseService> _logger;

@@ -3,12 +3,20 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34607.79
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Advertiser", "EventPi.Advertiser\EventPi.Advertiser.csproj", "{10B9D4CC-44C6-43EE-AF73-DA9D7F6847E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Advertiser", "EventPi.Advertiser\EventPi.Advertiser.csproj", "{10B9D4CC-44C6-43EE-AF73-DA9D7F6847E3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3748D905-FFA5-4AD8-9BC5-A00AE48355D6}"
 	ProjectSection(SolutionItems) = preProject
 		..\cake.ps1 = ..\cake.ps1
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Events.MachineWork", "EventPi.Events.MachineWork\EventPi.Events.MachineWork.csproj", "{7948B2D8-A312-4B38-AC24-EF10E2E70B3C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Services.MachineWorkTime", "EventPi.Services.MachineWorkTime\EventPi.Services.MachineWorkTime.csproj", "{935964D1-E8E8-4E6F-A7BA-7CAA565BD557}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Abstractions", "EventPi.Abstractions\EventPi.Abstractions.csproj", "{9A9258CD-E04D-48D6-B058-C70D73176B41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.EventStore", "EventPi.EventStore\EventPi.EventStore.csproj", "{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +28,22 @@ Global
 		{10B9D4CC-44C6-43EE-AF73-DA9D7F6847E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10B9D4CC-44C6-43EE-AF73-DA9D7F6847E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10B9D4CC-44C6-43EE-AF73-DA9D7F6847E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7948B2D8-A312-4B38-AC24-EF10E2E70B3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7948B2D8-A312-4B38-AC24-EF10E2E70B3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7948B2D8-A312-4B38-AC24-EF10E2E70B3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7948B2D8-A312-4B38-AC24-EF10E2E70B3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{935964D1-E8E8-4E6F-A7BA-7CAA565BD557}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{935964D1-E8E8-4E6F-A7BA-7CAA565BD557}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{935964D1-E8E8-4E6F-A7BA-7CAA565BD557}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{935964D1-E8E8-4E6F-A7BA-7CAA565BD557}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A9258CD-E04D-48D6-B058-C70D73176B41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A9258CD-E04D-48D6-B058-C70D73176B41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A9258CD-E04D-48D6-B058-C70D73176B41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A9258CD-E04D-48D6-B058-C70D73176B41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

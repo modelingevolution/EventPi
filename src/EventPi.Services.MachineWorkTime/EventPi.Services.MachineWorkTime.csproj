@@ -5,11 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>EventPi.Advertiser</Title>
+    <Title>EventPi.Services.MachineWorkTime</Title>
     <AssemblyVersion>0.0.0.1</AssemblyVersion>
     <FileVersion>0.0.0.1</FileVersion>
     <PackageTags>Rpi;EventStore;CQRS;EventSourcing</PackageTags>
-    <PackageDescription>EventPi advertising service for rpi local communication.</PackageDescription>
+    <PackageDescription>EventPi services for calculating work time for machine-operator using RFID.</PackageDescription>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/modelingevolution/eventpi</RepositoryUrl>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
@@ -24,9 +24,17 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
+
+
   <ItemGroup>
-    <PackageReference Include="Makaretu.Dns" Version="2.0.1" />
-    <PackageReference Include="Makaretu.Dns.Multicast" Version="0.27.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Plumberd" Version="2.0.0.2" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
+    <ProjectReference Include="..\EventPi.Events.MachineWork\EventPi.Events.MachineWork.csproj" />
   </ItemGroup>
 </Project>
