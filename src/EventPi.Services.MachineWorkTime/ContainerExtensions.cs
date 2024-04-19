@@ -1,6 +1,7 @@
-﻿using EventPi.Services.MachineWorkTime;
+﻿using System.Runtime.CompilerServices;
+using EventPi.Services.MachineWorkTime;
 using Microsoft.Extensions.DependencyInjection;
-
+[assembly: InternalsVisibleTo("EventPi.Services.MachineWorkTime.Tests")]
 // ReSharper disable once CheckNamespace
 namespace EventPi;
 

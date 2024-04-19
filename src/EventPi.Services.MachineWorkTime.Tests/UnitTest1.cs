@@ -30,7 +30,7 @@ namespace EventPi.Services.MachineWorkTime.Tests
             this._dateTimeProviderMock.Now.Returns(_now);
             var logger = NSubstitute.Substitute.For<ILogger<RfidHandler>>();
             var rfidModel = new RfidState(_dateTimeProviderMock, NSubstitute.Substitute.For<ILogger<RfidState>>());
-            _sut = new RfidHandler(_eventStoreStreamMock, rfidModel, logger, new HostEnvironment()));
+            _sut = new RfidHandler(_eventStoreStreamMock, rfidModel, logger, new HostEnvironment());
         }
         [When(@"I swipe a card")]
         [When(@"I swipe the card again")]

@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace WeldingAutomation.Rasp.Tests
+namespace EventPi.Services.MachineWorkTime.Tests
 {
     using TechTalk.SpecFlow;
     using System;
@@ -31,7 +31,7 @@ namespace WeldingAutomation.Rasp.Tests
 #line 1 "CardSwipes.feature"
 #line hidden
         
-        public CardSwipesFeature(CardSwipesFeature.FixtureData fixtureData, WeldingAutomation_Rasp_Tests_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public CardSwipesFeature(CardSwipesFeature.FixtureData fixtureData, EventPi_Services_MachineWorkTime_Tests_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();

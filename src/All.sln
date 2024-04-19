@@ -10,15 +10,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\cake.ps1 = ..\cake.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Events.MachineWork", "EventPi.Events.MachineWork\EventPi.Events.MachineWork.csproj", "{7948B2D8-A312-4B38-AC24-EF10E2E70B3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Events.MachineWork", "EventPi.Events.MachineWork\EventPi.Events.MachineWork.csproj", "{7948B2D8-A312-4B38-AC24-EF10E2E70B3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Services.MachineWorkTime", "EventPi.Services.MachineWorkTime\EventPi.Services.MachineWorkTime.csproj", "{935964D1-E8E8-4E6F-A7BA-7CAA565BD557}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Services.MachineWorkTime", "EventPi.Services.MachineWorkTime\EventPi.Services.MachineWorkTime.csproj", "{935964D1-E8E8-4E6F-A7BA-7CAA565BD557}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Abstractions", "EventPi.Abstractions\EventPi.Abstractions.csproj", "{9A9258CD-E04D-48D6-B058-C70D73176B41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Abstractions", "EventPi.Abstractions\EventPi.Abstractions.csproj", "{9A9258CD-E04D-48D6-B058-C70D73176B41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.EventStore", "EventPi.EventStore\EventPi.EventStore.csproj", "{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.EventStore", "EventPi.EventStore\EventPi.EventStore.csproj", "{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Services.MachineWorkTime.Tests", "EventPi.Services.MachineWorkTime.Tests\EventPi.Services.MachineWorkTime.Tests.csproj", "{602C8DFC-1F96-46D5-A923-0164806E1124}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Services.MachineWorkTime.Tests", "EventPi.Services.MachineWorkTime.Tests\EventPi.Services.MachineWorkTime.Tests.csproj", "{602C8DFC-1F96-46D5-A923-0164806E1124}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Services.Camera", "EventPi.Services.Camera\EventPi.Services.Camera.csproj", "{5E112533-4D42-4897-A903-1DE438C62410}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Camera", "Camera", "{F76A2191-D2E0-49CF-9087-960A68EA4BEA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Services.Camera.Tests", "EventPi.Services.Camera.Tests\EventPi.Services.Camera.Tests.csproj", "{9F6DE635-13F0-4887-B656-26E6C44CA902}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventPi.Advertiser.Tests", "EventPi.Advertiser.Tests\EventPi.Advertiser.Tests.csproj", "{50F0B619-24E4-47E8-BA3C-A6110CB957EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,9 +58,25 @@ Global
 		{602C8DFC-1F96-46D5-A923-0164806E1124}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{602C8DFC-1F96-46D5-A923-0164806E1124}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{602C8DFC-1F96-46D5-A923-0164806E1124}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E112533-4D42-4897-A903-1DE438C62410}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E112533-4D42-4897-A903-1DE438C62410}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E112533-4D42-4897-A903-1DE438C62410}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E112533-4D42-4897-A903-1DE438C62410}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F6DE635-13F0-4887-B656-26E6C44CA902}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F6DE635-13F0-4887-B656-26E6C44CA902}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F6DE635-13F0-4887-B656-26E6C44CA902}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F6DE635-13F0-4887-B656-26E6C44CA902}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50F0B619-24E4-47E8-BA3C-A6110CB957EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50F0B619-24E4-47E8-BA3C-A6110CB957EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50F0B619-24E4-47E8-BA3C-A6110CB957EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50F0B619-24E4-47E8-BA3C-A6110CB957EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5E112533-4D42-4897-A903-1DE438C62410} = {F76A2191-D2E0-49CF-9087-960A68EA4BEA}
+		{9F6DE635-13F0-4887-B656-26E6C44CA902} = {F76A2191-D2E0-49CF-9087-960A68EA4BEA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF86CE7B-BF0F-45AA-8BD3-B872ABC48B26}
