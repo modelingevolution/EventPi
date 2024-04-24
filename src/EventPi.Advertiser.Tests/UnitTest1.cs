@@ -13,6 +13,8 @@ namespace EventPi.Advertiser.Tests
         {
 
             _host.Configure(x => x.AddAdvertiser( new ServiceInfo("Video", 9001), new ServiceInfo("EventStore", 2113)));
+            _host.StartAsync();
+
 
 
         }
