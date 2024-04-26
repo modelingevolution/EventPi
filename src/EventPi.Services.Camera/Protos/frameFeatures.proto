@@ -2,7 +2,7 @@
 import "google/protobuf/empty.proto";
 option csharp_namespace = "EventPi.Services.Camera";
 
-package CameraAI;
+package cameraAI;
 
 // The greeting service definition.
 service FrameFeatures

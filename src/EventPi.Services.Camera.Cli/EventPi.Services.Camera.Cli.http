@@ -1,0 +1,6 @@
+@EventPi.Services.Camera.Cli_HostAddress = http://localhost:5065
+
+GET {{EventPi.Services.Camera.Cli_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
