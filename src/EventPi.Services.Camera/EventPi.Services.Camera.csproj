@@ -17,8 +17,26 @@
 	  <Authors>ModelingEvolution Team</Authors>
   </PropertyGroup>
 
+ 
+
+	<ItemGroup>
+		<Protobuf Include="Protos\frameFeatures.proto" GrpcServices="Server" />
+	</ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="MicroPlumberd" Version="1.0.39.94" />
+	  <PackageReference Include="FluentValidation" Version="11.5.2" />
+	  <PackageReference Include="Google.Protobuf" Version="3.26.1" />
+	  <PackageReference Include="Grpc.AspNetCore" Version="2.62.0" />
+	  <PackageReference Include="Grpc.AspNetCore.Server" Version="2.62.0" />
+	  <PackageReference Include="Grpc.AspNetCore.Server.ClientFactory" Version="2.62.0" />
+	  <PackageReference Include="Grpc.Net.Client" Version="2.62.0" />
+	  <PackageReference Include="Grpc.Net.ClientFactory" Version="2.62.0" />
+	  <PackageReference Include="Grpc.Net.Common" Version="2.62.0" />
+	  <PackageReference Include="Grpc.Tools" Version="2.62.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="MicroPlumberd" Version="1.0.39.94" />
     <PackageReference Include="MicroPlumberd.DirectConnect" Version="1.0.8.32" />
     <PackageReference Include="MicroPlumberd.Services" Version="1.0.39.94" />
     <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.39.94" />

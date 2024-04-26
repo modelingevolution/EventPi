@@ -1,0 +1,23 @@
+﻿syntax = "proto3";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "EventPi.Services.Camera";
+
+package CameraAI;
+
+// The greeting service definition.
+service FrameFeatures
+{
+    rpc Process (FrameFeaturesRequest) returns (google.protobuf.Empty);
+}
+
+// The request message containing the user's name.
+message FrameFeaturesRequest
+{
+    float LargestSharedArea = 1;
+    float LargestSharedAreaWidth = 2; 
+    float LargestSharedAreaHeight = 3;  
+    float SharedAreasAmount = 4;
+    float TotalSharedArea = 5;
+    int32 TotalBrightPixels = 6;
+    int32 TotalDarkPixels = 7;
+}
