@@ -10,4 +10,8 @@
     <ProjectReference Include="..\EventPi.Services.Camera\EventPi.Services.Camera.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>
