@@ -3,8 +3,11 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using EventPi.Services.Camera;
 using System;
+using MicroPlumberd.DirectConnect;
 
 namespace EventPi.Services.Camera;
+
+//TODO: zrobic komende do kamery  oraz state kamery na UI - AppendState na plumberdzie, RangeValidator do komendy w atrybucie 
 
 public class GrpcFrameFeaturesService : FrameFeatures.FrameFeaturesBase
 {
