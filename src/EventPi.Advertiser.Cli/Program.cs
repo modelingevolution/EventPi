@@ -17,7 +17,7 @@ namespace EventPi.Advertiser.Cli
                 AppHost host = new AppHost();
                 host.Configure(x => 
                     x.AddSingleton<IServiceProfileEnricher,LocalhostEnricher>()
-                        .AddAdvertiser(new ServiceInfo("iot.www", 2113)));
+                        .AddAdvertiser(new ServiceInfo("http","iot.www", 2113)));
                 await host.Host.RunAsync();
             }
             else if (args.Contains("listen"))
@@ -44,7 +44,7 @@ namespace EventPi.Advertiser.Cli
     {
         public void Enrich(ServiceProfile profile)
         {
-            profile.AddProperty("Ethernet","127.0.0.1");
+            profile.AddProperty("Ethernet", "192.168.30.27");
         }
     }
     public partial class AppHost : IDisposable
