@@ -1,8 +1,12 @@
 ﻿namespace EventPi.Advertiser.Receiver;
 
 public interface IServiceName { }
-public readonly record struct ServiceName(string name) : IServiceName
+public record ServiceName : IServiceName
 {
-    public override string ToString() => name;
+    private readonly string _name;
+    private ServiceName(string name) => this._name = name;
+
+    public override string ToString() => _name;
     public static implicit operator ServiceName(string name) => new ServiceName(name);
+    
 }

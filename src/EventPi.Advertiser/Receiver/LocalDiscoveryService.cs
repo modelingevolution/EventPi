@@ -54,13 +54,13 @@ public class LocalDiscoveryService : ILocalDiscoveryService
     }
     public event EventHandler<ServerDiscoveredEventArgs> ServiceLost;
 
-    public LocalDiscoveryService(IEnumerable<ServiceName> servicesToRegister)
+    public LocalDiscoveryService(IEnumerable<IServiceName> servicesToRegister)
     {
         _listeners = new ConcurrentDictionary<ServiceName, ZeroconfResolver.ResolverListener>();
         _servicesAddresses = new ConcurrentDictionary<ServiceName, ServiceAddresses?>();
         _dictOfEvents = new ConcurrentDictionary<ServiceName, ServerDiscoveredEventArgs>();
 
-        foreach (var service in servicesToRegister) RegisterListener(service);
+        foreach (var service in servicesToRegister) RegisterListener((ServiceName)service);
     }
 
     public ServiceAddresses? GetService(ServiceName serviceName) => _servicesAddresses.GetValueOrDefault(serviceName);
