@@ -23,7 +23,7 @@ public class LocalDiscoveryService : ILocalDiscoveryService
 {
 
     private readonly ConcurrentDictionary<ServiceName,ZeroconfResolver.ResolverListener> _listeners;
-    private readonly ConcurrentDictionary<ServiceName, ServiceAddresses> _servicesAddresses;
+    private readonly ConcurrentDictionary<ServiceName, ServiceAddresses?> _servicesAddresses;
     private readonly ConcurrentDictionary<ServiceName, ServerDiscoveredEventArgs> _dictOfEvents;
 
     private readonly object _sync = new object();
@@ -46,7 +46,10 @@ public class LocalDiscoveryService : ILocalDiscoveryService
         }
         remove
         {
-
+            lock (_sync)
+            {
+                _serviceFound -= value;
+            }
         }
     }
     public event EventHandler<ServerDiscoveredEventArgs> ServiceLost;
@@ -54,21 +57,13 @@ public class LocalDiscoveryService : ILocalDiscoveryService
     public LocalDiscoveryService(IEnumerable<ServiceName> servicesToRegister)
     {
         _listeners = new ConcurrentDictionary<ServiceName, ZeroconfResolver.ResolverListener>();
-        _servicesAddresses = new ConcurrentDictionary<ServiceName, ServiceAddresses>();
+        _servicesAddresses = new ConcurrentDictionary<ServiceName, ServiceAddresses?>();
         _dictOfEvents = new ConcurrentDictionary<ServiceName, ServerDiscoveredEventArgs>();
 
-        foreach (var service in servicesToRegister)
-        {
-            RegisterListener(service);
-        }
+        foreach (var service in servicesToRegister) RegisterListener(service);
     }
 
-    public ServiceAddresses GetService(ServiceName serviceName)
-    {
-        if (_servicesAddresses.ContainsKey(serviceName))
-           return _servicesAddresses[serviceName];
-        return new ServiceAddresses();
-    }
+    public ServiceAddresses? GetService(ServiceName serviceName) => _servicesAddresses.GetValueOrDefault(serviceName);
 
     private void RegisterListener(ServiceName serviceName)
     {
@@ -79,7 +74,6 @@ public class LocalDiscoveryService : ILocalDiscoveryService
 
     private void AddService(object sender, IZeroconfHost host)
     {
-
         var srvs = host.Services;
         var properties = srvs.Values.First().Properties;
         RpiAdvertiseTools.GetWifiAndEthernet(properties, out string wifiAddress, out string ethernetAddress);
