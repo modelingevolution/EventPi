@@ -84,8 +84,11 @@ public class LocalDiscoveryService : ILocalDiscoveryService
         var properties = srvs.Values.First().Properties;
         RpiAdvertiseTools.GetWifiAndEthernet(properties, out string wifiAddress, out string ethernetAddress);
         var dict = new ConcurrentDictionary<InterfaceType, Uri>();
-        dict.TryAdd(InterfaceType.Ethernet, new Uri(ethernetAddress));
-        dict.TryAdd(InterfaceType.Wifi, new Uri(wifiAddress));
+
+        if(ethernetAddress!=String.Empty)
+             dict.TryAdd(InterfaceType.Ethernet, new Uri(ethernetAddress));
+        if (wifiAddress!=String.Empty)
+            dict.TryAdd(InterfaceType.Wifi, new Uri(wifiAddress));
 
         _servicesAddresses.TryAdd(srvs.Values.First().ServiceName, new ServiceAddresses()
         {
