@@ -6,7 +6,7 @@ public record ServiceAddresses : IEnumerable<KeyValuePair<InterfaceType, Uri>>
 {
     public HostName Hostname { get; init; }
     public string ServiceName { get; init; }
-    public IDictionary<InterfaceType, Uri> Urls { get; }
+    public IDictionary<InterfaceType, Uri> Urls { get; init; }
 
 
     public IEnumerator<KeyValuePair<InterfaceType, Uri>> GetEnumerator()
