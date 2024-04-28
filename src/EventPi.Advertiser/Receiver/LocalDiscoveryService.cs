@@ -77,12 +77,21 @@ public class LocalDiscoveryService : ILocalDiscoveryService
         var srvs = host.Services;
         var properties = srvs.Values.First().Properties;
         RpiAdvertiseTools.GetWifiAndEthernet(properties, out string wifiAddress, out string ethernetAddress);
+
         var dict = new ConcurrentDictionary<InterfaceType, Uri>();
 
-        if(ethernetAddress!=String.Empty)
-             dict.TryAdd(InterfaceType.Ethernet, new Uri(ethernetAddress));
-        if (wifiAddress!=String.Empty)
+        if (ethernetAddress != String.Empty)
+        {
+            ethernetAddress += ":" + srvs.Values.First().Port;
+            dict.TryAdd(InterfaceType.Ethernet, new Uri(ethernetAddress));
+        }
+
+        if (wifiAddress != String.Empty)
+        {
+            wifiAddress += ":" + srvs.Values.First().Port;
             dict.TryAdd(InterfaceType.Wifi, new Uri(wifiAddress));
+        }
+            
 
         _servicesAddresses.TryAdd(srvs.Values.First().ServiceName, new ServiceAddresses()
         {
