@@ -16,8 +16,8 @@ namespace EventPi.Advertiser.Cli
                 Console.WriteLine("Advertising...");
                 AppHost host = new AppHost();
                 host.Configure(x => 
-                    x.AddSingleton<IServiceProfileEnricher,LocalhostEnricher>()
-                        .AddAdvertiser(new ServiceInfo("http","iot.www", 2113)));
+                    //x.AddSingleton<IServiceProfileEnricher,LocalhostEnricher>()
+                        x.AddAdvertiser(new ServiceInfo("http","iot.www", 8080)));
                 await host.Host.RunAsync();
             }
             else if (args.Contains("listen"))
