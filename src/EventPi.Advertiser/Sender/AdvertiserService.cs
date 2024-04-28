@@ -15,13 +15,14 @@ namespace EventPi.Advertiser.Sender
         private readonly List<AdvertiseSender> _advertisers;
 
 
-        public AdvertiserService(ILogger<AdvertiserService> logger, IEnumerable<IServiceInfo> services)
+        public AdvertiserService(ILogger<AdvertiserService> logger, IServiceProfileEnricher enrichers, IEnumerable<IServiceInfo> services)
         {
             _logger = logger;
             _advertisers = new List<AdvertiseSender>();
             foreach (var service in services)
             {
-                _advertisers.Add(AdvertiseSender.Create(Dns.GetHostName(), service.ServiceName, service.Port));
+                _advertisers.Add(AdvertiseSender.Create(enrichers, service.Schema, Dns.GetHostName(),  service.ServiceName, service.Port));
+                logger.LogInformation($"Advertising {service.ServiceName}: {service.Schema}://{{IP}}:{service.Port}");
             }
 
         }
@@ -34,9 +35,9 @@ namespace EventPi.Advertiser.Sender
                 foreach (var service in _advertisers)
                 {
                     service.Advertise();
-                    await Task.Delay(500);
+                    await Task.Delay(500, cancellationToken);
                 }
-                await Task.Delay(20000);
+                await Task.Delay(20000, cancellationToken);
             }
 
 

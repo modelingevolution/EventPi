@@ -2,7 +2,7 @@
 
 public interface ILocalDiscoveryService
 {
-    public ServiceAddresses? GetService(ServiceName serviceName);
+    public IEnumerable<ServiceAddress> GetService(ServiceName serviceName);
     event EventHandler<ServerDiscoveredEventArgs> ServiceFound;
     event EventHandler<ServerDiscoveredEventArgs> ServiceLost;
 }
