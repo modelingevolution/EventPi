@@ -22,6 +22,7 @@ public static class ContainerExtensions
         foreach (var service in services)
             container.AddSingleton<IServiceInfo>(service);
 
+        container.TryAddSingleton<IServiceProfileEnricher, WifiAndEthernetEnricher>();
         container.AddSingleton<AdvertiserService>();
         container.AddHostedService<AdvertiserService>();
         return container;

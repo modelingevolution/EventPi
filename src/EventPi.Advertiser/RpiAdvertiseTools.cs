@@ -3,7 +3,7 @@ using Makaretu.Dns;
 
 namespace EventPi.Advertiser;
 
-public static class RpiAdvertiseTools
+public static class DiscoveryProperties
 {
     public static string GetInterfaceAddress(NetworkInterface ni)
     {
@@ -48,10 +48,11 @@ public static class RpiAdvertiseTools
         return interfaceWifi;
 
     }
-    public static void GetWifiAndEthernet(IReadOnlyList<IReadOnlyDictionary<string, string>> properties, out string wifiAddress, out string ethernetAddress)
+    public static void RetriveProperties(IReadOnlyList<IReadOnlyDictionary<string, string>> properties, out string wifiAddress, out string ethernetAddress, out string schema)
     {
         wifiAddress = String.Empty;
         ethernetAddress = String.Empty;
+        schema = "tcp";
         foreach (var pair in properties)
         {
             if (pair.ContainsKey("Ethernet"))
@@ -63,7 +64,11 @@ public static class RpiAdvertiseTools
             {
                 wifiAddress = pair["Wifi"];
             }
+
+            if (pair.ContainsKey("Schema"))
+                schema = pair["Schema"];
         }
+        
     }
     public static ServiceProfile AddWifiAndEthernetAddressesToProfile(this ServiceProfile profile)
     {

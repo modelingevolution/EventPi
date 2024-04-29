@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "EventPi.Advertiser.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "advertise"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": "",
+      "commandLineArgs": "advertise"
+    }
+  }
+}

@@ -1,6 +1,9 @@
 ﻿namespace EventPi.Advertiser.Receiver;
 
 public interface IServiceName { }
+
+public readonly record struct ServiceInstance(ServiceName Name, HostName Host);
+
 public record ServiceName : IServiceName
 {
     private readonly string _name;
