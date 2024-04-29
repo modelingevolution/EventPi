@@ -1,9 +1,6 @@
-﻿using MicroPlumberd;
+﻿namespace EventPi.Services.Camera;
 
-namespace EventPi.Services.Camera;
-
-[OutputStream("Camera")]
-public record CameraState : ICameraParameters
+public interface ICameraParameters
 {
     public int Shutter { get; set; }
     public float AnalogueGain { get; set; }

@@ -7,8 +7,6 @@ using MicroPlumberd.DirectConnect;
 
 namespace EventPi.Services.Camera;
 
-//TODO: zrobic komende do kamery  oraz state kamery na UI - AppendState na plumberdzie, RangeValidator do komendy w atrybucie 
-
 public class GrpcFrameFeaturesService : FrameFeatures.FrameFeaturesBase
 {
     private readonly ILogger<GrpcFrameFeaturesService> _logger;
@@ -31,8 +29,8 @@ public class GrpcFrameFeaturesService : FrameFeatures.FrameFeaturesBase
             TotalBrightPixels = request.TotalBrightPixels,
             TotalDarkPixels = request.TotalDarkPixels,
         };
-       // OnFrameFeaturesAppeared.Invoke(this,ev);
-        _logger.LogInformation(ev.ToString());
+        OnFrameFeaturesAppeared.Invoke(this,ev);
+      
         return new Empty();
     }
 

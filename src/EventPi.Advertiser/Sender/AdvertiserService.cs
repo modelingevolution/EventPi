@@ -12,7 +12,7 @@ namespace EventPi.Advertiser.Sender
     {
         private CancellationTokenSource _cancellationTokenSource;
         private readonly ILogger<AdvertiserService> _logger;
-        private readonly IEnumerable<AdvertiseSender> _advertisers;
+        private readonly List<AdvertiseSender> _advertisers;
 
 
         public AdvertiserService(ILogger<AdvertiserService> logger, IEnumerable<IServiceInfo> services)
@@ -21,7 +21,7 @@ namespace EventPi.Advertiser.Sender
             _advertisers = new List<AdvertiseSender>();
             foreach (var service in services)
             {
-                _advertisers.Append(AdvertiseSender.Create(Dns.GetHostName(), service.ServiceName, service.Port));
+                _advertisers.Add(AdvertiseSender.Create(Dns.GetHostName(), service.ServiceName, service.Port));
             }
 
         }

@@ -1,18 +1,19 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
+using WeldingAutomation.CameraOptions;
 using static System.Net.WebRequestMethods;
 
 namespace EventPi.Services.Camera
 {
  
-    public class GrpcCppProxy : IDisposable
+    public class GrpcCppCameraProxy : IDisposable
     {
         private GrpcChannel _toCppChannel;
-        private readonly ILogger<GrpcCppProxy> _logger;
+        private readonly ILogger<GrpcCppCameraProxy> _logger;
         private string _cppGrpcUri = "";
 
-        public GrpcCppProxy(ILogger<GrpcCppProxy> logger)
+        public GrpcCppCameraProxy(ILogger<GrpcCppCameraProxy> logger)
         {
             _logger = logger;
         }
@@ -25,7 +26,22 @@ namespace EventPi.Services.Camera
         }
         public async Task<Empty> ProcessAsync(CameraConfigurationProfile ev)
         {
-      
+            
+            return new Empty();
+        }
+        public async Task<Empty> ProcessAsync(ICameraParameters ev)
+        {
+            var client = new CameraOptions.CameraOptionsClient(_toCppChannel);
+            Empty? response = await client.ProcessAsync(new CameraOptionsRequest()
+            {
+                AnologueGain = ev.AnalogueGain,
+                BlueGain = ev.BlueGain,
+                RedGain = ev.RedGain,
+                Brightness = ev.Brightness,
+                Contrast = ev.Contrast,
+                DigitalGain = ev.DigitalGain,
+                Sharpness = ev.Sharpness
+            });
             return new Empty();
         }
 

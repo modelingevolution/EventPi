@@ -20,7 +20,7 @@ namespace EventPi.Advertiser.Cli
             {
                 Console.WriteLine("Listening...");
                 AppHost host = new AppHost();
-                host.Configure(x => x.AddLocalDiscoveryService("iot.www"));
+                host.Configure(x => x.AddLocalDiscoveryService("iot.www.local"));
                 var sp = await host.StartAsync();
                 sp.GetRequiredService<ILocalDiscoveryService>().ServiceFound += (s, e) => { Console.WriteLine($"Service found, host:{e.Hostname}, service: {e.ServiceName}, url:{e.Url}"); };
                 Console.ReadLine();

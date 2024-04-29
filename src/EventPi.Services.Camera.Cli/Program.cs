@@ -1,4 +1,6 @@
+using MicroPlumberd.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using System;
 
 namespace EventPi.Services.Camera.Cli
 {
@@ -13,6 +15,10 @@ namespace EventPi.Services.Camera.Cli
             builder.Services.AddControllers();
             builder.Services.AddGrpc();
             builder.Services.AddSingleton<GrpcFrameFeaturesService>();
+            builder.Services.AddSingleton<WeldingDetectorService>();
+            builder.Services.AddSingleton<GrpcCppCameraProxy>();
+            builder.Services.AddPlumberd();
+
             builder.WebHost.UseKestrel(
                 options =>
                 {

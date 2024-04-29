@@ -4,7 +4,6 @@ using ProtoBuf;
 
 namespace EventPi.Services.Camera;
 
-
 [OutputStream("Camera")]
 public class SetCameraParameters
 {

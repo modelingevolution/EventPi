@@ -21,6 +21,7 @@
 
 	<ItemGroup>
 		<Protobuf Include="Protos\frameFeatures.proto" GrpcServices="Server" />
+		<Protobuf Include="Protos\cameraOptions.proto" GrpcServices="Client" />
 	</ItemGroup>
 
   <ItemGroup>

@@ -11,14 +11,14 @@ public partial class CameraProfileConfigurationModel
     private CameraConfigurationProfile? _currentProfile;
 
     private ConcurrentDictionary<string, CameraConfigurationProfile> _availableProfiles;
-    private readonly GrpcCppProxy _proxy;
+    private readonly GrpcCppCameraProxy _cameraProxy;
 
     public CameraConfigurationProfile? CurrentProfile => _currentProfile;
-    public CameraProfileConfigurationModel(IEnvironment env, GrpcCppProxy proxy)
+    public CameraProfileConfigurationModel(IEnvironment env, GrpcCppCameraProxy cameraProxy)
     {
         _availableProfiles = new ConcurrentDictionary<string, CameraConfigurationProfile>();
-        _proxy = proxy;
-        _proxy.InitProxy();
+        _cameraProxy = cameraProxy;
+        _cameraProxy.InitProxy();
     }
     private async Task Given(Metadata m, CameraProfileConfigurationDefined ev)
     {
@@ -29,7 +29,7 @@ public partial class CameraProfileConfigurationModel
     private async Task Given(Metadata m, CameraConfigurationProfileApplied ev)
     {
         var selectedProfile = _availableProfiles[ev.ProfileName];
-        await _proxy.ProcessAsync(selectedProfile);
+        await _cameraProxy.ProcessAsync(selectedProfile);
         _currentProfile = selectedProfile;
     }
 }

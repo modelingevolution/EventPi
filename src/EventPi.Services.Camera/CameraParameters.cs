@@ -1,0 +1,1 @@
+﻿namespace EventPi.Services.Camera;

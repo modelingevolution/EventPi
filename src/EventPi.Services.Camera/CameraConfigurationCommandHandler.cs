@@ -1,6 +1,7 @@
 ﻿using EventStore.Client;
 using MicroPlumberd;
 using MicroPlumberd.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventPi.Services.Camera;
 
@@ -24,7 +25,8 @@ public partial class CameraProfileConfigurationCommandHandler(IPlumber plumber)
         };
         
         await plumber.AppendEvent(ev);
-    } 
+    }
   
+
 
 }

@@ -19,6 +19,11 @@ public static class RpiAdvertiseTools
         var interfaceEthernet = string.Empty;
         foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
         {
+            if(ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet && ni.OperationalStatus==OperationalStatus.Up && ni.Name=="Ethernet")
+            {
+                interfaceEthernet = GetInterfaceAddress(ni);
+            }
+            //for Rpi
             switch (ni.Description)
             {
                 case "eth0":

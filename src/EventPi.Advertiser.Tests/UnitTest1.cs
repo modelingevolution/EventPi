@@ -15,20 +15,23 @@ namespace EventPi.Advertiser.Tests
         [Fact]
         public async Task AdvertiseAndReceiveServices()
         {
-            
+            int servicesFounded = 0;
             _hostClient.Configure(x => x.AddAdvertiser( new ServiceInfo("Video.tcp", 9001), new ServiceInfo("EventStore.tcp", 2113)));
             await _hostClient.StartAsync();
 
-            _hostServer.Configure(x => x.AddLocalDiscoveryService("Video.tcp","EventStore.tcp"));
+            _hostServer.Configure(x => x.AddLocalDiscoveryService("Video.tcp.local.","EventStore.tcp.local."));
             await _hostServer.StartAsync();
 
             CancellationTokenSource cst = new CancellationTokenSource();
             _hostServer.Host.Services.GetRequiredService<ILocalDiscoveryService>().ServiceFound +=
-                (s, e) => { cst.Cancel(); };
+                (s, e) =>
+                {
+                    servicesFounded++;
+                };
 
 
-            await Task.Delay(TimeSpan.FromSeconds(30), cst.Token);
-            cst.IsCancellationRequested.Should().BeTrue();
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            servicesFounded.Should().Be(2);
 
         }
 

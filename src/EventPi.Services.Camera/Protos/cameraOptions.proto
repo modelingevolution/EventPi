@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "WeldingAutomation.CameraOptions";
+
+package weldingautomationAI;
+
+service CameraOptions
+{
+    rpc Process (CameraOptionsRequest) returns (google.protobuf.Empty);
+}
+
+
+message CameraOptionsRequest
+{
+    float AnologueGain = 1;
+    float DigitalGain = 2;
+    float Contrast = 3;
+    float Sharpness = 4;
+    float Brightness = 5;
+    float BlueGain = 6;
+    float RedGain = 7;
+
+
+}

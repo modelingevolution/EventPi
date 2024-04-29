@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EventPi.Services.Camera\EventPi.Services.Camera.csproj" />
+    <PackageReference Include="ModelingEvolution.Drawing" Version="1.0.20.21" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\EventPi.Services.Camera\EventPi.Services.Camera.csproj" />
   </ItemGroup>
 
 </Project>
