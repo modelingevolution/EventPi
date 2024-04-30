@@ -16,11 +16,12 @@ namespace EventPi.Services.Camera
         public GrpcCppCameraProxy(ILogger<GrpcCppCameraProxy> logger)
         {
             _logger = logger;
+            InitProxy();
         }
 
         public void InitProxy(string url="")
         {
-            _cppGrpcUri = string.IsNullOrWhiteSpace(url)? "http://localhost:6500" : url;
+            _cppGrpcUri = string.IsNullOrWhiteSpace(url)? "http://127.0.0.1:6500" : url;
             _logger.LogInformation($"Grpc cpp proxy initialized for address: {_cppGrpcUri}");
             _toCppChannel = GrpcChannel.ForAddress(_cppGrpcUri);
         }
