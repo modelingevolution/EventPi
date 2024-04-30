@@ -2,7 +2,7 @@
 import "google/protobuf/empty.proto";
 option csharp_namespace = "WeldingAutomation.CameraOptions";
 
-package weldingautomationAI;
+package cameraAI;
 
 service CameraOptions
 {

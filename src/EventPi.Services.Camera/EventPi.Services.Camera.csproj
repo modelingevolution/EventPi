@@ -17,9 +17,10 @@
 	  <Authors>ModelingEvolution Team</Authors>
   </PropertyGroup>
 
- 
+
 
 	<ItemGroup>
+		<Protobuf Include="Protos\cameraShutter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\frameFeatures.proto" GrpcServices="Server" />
 		<Protobuf Include="Protos\cameraOptions.proto" GrpcServices="Client" />
 	</ItemGroup>

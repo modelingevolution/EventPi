@@ -1,0 +1,14 @@
+﻿syntax = "proto3";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "WeldingAutomation.CameraShutter";
+
+package cameraAI;
+
+service CameraShutter {
+  rpc Process (ConfigureShutterRequest) returns (google.protobuf.Empty);
+}
+
+
+message ConfigureShutterRequest {
+  int32 Shutter = 1;
+}

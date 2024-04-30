@@ -2,6 +2,7 @@
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 using WeldingAutomation.CameraOptions;
+using WeldingAutomation.CameraShutter;
 using static System.Net.WebRequestMethods;
 
 namespace EventPi.Services.Camera
@@ -32,8 +33,8 @@ namespace EventPi.Services.Camera
         }
         public async Task<Empty> ProcessAsync(ICameraParameters ev)
         {
-            var client = new CameraOptions.CameraOptionsClient(_toCppChannel);
-            Empty? response = await client.ProcessAsync(new CameraOptionsRequest()
+            var clientOptions = new CameraOptions.CameraOptionsClient(_toCppChannel);
+           await clientOptions.ProcessAsync(new CameraOptionsRequest()
             {
                 AnologueGain = ev.AnalogueGain,
                 BlueGain = ev.BlueGain,
@@ -43,6 +44,11 @@ namespace EventPi.Services.Camera
                 DigitalGain = ev.DigitalGain,
                 Sharpness = ev.Sharpness
             });
+           var clientShutter = new CameraShutter.CameraShutterClient(_toCppChannel);
+            await clientShutter.ProcessAsync(new ConfigureShutterRequest()
+           {
+             Shutter = ev.Shutter
+           });
             return new Empty();
         }
 
