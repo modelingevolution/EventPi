@@ -27,7 +27,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Plumberd" Version="2.0.0.2" />
+    <PackageReference Include="Plumberd" Version="2.0.0.3" />
   </ItemGroup>
 
 </Project>
