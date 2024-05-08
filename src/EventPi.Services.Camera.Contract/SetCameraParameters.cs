@@ -20,7 +20,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     private float _redGain;
     public Guid Id { get; init; } = Guid.NewGuid();
 
-    [Range(1, 40000)]
+        [Range(1, 40000)]
     public int Shutter
     {
         get => _shutter;
@@ -90,7 +90,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
         OnPropertyChanged(propertyName);
         return true;
     }
-    public SetCameraParameters CopyFrom(ICameraParametersReadOnly src)
+    public SetCameraParameters CopyFrom(ICameraParametersReadOnly src, bool raiseChange = false)
     {
         _analogueGain = src.AnalogueGain;
         _digitalGain = src.DigitalGain;
@@ -100,6 +100,8 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
         _blueGain = src.BlueGain;
         _redGain = src.RedGain;
         _shutter = src.Shutter;
+        if(raiseChange)
+            this.OnPropertyChanged();
         return this;
     }
 

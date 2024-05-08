@@ -1,5 +1,7 @@
-﻿@using ModelingEvolution.Observable.Blazor
-@inject CameraControlsVm _vm
+﻿@using Microsoft.AspNetCore.Http
+@using ModelingEvolution.Observable.Blazor
+@inject CameraControlVmRegister _vmRegister
+
 <MudStack>
     <Observable Source="@_vm.SetCameraParameters">
         <MudSimpleTable Dense="true" Bordered="false">
@@ -44,9 +46,15 @@
 
     private SetCameraParameters _cmd;
 
+    private CameraControlsVm _vm;
+
     protected override async Task OnInitializedAsync()
     {
+        _vm = _vmRegister.Get($"{HostName}/{ProfileName}");
         _cmd = _vm.SetCameraParameters;
+        // var isPrerender = Context is null || Context.HttpContext.Response.HasStarted;
+        // if (isPrerender)
+        //     return;
         await _vm.Initialize(HostName, ProfileName);
     }
 

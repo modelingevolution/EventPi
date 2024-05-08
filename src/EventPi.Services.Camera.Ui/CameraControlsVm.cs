@@ -14,7 +14,7 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
     private readonly SetCameraParameters _setCameraParameters = new SetCameraParameters();
     private readonly DefineProfileConfiguration _defineProfileConfiguration = new();
     private string? _hostName;
-    private ISubscriptionRunner? _camParametersSub;
+    //private ISubscriptionRunner? _camParametersSub;
     private ISubscriptionRunner? _camProfileSub;
     public SetCameraParameters SetCameraParameters => _setCameraParameters;
     public DefineProfileConfiguration DefineProfileConfiguration => _defineProfileConfiguration;
@@ -65,16 +65,24 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
         SetCameraParameters.CopyFrom(_prv);
         SetCamera();
     }
+
+    private bool _initialized = false;
     public async Task Initialize(string hostName, string? profileName=null)
     {
+        if (_initialized)
+        {
+            if (_hostName != hostName || _profileName != (profileName ?? "default"))
+                throw new InvalidOperationException();
+            return;
+        }
         _hostName = hostName;
         _profileName = profileName ?? "default";
         _defineProfileConfiguration.Hostname = hostName;
         _defineProfileConfiguration.Profile = _profileName;
-        
-        await (_camParametersSub=_plumber.Subscribe(CameraParametersState.FullStreamName(_hostName), FromRelativeStreamPosition.End - 1))
-            .WithSnapshotHandler(this);
-        await (_camProfileSub = _plumber.Subscribe(CameraProfile.FullStreamName(_hostName, _profileName), FromRelativeStreamPosition.End - 1))
+        _initialized = true;
+        //await (_camParametersSub=_plumber.Subscribe(CameraParametersState.FullStreamName(_hostName), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
+        //    .WithSnapshotHandler(this);
+        await (_camProfileSub = _plumber.Subscribe(CameraProfile.FullStreamName(_hostName, _profileName), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
             .WithSnapshotHandler(this);
     }
 
@@ -86,14 +94,14 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
     private async Task Given(Metadata m, CameraProfile ev)
     {
         _prv = ev;
-        this.SetCameraParameters.CopyFrom(ev);
+        this.SetCameraParameters.CopyFrom(ev,true);
         OnPropertyChanged("Command");
     }
-    private async Task Given(Metadata m, CameraParametersState ev)
-    {
-        this.SetCameraParameters.CopyFrom(ev);
-        OnPropertyChanged("Command");
-    }
+    //private async Task Given(Metadata m, CameraParametersState ev)
+    //{
+    //    //this.SetCameraParameters.CopyFrom(ev);
+    //    OnPropertyChanged("Command");
+    //}
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -113,8 +121,8 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
     public async ValueTask DisposeAsync()
     {
         await _cts.CancelAsync();
-        if(_camParametersSub != null)
-            await _camParametersSub.DisposeAsync();
+        //if(_camParametersSub != null)
+        //    await _camParametersSub.DisposeAsync();
         if (_camProfileSub != null)
             await _camProfileSub.DisposeAsync();
     }
