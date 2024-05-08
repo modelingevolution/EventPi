@@ -1,0 +1,53 @@
+﻿@using ModelingEvolution.Observable.Blazor
+@inject CameraControlsVm _vm
+<MudStack>
+    <Observable Source="@_vm.SetCameraParameters">
+        <MudSimpleTable Dense="true" Bordered="false">
+            <tbody>
+            <tr>
+                <td style="width: 150px"><MudNumericField @bind-Value="@_cmd.Shutter" Label="Shutter"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.Shutter" Min="1" Max="40000" Step="1" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
+                <td><MudNumericField Label="Analogue Gain:" @bind-Value="@_cmd.AnalogueGain"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.AnalogueGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+            </tr>
+
+            <tr>
+                <td><MudNumericField Label="Sharpness:" @bind-Value="@_cmd.Sharpness" For="() => _cmd.Sharpness"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.Sharpness" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
+                <td><MudNumericField Label="Brightness:" @bind-Value="@_cmd.Brightness" For="() => _cmd.Brightness"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.Brightness" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
+                <td><MudNumericField Label="Contrast:" @bind-Value="@_cmd.Contrast" For="() => _cmd.Contrast"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.Contrast" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+            </tr>
+            </tbody>
+        </MudSimpleTable>
+    </Observable>
+    <MudButtonGroup Variant="Variant.Filled">
+        <MudButton OnClick="@_vm.Cancel" >Cancel</MudButton>
+        <MudButton OnClick="@_vm.Save" >Save</MudButton>
+    </MudButtonGroup>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string HostName { get; set; }
+
+    [Parameter]
+    public string? ProfileName { get; set; }
+
+    private SetCameraParameters _cmd;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cmd = _vm.SetCameraParameters;
+        await _vm.Initialize(HostName, ProfileName);
+    }
+
+}

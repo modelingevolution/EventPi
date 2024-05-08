@@ -3,7 +3,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using EventPi.Services.Camera;
 using System;
-using MicroPlumberd.DirectConnect;
+
 
 namespace EventPi.Services.Camera;
 

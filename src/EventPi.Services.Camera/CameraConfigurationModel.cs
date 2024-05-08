@@ -20,7 +20,7 @@ public partial class CameraProfileConfigurationModel
         _cameraProxy = cameraProxy;
         _cameraProxy.InitProxy();
     }
-    private async Task Given(Metadata m, CameraProfileConfigurationDefined ev)
+    private async Task Given(Metadata m, CameraProfile ev)
     {
         var profile = new CameraConfigurationProfile(ev);
        _availableProfiles.AddOrUpdate(profile.ProfileName,profile, (key, oldValue) => profile);
