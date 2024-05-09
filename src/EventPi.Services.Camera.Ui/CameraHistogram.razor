@@ -1,0 +1,54 @@
+@using EventPi.Services.Camera.Contract
+@using MicroPlumberd
+@using ModelingEvolution.Controls.Blazor.HistogramControl
+@using ModelingEvolution.Drawing
+@inject IPlumber _plumber
+<MudStack Style="@Style">
+    <Histogram >
+        <HistogramSeries @bind-Points="@this._points"/>
+    </Histogram>
+    <MudButtonGroup Variant="Variant.Filled">
+        <MudButton OnClick="@OnCancel">Cancel</MudButton>
+        <MudButton OnClick="@OnSave">Save</MudButton>
+    </MudButtonGroup>
+</MudStack>
+@code
+{
+    [Parameter]
+    public string HostName { get; set; }
+
+    [Parameter]
+    public string? ProfileName { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    PointD[] _points;
+
+    private HostProfilePath Id() => HostProfilePath.Create(HostName, ProfileName);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        CameraHistogramFilter state = await _plumber.GetState<CameraHistogramFilter>(Id());
+        if (state != null)
+        {
+            _points = state.Points;
+        }
+    }
+
+    private void OnCancel()
+    {
+        
+    }
+
+    private async Task OnSave()
+    {
+        var state = new CameraHistogramFilter()
+        {
+            Points = this._points,
+            ProfileName = ProfileName
+        };
+
+        await _plumber.AppendState(state, Id());
+    }
+}

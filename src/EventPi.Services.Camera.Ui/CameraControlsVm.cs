@@ -12,12 +12,12 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
     private CameraProfile? _prv;
     
     private readonly SetCameraParameters _setCameraParameters = new SetCameraParameters();
-    private readonly DefineProfileConfiguration _defineProfileConfiguration = new();
+    private readonly DefineProfileCameraParameters _defineProfileCameraParameters = new();
     private string? _hostName;
     //private ISubscriptionRunner? _camParametersSub;
     private ISubscriptionRunner? _camProfileSub;
     public SetCameraParameters SetCameraParameters => _setCameraParameters;
-    public DefineProfileConfiguration DefineProfileConfiguration => _defineProfileConfiguration;
+    public DefineProfileCameraParameters DefineProfileCameraParameters => _defineProfileCameraParameters;
     private readonly Channel<SetCameraParameters> _channel;
     private readonly IPlumber _plumber;
     private readonly ICommandBus _bus;
@@ -54,10 +54,11 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
         _channel.Writer.WriteAsync(dto);
     }
 
+    public HostProfilePath StreamId => HostProfilePath.Create(_hostName!, _profileName);
     public async Task Save()
     {
-        var dto = _defineProfileConfiguration.CopyFrom(this.SetCameraParameters);
-        await _bus.SendAsync(CameraProfile.StreamId(_hostName, _profileName), dto);
+        var dto = _defineProfileCameraParameters.CopyFrom(this.SetCameraParameters);
+        await _bus.SendAsync(StreamId, dto);
     }
     public async Task Cancel()
     {
@@ -77,12 +78,11 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
         }
         _hostName = hostName;
         _profileName = profileName ?? "default";
-        _defineProfileConfiguration.Hostname = hostName;
-        _defineProfileConfiguration.Profile = _profileName;
+        
         _initialized = true;
         //await (_camParametersSub=_plumber.Subscribe(CameraParametersState.FullStreamName(_hostName), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
         //    .WithSnapshotHandler(this);
-        await (_camProfileSub = _plumber.Subscribe(CameraProfile.FullStreamName(_hostName, _profileName), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
+        await (_camProfileSub = _plumber.Subscribe(CameraProfile.FullStreamName(StreamId), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
             .WithSnapshotHandler(this);
     }
 

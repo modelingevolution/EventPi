@@ -1,4 +1,4 @@
-﻿namespace EventPi.Services.Camera;
+﻿namespace EventPi.Services.Camera.Contract;
 
 public record CameraConfigurationProfileApplied
 {

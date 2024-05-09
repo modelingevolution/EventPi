@@ -24,10 +24,8 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-
-
   <ItemGroup>
-    <PackageReference Include="Plumberd" Version="2.0.0.3" />
+    <PackageReference Include="MicroPlumberd" Version="1.0.60.112" />
+    <PackageReference Include="ModelingEvolution.DirectConnect" Version="1.0.8.25" />
   </ItemGroup>
-
 </Project>

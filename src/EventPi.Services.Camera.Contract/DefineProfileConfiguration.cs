@@ -1,14 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ModelingEvolution.Drawing;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using EventPi.Services.Camera.Contract;
-using MicroPlumberd;
 
+namespace EventPi.Services.Camera.Contract;
 
-namespace EventPi.Services.Camera;
-
-
-public class DefineProfileConfiguration : ICameraParameters
+public class DefineProfileCameraHistogramFilter
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Point<double>[] Points { get; set; }
+    [NotNull]
+    public string Hostname { get; set; }
+    [NotNull]
+    public string Profile { get; set; }
+}
+public class DefineProfileCameraParameters : ICameraParameters
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -21,12 +25,9 @@ public class DefineProfileConfiguration : ICameraParameters
     public float Contrast { get; set; }
     public float Sharpness { get; set; }
     public int CameraId { get; set; }
-    [NotNull]
-    public string Hostname { get; set; }
-    [NotNull]
-    public string Profile { get; set; }
 
-    public DefineProfileConfiguration CopyFrom(ICameraParametersReadOnly src)
+    
+    public DefineProfileCameraParameters CopyFrom(ICameraParametersReadOnly src)
     {
         Shutter = src.Shutter;
         DigitalGain = src.DigitalGain;

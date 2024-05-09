@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Controls.Blazor\Source\ModelingEvolution.Controls.Blazor.HistogramControl\ModelingEvolution.Controls.Blazor.HistogramControl.csproj" />
     <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable.Blazor\ModelingEvolution.Observable.Blazor.csproj" />
     <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable\ModelingEvolution.Observable.csproj" />
     <ProjectReference Include="..\EventPi.Services.Camera.Contract\EventPi.Services.Camera.Contract.csproj" />

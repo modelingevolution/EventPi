@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
-using EventPi.Services.Camera.Contract;
 using MicroPlumberd;
 
-
-namespace EventPi.Services.Camera;
+namespace EventPi.Services.Camera.Contract;
 
 [OutputStream("Camera")]
 public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, ICameraParametersReadOnly

@@ -7,5 +7,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MicroPlumberd" Version="1.0.60.112" />
+    <PackageReference Include="ModelingEvolution.Drawing" Version="1.0.25.22" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
   </ItemGroup>
 </Project>

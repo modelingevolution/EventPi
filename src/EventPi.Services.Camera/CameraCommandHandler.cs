@@ -2,19 +2,22 @@
 using MicroPlumberd;
 using MicroPlumberd.Services;
 using System.ComponentModel.DataAnnotations;
+using EventPi.Abstractions;
 using EventPi.Services.Camera.Contract;
 
 namespace EventPi.Services.Camera;
 
-
 [CommandHandler]
 public partial class CameraCommandHandler(IPlumber plumber)
 {
-    public async Task Handle(string hostProfilePath, DefineProfileConfiguration cmd)
+    public async Task Handle(HostProfilePath hostProfilePath, DefineProfileCameraHistogramFilter cmd)
+    {
+
+    }
+    public async Task Handle(HostProfilePath hostProfilePath, DefineProfileCameraParameters cmd)
     {
         var ev = new CameraProfile()
         {
-            Hostname = cmd.Hostname,
             Brightness = cmd.Brightness,
             Contrast = cmd.Contrast,
             Shutter = cmd.Shutter,
@@ -22,13 +25,12 @@ public partial class CameraCommandHandler(IPlumber plumber)
             AnalogueGain = cmd.AnalogueGain,
             DigitalGain = cmd.DigitalGain,
             CameraId = cmd.CameraId,
-            Profile = cmd.Profile,
         };
         
         await plumber.AppendState(ev, hostProfilePath);
     }
 
-    public async Task Handle(string hostName, SetCameraParameters cmd)
+    public async Task Handle(HostName hostName, SetCameraParameters cmd)
     {
         var ev = new CameraParametersState()
         {
