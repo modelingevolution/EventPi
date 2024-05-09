@@ -3,9 +3,10 @@
 @using ModelingEvolution.Controls.Blazor.HistogramControl
 @using ModelingEvolution.Drawing
 @inject IPlumber _plumber
+@inject ICommandBus _bus
 <MudStack Style="@Style">
     <Histogram >
-        <HistogramSeries @bind-Points="@this._points"/>
+        <HistogramSeries @bind-Points="@this._cmd.Points"/>
     </Histogram>
     <MudButtonGroup Variant="Variant.Filled">
         <MudButton OnClick="@OnCancel">Cancel</MudButton>
@@ -23,32 +24,29 @@
     [Parameter]
     public string? Style { get; set; }
 
-    PointD[] _points;
+    
 
     private HostProfilePath Id() => HostProfilePath.Create(HostName, ProfileName);
+    private DefineProfileCameraHistogramFilter _cmd = new DefineProfileCameraHistogramFilter();
+    private PointD[] _prv;
 
     protected override async Task OnParametersSetAsync()
     {
         CameraHistogramFilter state = await _plumber.GetState<CameraHistogramFilter>(Id());
         if (state != null)
         {
-            _points = state.Points;
+            _cmd.Points = _prv = state.Points;
         }
     }
 
     private void OnCancel()
     {
-        
+        _cmd.Points = _prv;
     }
 
     private async Task OnSave()
     {
-        var state = new CameraHistogramFilter()
-        {
-            Points = this._points,
-            ProfileName = ProfileName
-        };
-
-        await _plumber.AppendState(state, Id());
+        var dto = _cmd with { Id = Guid.NewGuid() };
+        await _bus.SendAsync(Id(), dto);
     }
 }

@@ -12,7 +12,7 @@ public record CameraHistogramFilter : IStatefulStream<HostProfilePath>
     public static string FullStreamName(HostProfilePath id) => $"CameraHistogramFilter-{id}";
     
     public Point<double>[] Points { get; set; }
-    public string ProfileName { get; set; }
+    
 }
 [OutputStream("CameraProfile")]
 public record CameraProfile : ICameraParametersReadOnly, IStatefulStream<HostProfilePath>

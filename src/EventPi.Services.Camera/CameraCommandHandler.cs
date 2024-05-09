@@ -12,7 +12,11 @@ public partial class CameraCommandHandler(IPlumber plumber)
 {
     public async Task Handle(HostProfilePath hostProfilePath, DefineProfileCameraHistogramFilter cmd)
     {
-
+        var state = new CameraHistogramFilter()
+        {
+            Points = cmd.Points
+        };
+        await plumber.AppendState(state, hostProfilePath);
     }
     public async Task Handle(HostProfilePath hostProfilePath, DefineProfileCameraParameters cmd)
     {

@@ -3,14 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EventPi.Services.Camera.Contract;
 
-public class DefineProfileCameraHistogramFilter
+public record DefineProfileCameraHistogramFilter
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Point<double>[] Points { get; set; }
-    [NotNull]
-    public string Hostname { get; set; }
-    [NotNull]
-    public string Profile { get; set; }
+    
 }
 public class DefineProfileCameraParameters : ICameraParameters
 {
