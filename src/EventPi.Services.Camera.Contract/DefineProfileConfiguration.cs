@@ -3,12 +3,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EventPi.Services.Camera.Contract;
 
+public record SetCameraHistogramFilter
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public byte[] Values { get; set; }
+}
 public record DefineProfileCameraHistogramFilter
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Point<double>[] Points { get; set; }
-    
 }
+
+
 public class DefineProfileCameraParameters : ICameraParameters
 {
     public Guid Id { get; set; } = Guid.NewGuid();

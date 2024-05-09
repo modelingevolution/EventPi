@@ -10,9 +10,17 @@ namespace EventPi.Services.Camera;
 [CommandHandler]
 public partial class CameraCommandHandler(IPlumber plumber)
 {
-    public async Task Handle(HostProfilePath hostProfilePath, DefineProfileCameraHistogramFilter cmd)
+    public async Task Handle(HostName hostName, SetCameraHistogramFilter cmd)
     {
         var state = new CameraHistogramFilter()
+        {
+            Values = cmd.Values
+        };
+        await plumber.AppendState(state, hostName);
+    }
+    public async Task Handle(HostProfilePath hostProfilePath, DefineProfileCameraHistogramFilter cmd)
+    {
+        var state = new CameraProfileHistogramFilter()
         {
             Points = cmd.Points
         };

@@ -6,13 +6,22 @@ using ModelingEvolution.Drawing;
 
 namespace EventPi.Services.Camera.Contract;
 
-[OutputStream("CameraHistogramFilter")]
-public record CameraHistogramFilter : IStatefulStream<HostProfilePath>
+[OutputStream("CameraProfileHistogramFilter")]
+public record CameraProfileHistogramFilter : IStatefulStream<HostProfilePath>
 {
-    public static string FullStreamName(HostProfilePath id) => $"CameraHistogramFilter-{id}";
+    public static string FullStreamName(HostProfilePath id) => $"CameraProfileHistogramFilter-{id}";
     
     public Point<double>[] Points { get; set; }
     
+}
+
+[OutputStream("CameraHistogramFilter")]
+public record CameraHistogramFilter : IStatefulStream<HostName>
+{
+    public static string FullStreamName(HostName id) => $"CameraHistogramFilter-{id}";
+
+    public byte[] Values { get; set; }
+
 }
 [OutputStream("CameraProfile")]
 public record CameraProfile : ICameraParametersReadOnly, IStatefulStream<HostProfilePath>

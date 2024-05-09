@@ -1,3 +1,4 @@
+@using EventPi.Abstractions
 @using EventPi.Services.Camera.Contract
 @using MicroPlumberd
 @using ModelingEvolution.Controls.Blazor.HistogramControl
@@ -6,7 +7,7 @@
 @inject ICommandBus _bus
 <MudStack Style="@Style">
     <Histogram >
-        <HistogramSeries @bind-Points="@this._cmd.Points"/>
+        <HistogramSeries @bind-Points="@this._cmd.Points" ValuesChanged="this.OnValuesChanged"/>
     </Histogram>
     <MudButtonGroup Variant="Variant.Filled">
         <MudButton OnClick="@OnCancel">Cancel</MudButton>
@@ -32,7 +33,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        CameraHistogramFilter state = await _plumber.GetState<CameraHistogramFilter>(Id());
+        CameraProfileHistogramFilter state = await _plumber.GetState<CameraProfileHistogramFilter>(Id());
         if (state != null)
         {
             _cmd.Points = _prv = state.Points;
@@ -48,5 +49,11 @@
     {
         var dto = _cmd with { Id = Guid.NewGuid() };
         await _bus.SendAsync(Id(), dto);
+    }
+
+    private async Task OnValuesChanged(byte[] arg)
+    {
+        var dto = new SetCameraHistogramFilter() { Values = arg };
+        await _bus.SendAsync((HostName)HostName, dto);
     }
 }
