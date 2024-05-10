@@ -36,23 +36,4 @@
         WireGuard = 29,
         WiFiP2P = 30
     }
-    public enum NetworkManagerState : uint
-    {
-        Unknown = 0,
-        ASleep = 10,
-        Disconnected = 20,
-        Disconnecting = 30,
-        Connecting = 40,
-        ConnectedLocal = 50,
-        ConnectedSite = 60,
-        ConnectedGlobal = 70
-    }
-    public enum NetworkManagerConnectivity : uint
-    {
-        Unknown = 0,
-        None = 1,
-        Portal = 2,
-        Limited = 3,
-        Full = 4
-    }
 }
