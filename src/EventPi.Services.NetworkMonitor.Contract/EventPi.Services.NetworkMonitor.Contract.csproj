@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MicroPlumberd" Version="1.0.60.112" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

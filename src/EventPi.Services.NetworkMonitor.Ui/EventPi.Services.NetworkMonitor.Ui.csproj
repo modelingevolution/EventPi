@@ -12,10 +12,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.4" />
+    <PackageReference Include="MudBlazor" Version="6.19.1" />
+    <PackageReference Include="MicroPlumberd.Services" Version="1.0.60.112" />
+    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.60.112" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable.Blazor\ModelingEvolution.Observable.Blazor.csproj" />
+    <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable\ModelingEvolution.Observable.csproj" />
     <ProjectReference Include="..\EventPi.Services.NetworkMonitor.Contract\EventPi.Services.NetworkMonitor.Contract.csproj" />
   </ItemGroup>
 

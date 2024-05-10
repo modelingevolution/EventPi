@@ -17,7 +17,7 @@ namespace EventPi.NetworkMonitor.Cli
             if (args.Length == 3 && args[0] == "connect")
             {
                 string ssid = args[1];
-                string pwd = args[1];
+                string pwd = args[2];
 
                 await using var client = await NetworkManagerClient.Create();
                 CancellationTokenSource cts = new CancellationTokenSource();
@@ -56,6 +56,9 @@ namespace EventPi.NetworkMonitor.Cli
                 await using var client = await NetworkManagerClient.Create();
                 await foreach (var i in client.GetConnections())
                 {
+                    if(!i.FileName.Contains("prec", StringComparison.InvariantCultureIgnoreCase))
+                        continue;
+
                     Console.WriteLine(i);
                     var wifiSettings = await i.WifiSettings();
                     if(wifiSettings!= null)
@@ -63,6 +66,33 @@ namespace EventPi.NetworkMonitor.Cli
                 }
                 Console.WriteLine("Press Enter to exit.");
                 Console.ReadLine();
+            }
+            else if (args.Length == 3 && args[0] == "add")
+            {
+                string ssid = args[1];
+                string pwd = args[2];
+
+                await using var client = await NetworkManagerClient.Create();
+                CancellationTokenSource cts = new CancellationTokenSource();
+
+
+                WifiNetwork? network = null;
+                await client.RequestWifiScan();
+                await foreach (var i in client.GetWifiNetworks())
+                {
+                    Console.WriteLine($"Network found: {i}");
+                    if (i.Ssid == ssid) network = i;
+                }
+
+                if (network == null)
+                {
+                    Console.Error.WriteLine($"No network '{ssid}' found");
+                    return;
+                }
+                else Console.WriteLine($"Wifi network '{ssid}' found.");
+
+                var r = await network.Setup(pwd, ssid + "-connection");
+                Console.WriteLine($"Connection: {r.FileName} created.");
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using NetworkManager.DBus;
+﻿using System.Text;
+using NetworkManager.DBus;
 using Tmds.DBus.Protocol;
 using Connection = NetworkManager.DBus.Connection;
 
@@ -23,7 +24,8 @@ public record WifiNetwork
             {
                 "802-11-wireless", new Dictionary<string, Variant>
                 {
-                    { "ssid", new Variant(Ssid) },
+                    //{ "ssid", Variant.FromArray<byte>(new Array<byte>(Encoding.UTF8.GetBytes(Ssid))) },
+                    { "ssid", new Variant(Ssid)},
                     { "mode", new Variant("infrastructure") },
                     { "security", new Variant("802-11-wireless-security") }
                 }
@@ -64,8 +66,47 @@ public record WifiNetwork
         await Wireless.RequestScanAsync(new Dictionary<string, Variant>());
         if (wait) await Task.Delay(5000);
     }
-    
 
+
+    public async Task<ConnectionInfo> Setup(string pwd, string conName)
+    {
+        var connectionSettings = new Dictionary<string, Dictionary<string, Variant>>
+        {
+            {
+                "802-11-wireless", new Dictionary<string, Variant>
+                {
+                    { "ssid", Variant.FromArray<byte>(new Array<byte>(Encoding.UTF8.GetBytes(Ssid))) },
+                    //{ "ssid", new Variant(Ssid)},
+                    //{ "mode", new Variant("infrastructure") },
+                    //{ "security", new Variant("802-11-wireless-security") }
+                }
+            },
+            {
+                "802-11-wireless-security", new Dictionary<string, Variant>
+                {
+                    { "psk", new Variant(pwd) },
+                    { "key-mgmt", new Variant("wpa-psk") },
+                    { "psk-flags", new Variant(0u)} // none, system is reposible for storing pwd
+                }
+            },
+            {
+                "connection", new Dictionary<string, Variant>
+                {
+                    { "type", new Variant("802-11-wireless") },
+                    { "id", new Variant(conName??Ssid) },
+                    { "interface-name", new Variant(this.SourceInterface)},
+                }
+            },
+        };
+        var r = await Client.Settings.AddConnectionAsync(connectionSettings);
+        var connection = Client.Service.CreateConnection(r);
+        return new ConnectionInfo()
+        {
+            Path = r,
+            FileName = await connection.GetFilenameAsync(),
+            Client = Client
+        };
+    }
 }
 
 public record WifiSettings
@@ -85,9 +126,9 @@ public record ConnectionInfo
         var props = await Connection.GetSettingsAsync();
         if (props.TryGetValue("802-11-wireless", out var wifiSettings))
         {
-            var secrets = await Connection.GetSecretsAsync("pwd");
+            //var secrets = await Connection.GetSecretsAsync(null);
 
-            string ssid = wifiSettings.TryGetValue("ssid", out var r) ? r.GetString() : null;
+            string ssid = wifiSettings.TryGetValue("ssid", out var r) ? Encoding.UTF8.GetString(r.GetArray<byte>()) : null;
             string mode = wifiSettings.TryGetValue("mode", out var m) ? m.GetString() : null;
             return new WifiSettings() { Ssid = ssid, Mode = mode };
         }

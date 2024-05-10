@@ -9,6 +9,8 @@
   <ItemGroup>
     <ProjectReference Include="..\EventPi.NetworkMonitor\EventPi.NetworkMonitor.csproj" />
     <ProjectReference Include="..\EventPi.Services.NetworkMonitor.Contract\EventPi.Services.NetworkMonitor.Contract.csproj" />
+    <PackageReference Include="MicroPlumberd.Services" Version="1.0.60.112" />
+    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.60.112" />
   </ItemGroup>
 
 </Project>

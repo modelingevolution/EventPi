@@ -1,0 +1,32 @@
+﻿@using EventPi.Services.NetworkMonitor.Contract
+@using Microsoft.Extensions.Hosting
+@using ModelingEvolution.Observable.Blazor
+
+@inject WirelessStationsVm _vm
+<Observable Source="@_vm" Context="vm">
+    <MudDataGrid Items="@_vm.Stations" Filterable="false" SortMode="@SortMode.None" Groupable="false">
+        <Columns>
+            <PropertyColumn Property="x => x.Ssid" />
+            <PropertyColumn Property="x => x.InterfaceName" />
+            <PropertyColumn Property="x => x.Signal" Title="Years Employed" />
+            
+            <TemplateColumn CellClass="d-flex justify-end">
+                <CellTemplate>
+                    <MudIcon Icon="@SignalToIcon.Convert(context.Item.Signal)" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
+</Observable>
+@code
+{
+    [Parameter]
+    public string HostName { get; set; }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await _vm.Initialize(HostName);
+    }
+
+}
