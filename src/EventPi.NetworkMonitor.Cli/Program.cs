@@ -54,13 +54,13 @@ namespace EventPi.NetworkMonitor.Cli
             else if (args.Length == 2 && args[0] == "list" && args[1] == "connections")
             {
                 await using var client = await NetworkManagerClient.Create();
-                await foreach (var i in client.GetConnections())
+                await foreach (var i in client.GetProfiles())
                 {
                     if(!i.FileName.Contains("prec", StringComparison.InvariantCultureIgnoreCase))
                         continue;
 
                     Console.WriteLine(i);
-                    var wifiSettings = await i.WifiSettings();
+                    var wifiSettings = await i.Settings();
                     if(wifiSettings!= null)
                         Console.WriteLine(i);
                 }

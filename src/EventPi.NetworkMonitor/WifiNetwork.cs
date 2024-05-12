@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using EventPi.Abstractions;
 using NetworkManager.DBus;
 using Tmds.DBus.Protocol;
 using Connection = NetworkManager.DBus.Connection;
@@ -17,7 +18,7 @@ public record WifiNetwork
     public uint MaxKbitRate { get; init; }
     public DeviceInfo SourceDevice { get; set; }
     internal NetworkManagerClient Client { get; init; }
-    public async Task<ConnectionInfo> Connect(string password)
+    public async Task<ProfileInfo> Connect(string password)
     {
         var connectionSettings = new Dictionary<string, Dictionary<string, Variant>>
         {
@@ -49,9 +50,9 @@ public record WifiNetwork
         };
         var result = await Client.NetworkManager.AddAndActivateConnectionAsync(connectionSettings, DevicePath, AccessPointPath);
         var connection = Client.Service.CreateConnection(result.Path);
-        return new ConnectionInfo()
+        return new ProfileInfo()
         {
-            Path = result.Path,
+            Id = result.Path,
             FileName =  await connection.GetFilenameAsync(),
             Client = Client
         };
@@ -68,7 +69,7 @@ public record WifiNetwork
     }
 
 
-    public async Task<ConnectionInfo> Setup(string pwd, string conName)
+    public async Task<ProfileInfo> Setup(string pwd, string conName)
     {
         var connectionSettings = new Dictionary<string, Dictionary<string, Variant>>
         {
@@ -100,41 +101,67 @@ public record WifiNetwork
         };
         var r = await Client.Settings.AddConnectionAsync(connectionSettings);
         var connection = Client.Service.CreateConnection(r);
-        return new ConnectionInfo()
+        return new ProfileInfo()
         {
-            Path = r,
+            Id = r,
             FileName = await connection.GetFilenameAsync(),
             Client = Client
         };
     }
 }
 
-public record WifiSettings
+public record WifiProfileSettings : ProfileSettings
 {
     public string Ssid { get; init; }
     public string Mode { get; init; }
-    public string Pwd { get; init; }
+    
 }
-public record ConnectionInfo
+public record ProfileSettings
 {
-    internal Connection Connection => Client.Service.CreateConnection(Path);
-    internal string Path { get; init; }
+    public string? InterfaceName { get; init; }
+    public string? ProfileName { get; set; }
+}
+public record ProfileInfo
+{
+    internal Connection Connection => Client.Service.CreateConnection(Id.Path);
     public string? FileName { get; init; }
-
-    public async Task<WifiSettings?> WifiSettings()
+    public Guid FileId => (FileName ?? Id.Path).ToGuid();
+    public PathId Id { get; set; }
+    public async Task<ProfileSettings?> Settings()
     {
         var props = await Connection.GetSettingsAsync();
+        string interfaceName = null;
+        string name = null;
+        
+        if (props.TryGetValue("connection", out var connectionInfo))
+        {
+            if (connectionInfo.TryGetValue("interface-name", out var v))
+                interfaceName = v.GetString();
+            if (connectionInfo.TryGetValue("id", out var id))
+                name = id.GetString();
+        }
+
         if (props.TryGetValue("802-11-wireless", out var wifiSettings))
         {
             //var secrets = await Connection.GetSecretsAsync(null);
 
-            string ssid = wifiSettings.TryGetValue("ssid", out var r) ? Encoding.UTF8.GetString(r.GetArray<byte>()) : null;
-            string mode = wifiSettings.TryGetValue("mode", out var m) ? m.GetString() : null;
-            return new WifiSettings() { Ssid = ssid, Mode = mode };
-        }
+            var ssid = wifiSettings.TryGetValue("ssid", out var r) ? Encoding.UTF8.GetString(r.GetArray<byte>()) : null;
+            var mode = wifiSettings.TryGetValue("mode", out var m) ? m.GetString() : null;
 
+            return new WifiProfileSettings()
+            {
+                InterfaceName = interfaceName,
+                ProfileName = name,
+                Mode = mode,
+                Ssid = ssid
+            };
+        }
         
-        else return null;
+        return new ProfileSettings()
+        {
+            InterfaceName = interfaceName,
+            ProfileName = name
+        };
     }
     internal NetworkManagerClient Client { get; init; }
 
@@ -146,5 +173,34 @@ public record ConnectionInfo
     public async Task UpdatePwd(string pwd)
     {
 
+    }
+    public async Task Deactivate(string? interfaceName = null)
+    {
+        var activeProfiles = await Client.GetActiveConnections();
+        if (activeProfiles.Contains(this.FileId))
+        {
+            if (interfaceName == null)
+            {
+                var settings = await Settings();
+                interfaceName = settings.InterfaceName;
+            }
+
+            var dev = await Client.GetDevices().FirstOrDefaultAsync(x => x.InterfaceName == interfaceName);
+            await dev.DisconnectAsync();
+        }
+    }
+    public async Task Activate(string? interfaceName =null)
+    {
+        if (interfaceName == null)
+        {
+            var settings = await Settings();
+            interfaceName = settings.InterfaceName;
+        }
+
+        var dev = interfaceName != null
+            ? await Client.GetDevices().FirstOrDefaultAsync(x => x.InterfaceName == interfaceName)
+            : await Client.GetDevices().FirstOrDefaultAsync(x => x.DeviceType == DeviceType.Wifi);
+
+        await dev.ActivateProfile(this);
     }
 }

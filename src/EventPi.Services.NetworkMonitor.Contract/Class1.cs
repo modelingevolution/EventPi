@@ -1,6 +1,9 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using EventPi.Abstractions;
 using MicroPlumberd;
+using MicroPlumberd.Services;
 
 namespace EventPi.Services.NetworkMonitor.Contract
 {
@@ -16,31 +19,66 @@ namespace EventPi.Services.NetworkMonitor.Contract
         public static string FullStreamName(HostName id) => $"WirelessProfiles-{id}";
     }
 
+    [ThrowsFaultException<WrongHostError>]
+    [ThrowsFaultException<ProfileNotFound>]
     public record DeleteWirelessProfile
     {
-        public string ProfileName { get; init; }
+        public Guid ProfileId { get; init; }
     }
-    public record Disconnect
+
+
+    [ThrowsFaultException<WrongHostError>]
+    [ThrowsFaultException<ProfileNotFound>]
+    public record DisconnectWirelessNetwork
     {
-        public string ProfileName { get; init; }
+        [NotNull]
+        public string Ssid { get; init; }
+        public Guid ProfileId { get; init; }
     }
-    public record Connect
+
+    [ThrowsFaultException<WrongHostError>]
+    [ThrowsFaultException<ProfileNotFound>]
+    public record DeactivateWirelessProfile
     {
-        public string ProfileName { get; init; }
+        public Guid ProfileId { get; init; }
+    }
+
+    [ThrowsFaultException<WrongHostError>]
+    public record ConnectWirelessProfile
+    {
+        public string Ssid { get; set; }
+        public string Password { get; set; }
+        public string InterfaceName { get; init; }
+    }
+    [ThrowsFaultException<WrongHostError>]
+    [ThrowsFaultException<ProfileNotFound>]
+    public record ActivateWirelessProfile
+    {
+        public Guid ProfileId { get; init; }
+    }
+    [ThrowsFaultException<WrongHostError>]
+    public record RequestWifiScan
+    {
+
     }
     public record WirelessProfile
     {
+        public Guid Id => FileName.ToGuid();
         public string ProfileName { get; init; }
         public string Ssid { get; init; }
         public string InterfaceName { get; init; }
+        public string FileName { get; init; }
+        public bool IsConnected { get; init; }
+        
     }
+    [ThrowsFaultException<WrongHostError>]
     public record DefineWirelessProfile 
     {
         public string InterfaceName { get; init; }
         public string Ssid { get; init; }
         
         // Should be SecretString
-        public string Pwd { get; init; }
+        public string Password { get; init; }
     }
     [OutputStream("WirelessConnectivity")]
     public record WirelessConnectivityState : IStatefulStream<HostName>
@@ -55,6 +93,7 @@ namespace EventPi.Services.NetworkMonitor.Contract
     public record WirelessStation
     {
         public string Ssid { get; init; }
+        [Description("Interface name")]
         public string InterfaceName { get; init; }
         public byte Signal { get; init; }
     }

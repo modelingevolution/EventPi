@@ -1,0 +1,16 @@
+@using EventPi.Abstractions
+@inject VmHostRegister<WirelessConnectionVm> _r
+
+@code
+{
+    private WirelessConnectionVm _vm;
+
+    [Parameter]
+    public HostName HostName { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        this._vm = await _r.Get(HostName).Initialize(HostName);
+    }
+
+}

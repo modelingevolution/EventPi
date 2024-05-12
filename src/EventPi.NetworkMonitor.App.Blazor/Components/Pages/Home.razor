@@ -1,9 +1,10 @@
 ﻿@page "/"
-
+@using EventPi.Abstractions
+@inject IEnvironment env
 <MudStack>
     
-    <WirelessConnection/>
-    <WirelessStations/>
-    <WirelessProfiles/>
+    <WirelessConnection HostName="@env.HostName" />
+    <WirelessStations HostName="@env.HostName"/>
+    <WirelessProfiles HostName="@env.HostName" />
 
 </MudStack>

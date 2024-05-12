@@ -1,32 +1,49 @@
-﻿@using EventPi.Services.NetworkMonitor.Contract
+﻿@using EventPi.Abstractions
+@using EventPi.Services.NetworkMonitor.Contract
 @using Microsoft.Extensions.Hosting
 @using ModelingEvolution.Observable.Blazor
+@inject VmHostRegister<WirelessStationsVm> _r
 
-@inject WirelessStationsVm _vm
-<Observable Source="@_vm" Context="vm">
-    <MudDataGrid Items="@_vm.Stations" Filterable="false" SortMode="@SortMode.None" Groupable="false">
-        <Columns>
-            <PropertyColumn Property="x => x.Ssid" />
-            <PropertyColumn Property="x => x.InterfaceName" />
-            <PropertyColumn Property="x => x.Signal" Title="Years Employed" />
-            
-            <TemplateColumn CellClass="d-flex justify-end">
-                <CellTemplate>
-                    <MudIcon Icon="@SignalToIcon.Convert(context.Item.Signal)" />
-                </CellTemplate>
-            </TemplateColumn>
-        </Columns>
-    </MudDataGrid>
-</Observable>
+@if (_vm != null)
+{
+    <Observable Source="@_vm" Context="vm">
+        <MudDataGrid Items="@_vm.Stations" SortMode="@SortMode.None" Filterable="false" QuickFilter="@_vm.Filter"
+                     Groupable="false">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Wifi Stations</MudText>
+                <MudSpacer/>
+                <MudTextField @bind-Value="@_vm.SearchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="@_vm.RequestRefresh"/>
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Ssid" CellStyleFunc="@(x=> _vm.Style(x))" />
+                <PropertyColumn Property="x => x.InterfaceName" Title="Interface" CellStyleFunc="@(x=> _vm.Style(x))" />
+                <PropertyColumn Property="x => x.Signal" Title="Signal" CellStyleFunc="@(x=> _vm.Style(x))" />
+
+                <TemplateColumn CellClass="d-flex justify-end">
+                    <CellTemplate>
+                        <MudIcon Icon="@SignalToIcon.Convert(context.Item.Signal)"/>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    </Observable>
+}
+
 @code
 {
+    private WirelessStationsVm? _vm;
+    
+
     [Parameter]
-    public string HostName { get; set; }
+    public HostName HostName { get; set; }
 
 
     protected override async Task OnParametersSetAsync()
     {
-        await _vm.Initialize(HostName);
+        _vm =  await _r.Get(HostName).Initialize(HostName);
     }
 
 }
