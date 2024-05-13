@@ -6,7 +6,7 @@ namespace EventPi.Services.NetworkMonitor.Ui;
 
 public static class ContainerExtensions
 {
-    public static IServiceCollection AddNetworkMonitorUi(this IServiceCollection services) =>
+    public static IServiceCollection AddNetworkManagerUi(this IServiceCollection services) =>
         services
             .AddSingleton(typeof(VmHostRegister<>))
             .AddTransient<WirelessStationsVm>()

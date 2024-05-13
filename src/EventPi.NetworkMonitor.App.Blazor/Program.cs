@@ -42,7 +42,7 @@ namespace EventPi.NetworkMonitor.App.Blazor
             if (!disableUi)
             {
                 services.AddMudServices()
-                    .AddNetworkMonitorUi()
+                    .AddNetworkManagerUi()
                     .AddPlumberd(sp => EventStoreClientSettings.Create(sp.GetRequiredService<IConfiguration>().GetValue<string>("EventStore")!))
                     .AddRazorComponents()
                     .AddInteractiveServerComponents();
