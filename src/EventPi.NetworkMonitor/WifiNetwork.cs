@@ -6,7 +6,7 @@ using Connection = NetworkManager.DBus.Connection;
 
 namespace EventPi.NetworkMonitor;
 
-public record WifiNetwork
+public record AccessPointInfo
 {
         
     public string SourceInterface { get; init; }
@@ -164,6 +164,7 @@ public record ProfileInfo
         };
     }
     internal NetworkManagerClient Client { get; init; }
+    
 
     public async Task Delete()
     {

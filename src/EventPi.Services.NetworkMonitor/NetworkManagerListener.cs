@@ -23,12 +23,14 @@ internal class NetworkManagerListener(IPlumber plumber, IEnvironment env, ILogge
         _client = await NetworkManagerClient.Create();
         await AppendStations(stoppingToken);
         await AppendWifiProfiles(stoppingToken);
+        await AppendConnectivity(stoppingToken);
         var wifis = await _client.GetDevices().OfType<WifiDeviceInfo>().ToArrayAsync();
         
         foreach (var i in wifis)
         {
             i.StateChanged += OnWifiDeviceStateChanged;
             i.AccessPointVisilibityChanged += OnWifiAccessPointChanged;
+            i.AccessPointSignalChanged += OnWifiSignalChanged;
             _d += await i.SubscribeStateChanged();
             _d += await i.SubscribeAccessPoint();
         }
@@ -36,9 +38,15 @@ internal class NetworkManagerListener(IPlumber plumber, IEnvironment env, ILogge
         await Task.Factory.StartNew(OnStateAppender, TaskCreationOptions.LongRunning);
     }
 
+    private void OnWifiSignalChanged(object? sender, AccessPointPropertyChangedArgs e)
+    {
+        _channel.Writer.WriteAsync(this.AppendStations);
+    }
+
     private void OnWifiAccessPointChanged(object? sender, AccessPointDiscoveryArgs e)
     {
         _channel.Writer.WriteAsync(this.AppendStations);
+       
     }
 
     private async Task OnStateAppender()
@@ -51,8 +59,15 @@ internal class NetworkManagerListener(IPlumber plumber, IEnvironment env, ILogge
     private void OnWifiDeviceStateChanged(object? sender, DeviceStateEventArgs e)
     {
         _channel.Writer.WriteAsync(this.AppendStations);
+        _channel.Writer.WriteAsync(this.AppendConnectivity);
+        _channel.Writer.WriteAsync(this.AppendWifiProfiles);
     }
 
+    public async Task AppendConnectivity(CancellationToken token)
+    {
+        await WirelessConnectivityService.Append(_client, plumber, env, token);
+        log.LogInformation("Appending wifi connectivity.");
+    }
     private async Task AppendWifiProfiles(CancellationToken stoppingToken)
     {
         if(await WirelessProfilesService.AppendIfRequired(_client, plumber, env, stoppingToken))
@@ -84,7 +99,7 @@ static class WirelessStationService
         WirelessStationsState currentState = await plumber.GetState<WirelessStationsState>(env.HostName);
         var currentStations = currentState.ToHashSet();
 
-        await foreach (var i in client.GetWifiNetworks().WithCancellation(stoppingToken))
+        await foreach (var i in client.GetAccessPoints().WithCancellation(stoppingToken))
         {
             var n = new WirelessStation()
             {
@@ -104,6 +119,41 @@ static class WirelessStationService
     }
 
 }
+
+static class WirelessConnectivityService
+{
+    public static async Task Append(NetworkManagerClient client, IPlumber plumber, IEnvironment env,
+        CancellationToken stoppingToken = default)
+    {
+        
+        var wifiDev = await client.GetDevices().OfType<WifiDeviceInfo>().FirstOrDefaultAsync(cancellationToken: stoppingToken);
+        
+        if (wifiDev != null)
+        {
+            if (wifiDev.State == DeviceState.Activated)
+            {
+                
+                var ac = await wifiDev.GetConnectionProfile();
+                //client.GetProfile(ac);
+                var connectionInfo = await wifiDev.GetConnectionInfo();
+                var accessPointInfo = await wifiDev.AccessPoint();
+
+                WirelessConnectivityState state = new WirelessConnectivityState()
+                {
+                    ConnectionName = ac?.FileName,
+                    Ssid = accessPointInfo.Ssid,
+                    IpConfig = connectionInfo?.Ip4Config,
+                    InterfaceName = wifiDev.InterfaceName,
+                    State = (DeviceStateChanged)wifiDev.State,
+                    Signal = accessPointInfo.SignalStrength
+                };
+                await plumber.AppendState(state, env.HostName, token: stoppingToken);
+            }
+        }
+
+        
+    }
+}
 /// <summary>
 /// No need for a domain-service. We just need common procedures.
 /// </summary>
@@ -114,7 +164,7 @@ static class WirelessProfilesService
         WirelessProfilesState state = new WirelessProfilesState();
         WirelessProfilesState currentState = await plumber.GetState<WirelessProfilesState>(env.HostName);
         var activeConnection = await client.GetDevices().OfType<WifiDeviceInfo>()
-            .SelectAwait(async x => await x.GetActiveConnection())
+            .SelectAwait(async x => await x.GetConnectionProfileId())
             .Where(x=> x != string.Empty && x != "/")
             .ToHashSetAsync();
 

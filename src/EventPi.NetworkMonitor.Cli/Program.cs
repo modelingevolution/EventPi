@@ -23,9 +23,9 @@ namespace EventPi.NetworkMonitor.Cli
                 CancellationTokenSource cts = new CancellationTokenSource();
 
 
-                WifiNetwork? network = null;
+                AccessPointInfo? network = null;
                 await client.RequestWifiScan();
-                await foreach (var i in client.GetWifiNetworks())
+                await foreach (var i in client.GetAccessPoints())
                 {
                     Console.WriteLine($"Network found: {i}");
                     if (i.Ssid == ssid) network = i;
@@ -42,7 +42,7 @@ namespace EventPi.NetworkMonitor.Cli
                 network.SourceDevice.StateChanged += (s, e) =>
                 {
                     Console.WriteLine($"{sw.Elapsed}: State changed: {e.OldState}->{e.NewState}");
-                    if (e.NewState == DeviceStateChanged.Activated)
+                    if (e.NewState == DeviceState.Activated)
                         cts.Cancel();
                 };
                 await using var sub = await network.SourceDevice.SubscribeStateChanged();
@@ -76,9 +76,9 @@ namespace EventPi.NetworkMonitor.Cli
                 CancellationTokenSource cts = new CancellationTokenSource();
 
 
-                WifiNetwork? network = null;
+                AccessPointInfo? network = null;
                 await client.RequestWifiScan();
-                await foreach (var i in client.GetWifiNetworks())
+                await foreach (var i in client.GetAccessPoints())
                 {
                     Console.WriteLine($"Network found: {i}");
                     if (i.Ssid == ssid) network = i;

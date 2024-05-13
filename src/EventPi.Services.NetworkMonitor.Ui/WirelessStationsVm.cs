@@ -24,6 +24,11 @@ internal partial class WirelessStationsVm(IPlumber plumber, ICommandBus bus) : I
     {
         return string.Empty;
     }
+
+    public async Task Connect(WirelessStation st)
+    {
+        await bus.SendAsync(_hostName, new ConnectAccessPoint() { Ssid = st.Ssid });
+    }
     public string SearchString { get; set; }
     public Func<WirelessStation, bool> Filter => x =>
     {

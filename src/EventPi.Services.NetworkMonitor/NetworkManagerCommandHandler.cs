@@ -3,6 +3,7 @@ using EventPi.NetworkMonitor;
 using EventPi.Services.NetworkMonitor.Contract;
 using MicroPlumberd;
 using MicroPlumberd.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EventPi.Services.NetworkMonitor;
 
@@ -19,11 +20,15 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
         await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
     }
     [ThrowsFaultException<WrongHostError>]
-    public async Task Handle(HostName hostName, ConnectWirelessProfile data)
+    public async Task Handle(HostName hostName, ConnectAccessPoint cmd)
     {
         await Prepare(hostName);
 
+        var dev = await _client.GetDevices().OfType<WifiDeviceInfo>().FirstOrDefaultAsync();
+        await dev.ConnectAccessPoint(cmd.Ssid);
+        
         await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
+        await WirelessConnectivityService.Append(_client, plumber, env);
     }
     [ThrowsFaultException<WrongHostError>]
     public async Task Handle(HostName hostName, RequestWifiScan cmd)
@@ -38,6 +43,8 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
         await Prepare(hostName);
 
         var p = await GetProfileById(profile.ProfileId);
+
+        await p.Deactivate();
     }
     [ThrowsFaultException<WrongHostError>]
     [ThrowsFaultException<ProfileNotFound>]
@@ -46,6 +53,16 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
         await Prepare(hostName);
 
         var p = await GetProfileById(profile.ProfileId);
+
+        await foreach (var i in _client.GetDevices().OfType<WifiDeviceInfo>())
+        {
+            var con = await i.GetConnectionProfileId();
+            if (con != p.Id) continue;
+            await i.DisconnectAsync();
+            await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
+            await WirelessConnectivityService.Append(_client, plumber, env);
+            break;
+        }
     }
     [ThrowsFaultException<WrongHostError>]
     [ThrowsFaultException<ProfileNotFound>]
@@ -56,8 +73,8 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
         var p = await GetProfileById(profile.ProfileId);
             
         await p.Activate();
-
         await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
+        await WirelessConnectivityService.Append(_client, plumber, env);
     }
     [ThrowsFaultException<WrongHostError>]
     [ThrowsFaultException<ProfileNotFound>]
@@ -73,21 +90,7 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     }
 
    
-    private async Task AppendStations(CancellationToken cancelationToken = default)
-    {
-        WirelessStationsState state = new WirelessStationsState();
-        await foreach (var i in _client.GetWifiNetworks().WithCancellation(cancelationToken))
-        {
-            state.Add(new()
-            {
-                InterfaceName = i.SourceInterface,
-                Signal = i.SignalStrength,
-                Ssid = i.Ssid
-            });
-        }
-
-        await plumber.AppendState(state, env.HostName, token: cancelationToken);
-    }
+   
     private async Task<ProfileInfo?> GetProfileById(Guid profileId)
     {
         var p = await _client!.GetProfiles().FirstOrDefaultAsync(x => x.FileId == profileId);

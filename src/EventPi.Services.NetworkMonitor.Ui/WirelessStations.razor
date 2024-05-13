@@ -20,7 +20,7 @@
             <Columns>
                 <PropertyColumn Property="x => x.Ssid" CellStyleFunc="@(x=> _vm.Style(x))" />
                 <PropertyColumn Property="x => x.InterfaceName" Title="Interface" CellStyleFunc="@(x=> _vm.Style(x))" />
-                <PropertyColumn Property="x => x.Signal" Title="Signal" CellStyleFunc="@(x=> _vm.Style(x))" />
+                <PropertyColumn Property="x => x.Signal/100f" Format="p0" Title="Signal" CellStyleFunc="@(x=> _vm.Style(x))" />
 
                 <TemplateColumn CellClass="d-flex justify-end">
                     <CellTemplate>

@@ -1,16 +1,61 @@
 @using EventPi.Abstractions
-@inject VmHostRegister<WirelessConnectionVm> _r
+@using EventPi.Services.NetworkMonitor.Contract
+@inject VmHostRegister<WirelessConnectionVm> _cR
+@inject VmHostRegister<WirelessStationsVm> _sR
+@if (_cVm != null)
+{
+    <Observable Source="_cVm">
+        <MudExpansionPanels>
+            <MudExpansionPanel @bind-IsExpanded="@IsListOpened" >
+                <TitleContent>
+                    <MudStack Row="true" >
+                        @if (_cVm.Connectivity.State == DeviceStateChanged.Activated)
+                        {
+                            <MudIcon Icon="@SignalToIcon.Convert(_cVm.Connectivity.Signal)" />
+                            <MudText>@_cVm.Connectivity.Ssid</MudText>
+                        }
+                        else
+                        {
+                            <MudText Style="font-weight:italic">@_cVm.Connectivity.State</MudText>
+                        }
+                    </MudStack>
+                </TitleContent>
+                <ChildContent>
+                    <MudTextField Label="Ip configuration" T="string" ReadOnly="true" Text="@_cVm.Connectivity.IpConfig.ToString()"/>
+                    <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary" Class="pt-8">
+                        <MudButton>Disconnect</MudButton>
+                    </MudButtonGroup>
+
+                    <Observable Source="@_sVm" Context="vm">
+                        <MudList Clickable="true">
+                            @foreach (var i in _sVm.Stations.Where(x=>x.Ssid != _cVm?.Connectivity?.Ssid))
+                            {
+                                <MudListItem Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { await _sVm.Connect(i); IsListOpened=false;}">@i.Ssid</MudListItem>
+                            }
+                        </MudList>
+                    </Observable>
+                </ChildContent>
+            </MudExpansionPanel>
+            
+        </MudExpansionPanels>
+    </Observable>
+}
 
 @code
 {
-    private WirelessConnectionVm _vm;
+    private WirelessConnectionVm? _cVm;
+    private WirelessStationsVm? _sVm;
+
+    public bool IsListOpened { get; set; }
 
     [Parameter]
     public HostName HostName { get; set; }
 
+
     protected override async Task OnParametersSetAsync()
     {
-        this._vm = await _r.Get(HostName).Initialize(HostName);
+        this._cVm = await _cR.Get(HostName).Initialize(HostName);
+        this._sVm = await _sR.Get(HostName).Initialize(HostName);
     }
 
 }

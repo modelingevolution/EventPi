@@ -63,7 +63,11 @@ internal partial class WirelessProfilesVm(IPlumber plumber, ICommandBus commandB
 
     public async Task Delete(WirelessProfile p) => await commandBus.SendAsync(_hostName, new DeleteWirelessProfile() { ProfileId = p.Id });
     public async Task Activate(WirelessProfile p) => await commandBus.SendAsync(_hostName, new ActivateWirelessProfile() { ProfileId = p.Id });
-    public async Task Disconnect(WirelessProfile p) => await commandBus.SendAsync(_hostName, new DeactivateWirelessProfile() { ProfileId = p.Id });
+    public async Task Disconnect(WirelessProfile p) => await commandBus.SendAsync(_hostName, new DisconnectWirelessNetwork()
+    {
+        ProfileId = p.Id, 
+        Ssid = p.Ssid
+    });
 
     
 

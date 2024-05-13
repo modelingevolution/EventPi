@@ -30,7 +30,7 @@ internal partial class WirelessConnectionVm(IPlumber plumber) : IAsyncDisposable
             .WithSnapshotHandler(this);
         return this;
     }
-
+    
     public async ValueTask DisposeAsync()
     {
         await _cts.CancelAsync();

@@ -1,6 +1,6 @@
 ﻿namespace EventPi.NetworkMonitor;
 
-public enum DeviceStateChanged
+public enum DeviceState
 {
     /// <summary>
     /// the device's state is unknown

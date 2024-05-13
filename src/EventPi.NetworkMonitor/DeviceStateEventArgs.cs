@@ -2,6 +2,6 @@
 
 public class DeviceStateEventArgs : EventArgs
 {
-    public DeviceStateChanged OldState { get; init; } 
-    public DeviceStateChanged NewState { get; init; }
+    public DeviceState OldState { get; init; } 
+    public DeviceState NewState { get; init; }
 }

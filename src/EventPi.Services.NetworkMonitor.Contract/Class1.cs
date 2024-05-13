@@ -44,11 +44,10 @@ namespace EventPi.Services.NetworkMonitor.Contract
     }
 
     [ThrowsFaultException<WrongHostError>]
-    public record ConnectWirelessProfile
+    public record ConnectAccessPoint
     {
+        [NotNull]
         public string Ssid { get; set; }
-        public string Password { get; set; }
-        public string InterfaceName { get; init; }
     }
     [ThrowsFaultException<WrongHostError>]
     [ThrowsFaultException<ProfileNotFound>]
@@ -80,14 +79,19 @@ namespace EventPi.Services.NetworkMonitor.Contract
         // Should be SecretString
         public string Password { get; init; }
     }
+    
+
     [OutputStream("WirelessConnectivity")]
     public record WirelessConnectivityState : IStatefulStream<HostName>
     {
         public static string FullStreamName(HostName id) => $"WirelessConnectivity-{id}";
-        public string Ssid { get; init; }
-        public string InterfaceName { get; init; }
+        public string? Ssid { get; init; }
+        public string? InterfaceName { get; init; }
+        public Ip4Config? IpConfig { get; init; }
+        
         public string? ConnectionName { get; init; }
         public DeviceStateChanged State { get; init; }
+        public byte Signal { get; init; }
     }
 
     public record WirelessStation
@@ -96,6 +100,8 @@ namespace EventPi.Services.NetworkMonitor.Contract
         [Description("Interface name")]
         public string InterfaceName { get; init; }
         public byte Signal { get; init; }
+
+       
     }
     public enum DeviceStateChanged
     {

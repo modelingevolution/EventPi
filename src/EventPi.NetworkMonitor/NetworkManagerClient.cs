@@ -6,72 +6,12 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using EventPi.Abstractions;
 using NetworkManager.DBus;
 using Tmds.DBus.Protocol;
 using Connection = Tmds.DBus.Protocol.Connection;
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 namespace EventPi.NetworkMonitor
 {
-    
-    static class Extension
-    {
-        public static async Task<T> FirstOrDefault<T>(this IAsyncEnumerable<T> items, Predicate<T>? predicate = null)
-        {
-            predicate ??= x => true;
-            await foreach (var i in items)
-            {
-                if(predicate(i)) return i;
-            }
-
-            return default;
-        }
-    }
-
-    public readonly struct PathId : IEquatable<PathId>, IComparable<PathId>, IComparable
-    {
-        private readonly Guid _id;
-        private readonly string? _path;
-
-        private PathId(Guid id)
-        {
-            _id = id;
-            _path = null;
-        }
-
-        private PathId(string path)
-        {
-            _path = path;
-            _id = _path.ToGuid();
-        }
-        public string Path => _path;
-        public Guid Id => _id;
-
-        public static implicit operator PathId(string path) => new PathId(path);
-        public static implicit operator PathId(Guid id) => new PathId(id);
-        public static implicit operator ObjectPath(PathId p) => p.Path;
-        public static implicit operator PathId(ObjectPath p) => new PathId(p);
-
-        public bool Equals(PathId other) => _id.Equals(other._id);
-
-        public override bool Equals(object? obj) => obj is PathId other && Equals(other);
-
-        public override int GetHashCode() => _id.GetHashCode();
-
-        public static bool operator ==(PathId left, PathId right) => left.Equals(right);
-
-        public static bool operator !=(PathId left, PathId right) => !left.Equals(right);
-
-        public int CompareTo(PathId other) => _id.CompareTo(other._id);
-
-        public int CompareTo(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return 1;
-            return obj is PathId other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(PathId)}");
-        }
-
-        public override string ToString() => _path ?? _id.ToString();
-    }
     public class NetworkManagerClient : IAsyncDisposable
     {
         private readonly List<NetworkManagerClient> _clones = new List<NetworkManagerClient>();
@@ -139,7 +79,7 @@ namespace EventPi.NetworkMonitor
                 var device = Service.CreateDevice(devicePath);
                 var interfaceName = await device.GetInterfaceAsync();
                 var type = (DeviceType)await device.GetDeviceTypeAsync();
-                
+                var state = (DeviceState)await device.GetStateAsync();
                 if (type == DeviceType.Wifi)
                 {
                     yield return new WifiDeviceInfo()
@@ -147,7 +87,8 @@ namespace EventPi.NetworkMonitor
                         Id = devicePath,
                         DeviceType = type,
                         InterfaceName = interfaceName,
-                        Client = this
+                        Client = this,
+                        State = state
                     };
                 }
                 else
@@ -156,64 +97,70 @@ namespace EventPi.NetworkMonitor
                         Id = devicePath,
                         DeviceType = type,
                         InterfaceName = interfaceName,
-                        Client = this
+                        Client = this,
+                        State = state
                     };
             }
         }
 
         public async Task RequestWifiScan()
         {
-            var wifi = await GetWifiNetworks().FirstOrDefault();
+            var wifi = await GetAccessPoints().FirstOrDefault();
             await wifi.RequestScan();
         }
         
-        public async IAsyncEnumerable<WifiNetwork> GetWifiNetworks()
+        public async IAsyncEnumerable<AccessPointInfo> GetAccessPoints()
         {
             await foreach (var d in GetDevices())
             {
                 if (d.DeviceType != DeviceType.Wifi) continue;
 
-                await foreach (var i in GetWifiNetworks(d)) yield return i;
+                await foreach (var i in GetAccessPoints(d)) yield return i;
                 yield break;
             }
         }
-        public async IAsyncEnumerable<WifiNetwork> GetWifiNetwork(string interfaceName)
+        public async IAsyncEnumerable<AccessPointInfo> GetAccessPoint(string interfaceName)
         {
             await foreach (var d in GetDevices())
             {
                 if (d.DeviceType != DeviceType.Wifi || d.InterfaceName != interfaceName) continue;
 
-                await foreach (var i in GetWifiNetworks(d)) yield return i;
+                await foreach (var i in GetAccessPoints(d)) yield return i;
                 yield break;
             }
         }
-        private async IAsyncEnumerable<WifiNetwork> GetWifiNetworks(DeviceInfo d)
+        private async IAsyncEnumerable<AccessPointInfo> GetAccessPoints(DeviceInfo d)
         {
             var wifi = Service.CreateWireless(d.Id.Path);
             var list = await wifi.GetAccessPointsAsync();
 
             foreach (var accessPoint in list.Select(x => Service.CreateAccessPoint(x)))
             {
-                var wssid = await accessPoint.GetSsidAsync();
-                var strength = await accessPoint.GetStrengthAsync();
-                var s = Encoding.UTF8.GetString(wssid);
-                //var wpfFlags = await accessPoint.GetWpaFlagsAsync();
-                var mode = (WifiAccessPointMode)await accessPoint.GetModeAsync();
-                var maxKbps = await accessPoint.GetMaxBitrateAsync();
-
-                yield return new WifiNetwork
-                {
-                    AccessPointMode = mode,
-                    AccessPointPath = accessPoint.Path,
-                    DevicePath = d.Id.Path,
-                    MaxKbitRate = maxKbps,
-                    SignalStrength = strength,
-                    Ssid = s,
-                    SourceInterface = d.InterfaceName,
-                    SourceDevice = d,
-                    Client = this
-                };
+                yield return await OnGetAccessPoint(this, accessPoint, d);
             }
+        }
+
+        internal static async Task<AccessPointInfo> OnGetAccessPoint(NetworkManagerClient client, AccessPoint accessPoint, DeviceInfo d)
+        {
+            var wssid = await accessPoint.GetSsidAsync();
+            var strength = await accessPoint.GetStrengthAsync();
+            var s = Encoding.UTF8.GetString(wssid);
+            //var wpfFlags = await accessPoint.GetWpaFlagsAsync();
+            var mode = (WifiAccessPointMode)await accessPoint.GetModeAsync();
+            var maxKbps = await accessPoint.GetMaxBitrateAsync();
+
+            return new AccessPointInfo
+            {
+                AccessPointMode = mode,
+                AccessPointPath = accessPoint.Path,
+                DevicePath = d.Id.Path,
+                MaxKbitRate = maxKbps,
+                SignalStrength = strength,
+                Ssid = s,
+                SourceInterface = d.InterfaceName,
+                SourceDevice = d,
+                Client = client
+            };
         }
         public async ValueTask DisposeAsync()
         {

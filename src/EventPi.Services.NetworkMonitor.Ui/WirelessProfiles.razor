@@ -22,17 +22,18 @@
                 
                 <TemplateColumn CellClass="" Title="Actions">
                     <CellTemplate>
-                        <MudButtonGroup Variant="Variant.Text" >
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => _vm.Delete(context.Item))"></MudIconButton>
-                            @if (context.Item.IsConnected)
+                        <MudStack Row="true" Style="padding:0px; margin:0px" >
+                            
+                            @if (!context.Item.IsConnected)
                             {
-                                <MudButton  OnClick="@(() => _vm.Activate(context.Item))">Connect</MudButton>
+                                <MudButton Style="padding:2px 8px; margin:0px" OnClick="@(() => _vm.Activate(context.Item))">Connect</MudButton>
                             }
                             else
                             {
-                                <MudButton Variant="Variant.Filled" OnClick="@(() => _vm.Disconnect(context.Item))">Disconnect</MudButton>
+                                <MudButton Style="padding:2px 8px; margin:0px" Variant="Variant.Filled" Color="@Color.Primary" OnClick="@(() => _vm.Disconnect(context.Item))">Disconnect</MudButton>
                             }
-                        </MudButtonGroup>
+                            <MudIconButton Style="padding:0px; margin:0px" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => _vm.Delete(context.Item))"></MudIconButton>
+                        </MudStack>
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
