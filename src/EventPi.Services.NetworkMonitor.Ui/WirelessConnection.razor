@@ -1,7 +1,9 @@
 @using EventPi.Abstractions
 @using EventPi.Services.NetworkMonitor.Contract
+@using MicroPlumberd
 @inject VmHostRegister<WirelessConnectionVm> _cR
 @inject VmHostRegister<WirelessStationsVm> _sR
+@inject ICommandBus _bus
 @if (_cVm != null)
 {
     <Observable Source="_cVm">
@@ -28,9 +30,18 @@
 
                     <Observable Source="@_sVm" Context="vm">
                         <MudList Clickable="true">
-                            @foreach (var i in _sVm.Stations.Where(x=>x.Ssid != _cVm?.Connectivity?.Ssid))
+                            @if (_sVm.Stations.Any(x => x.Ssid != _cVm?.Connectivity?.Ssid))
                             {
-                                <MudListItem Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { await _sVm.Connect(i); IsListOpened=false;}">@i.Ssid</MudListItem>
+                                @foreach (var i in _sVm.Stations.Where(x => x.Ssid != _cVm?.Connectivity?.Ssid))
+                                {
+                                    <MudListItem Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { await _sVm.Connect(i); IsListOpened = false; }">@i.Ssid</MudListItem>
+                                }
+                            }
+                            else
+                            {
+                                <div style="text-align:center">
+                                    <MudProgressCircular Indeterminate="true" Style="margin-left:auto; margin-right:auto;"/>
+                                </div>
                             }
                         </MudList>
                     </Observable>
@@ -45,8 +56,20 @@
 {
     private WirelessConnectionVm? _cVm;
     private WirelessStationsVm? _sVm;
-
-    public bool IsListOpened { get; set; }
+    private bool _isListOpened;
+    private DateTime? _lastScanRequest;
+    public bool IsListOpened
+    {
+        get => _isListOpened;
+        set
+        {
+            _isListOpened = value;
+            if (!value) return;
+            if (_lastScanRequest.HasValue && DateTime.Now.Subtract(_lastScanRequest.Value) <= TimeSpan.FromSeconds(45)) return;
+            _lastScanRequest = DateTime.Now;
+            Task.Run(() => _bus.SendAsync(HostName, new RequestWifiScan()));
+        }
+    }
 
     [Parameter]
     public HostName HostName { get; set; }

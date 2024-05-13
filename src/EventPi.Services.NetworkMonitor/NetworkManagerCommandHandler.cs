@@ -3,12 +3,13 @@ using EventPi.NetworkMonitor;
 using EventPi.Services.NetworkMonitor.Contract;
 using MicroPlumberd;
 using MicroPlumberd.Services;
+using Microsoft.Extensions.Logging;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EventPi.Services.NetworkMonitor;
 
 [CommandHandler]
-public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment env) : IAsyncDisposable
+public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment env, ILogger<NetworkManagerCommandHandler> log) : IAsyncDisposable
 {
     private NetworkManagerClient? _client;
 
@@ -24,6 +25,8 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     {
         await Prepare(hostName);
 
+        log.LogInformation($"Connect access point: {cmd.Ssid}");
+
         var dev = await _client.GetDevices().OfType<WifiDeviceInfo>().FirstOrDefaultAsync();
         await dev.ConnectAccessPoint(cmd.Ssid);
         
@@ -34,13 +37,26 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     public async Task Handle(HostName hostName, RequestWifiScan cmd)
     {
         await Prepare(hostName);
-        await _client.RequestWifiScan();
+
+        log.LogInformation($"Request wifi scan");
+
+        _=Task.Run(async () =>
+        {
+            await using var c = await NetworkManagerClient.Create();
+            await c.RequestWifiScan();
+            await WirelessStationService.AppendIfRequired(c, plumber, env);
+            await WirelessProfilesService.AppendIfRequired(c, plumber, env);
+            await WirelessConnectivityService.Append(c, plumber, env);
+        });
+        log.LogInformation($"Request send.");
     }
     [ThrowsFaultException<WrongHostError>]
     [ThrowsFaultException<ProfileNotFound>]
     public async Task Handle(HostName hostName, DeactivateWirelessProfile profile)
     {
         await Prepare(hostName);
+
+        log.LogInformation($"Deactivate Wireless Profile");
 
         var p = await GetProfileById(profile.ProfileId);
 
@@ -52,6 +68,8 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     {
         await Prepare(hostName);
 
+        log.LogInformation($"Disconnect Wireless Network");
+
         var p = await GetProfileById(profile.ProfileId);
 
         await foreach (var i in _client.GetDevices().OfType<WifiDeviceInfo>())
@@ -59,6 +77,7 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
             var con = await i.GetConnectionProfileId();
             if (con != p.Id) continue;
             await i.DisconnectAsync();
+            
             await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
             await WirelessConnectivityService.Append(_client, plumber, env);
             break;
@@ -69,6 +88,8 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     public async Task Handle(HostName hostName, ActivateWirelessProfile profile)
     {
         await Prepare(hostName);
+
+        log.LogInformation($"Activate Wireless Profile");
 
         var p = await GetProfileById(profile.ProfileId);
             
@@ -81,6 +102,8 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     public async Task Handle(HostName hostName, DeleteWirelessProfile profile)
     {
         await Prepare(hostName);
+
+        log.LogInformation($"Delete Wireless Profile");
 
         var p = await GetProfileById(profile.ProfileId);
 
