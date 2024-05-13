@@ -97,7 +97,7 @@ static class WirelessStationService
         WirelessStationsState state = new WirelessStationsState();
         bool changed = false;
         WirelessStationsState currentState = await plumber.GetState<WirelessStationsState>(env.HostName);
-        var currentStations = currentState.ToHashSet();
+        var currentStations = currentState != null ? currentState.ToHashSet() : new HashSet<WirelessStation>();
 
         await foreach (var i in client.GetAccessPoints().WithCancellation(stoppingToken))
         {
@@ -162,7 +162,7 @@ static class WirelessProfilesService
     public static async Task<bool> AppendIfRequired(NetworkManagerClient client, IPlumber plumber, IEnvironment env, CancellationToken stoppingToken = default)
     {
         WirelessProfilesState state = new WirelessProfilesState();
-        WirelessProfilesState currentState = await plumber.GetState<WirelessProfilesState>(env.HostName);
+        
         var activeConnection = await client.GetDevices().OfType<WifiDeviceInfo>()
             .SelectAwait(async x => await x.GetConnectionProfileId())
             .Where(x=> x != string.Empty && x != "/")
@@ -174,7 +174,9 @@ static class WirelessProfilesService
             if (await i.Settings() is WifiProfileSettings wifi)
             {
                 var isActive = activeConnection.Contains(i.Id);
-                if (state == null || !currentState.Any(x => x.FileName == i.FileName && x.IsConnected == isActive))
+                WirelessProfilesState currentState = await plumber.GetState<WirelessProfilesState>(env.HostName);
+                var profiles = currentState != null ? currentState.AsEnumerable() : Array.Empty<WirelessProfile>();
+                if (currentState == null || !profiles.Any(x => x.FileName == i.FileName && x.IsConnected == isActive))
                     hasChanged = true;
 
                 state.Add(new()
