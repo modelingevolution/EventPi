@@ -3,7 +3,8 @@ using EventPi.Services.Camera.Contract;
 
 namespace EventPi.Services.Camera;
 
-public record CameraConfigurationProfile{
+public record CameraConfigurationProfile : ICameraParametersReadOnly
+{
     public CameraConfigurationProfile()
     {
         
@@ -12,22 +13,31 @@ public record CameraConfigurationProfile{
     {
         
         Shutter = ev.Shutter;
-        AnalogGain = ev.AnalogueGain;
+        AnalogueGain = ev.AnalogueGain;
         DigitalGain = ev.DigitalGain;
         Brightness = ev.Brightness;
         Contrast = ev.Contrast;
         Sharpness = ev.Sharpness;
         CameraId = ev.CameraId;
+        HdrMode = ev.HdrMode;
+        ExposureLevel = ev.ExposureLevel;
+        BlueGain = ev.BlueGain;
+        RedGain = ev.RedGain;
+
         
     }
-    
+
+    public HdrModeEnum HdrMode { get; set; }
     public int Shutter { get; set; }
-    public double AnalogGain { get; set; }
-    public double DigitalGain { get; set; }
-    public double Brightness { get; set; }
-    public double Contrast { get; set; }
-    public double Sharpness { get; set; }
+    public float ExposureLevel { get; set; }
+    public float DigitalGain { get; set; }
+    public float Brightness { get; set; }
+    public float Contrast { get; set; }
+    public float Sharpness { get; set; }
     public int CameraId { get; set; }
-    
+    public float BlueGain { get; set; }
+    public float RedGain { get; set; }
+    public float AnalogueGain { get; set; }
+
 
 }

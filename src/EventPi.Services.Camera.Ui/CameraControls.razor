@@ -4,18 +4,19 @@
 @inject CameraControlVmRegister _vmRegister
 
 <MudStack>
+    <MudSwitch @bind-Value="@_vm.RecognitionService.TryDetect" Color="Color.Primary" Label="Try detect welding"  />
     <Observable Source="@_vm.SetCameraParameters">
         <MudSimpleTable Dense="true" Bordered="false">
             <tbody>
             <tr>
                 <td>
-                <MudSelect T="HdrModeEnum" Label="HDR mode" @bind-Value="@_cmd.HdrMode">
-                    @foreach (HdrModeEnum hdrMode in Enum.GetValues(typeof(HdrModeEnum)))
-                    {
-                        <MudSelectItem T="HdrModeEnum" Value="hdrMode">@Enum.GetName(typeof(HdrModeEnum), hdrMode)</MudSelectItem>
-                    }
-                </MudSelect>
-                    </td>
+                    <MudSelect T="HdrModeEnum" Label="HDR mode" @bind-Value="@_cmd.HdrMode">
+                        @foreach (HdrModeEnum hdrMode in Enum.GetValues(typeof(HdrModeEnum)))
+                        {
+                            <MudSelectItem T="HdrModeEnum" Value="hdrMode">@Enum.GetName(typeof(HdrModeEnum), hdrMode)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </td>
             </tr>
             <tr>
                 <td style="width: 150px"><MudNumericField @bind-Value="@_cmd.Shutter" Label="Shutter"></MudNumericField></td>
@@ -45,9 +46,9 @@
             </tbody>
         </MudSimpleTable>
     </Observable>
-    <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large" >
-        <MudButton OnClick="@_vm.Cancel" >Cancel</MudButton>
-        <MudButton OnClick="@_vm.Save" >Save</MudButton>
+    <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large">
+        <MudButton OnClick="@_vm.Cancel">Cancel</MudButton>
+        <MudButton OnClick="@_vm.Save">Save</MudButton>
     </MudButtonGroup>
 </MudStack>
 

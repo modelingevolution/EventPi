@@ -10,7 +10,6 @@ using static System.Net.WebRequestMethods;
 
 namespace EventPi.Services.Camera
 {
- 
     public class GrpcCppCameraProxy : IDisposable
     {
         private GrpcChannel _toCppChannel;
@@ -25,7 +24,8 @@ namespace EventPi.Services.Camera
 
         public void InitProxy(string url="")
         {
-            _cppGrpcUri = string.IsNullOrWhiteSpace(url)? "http://127.0.0.1:6500" : url;
+            _cppGrpcUri = string.IsNullOrWhiteSpace(url)? "http://192.168.0.105:6500" : url;
+            //_cppGrpcUri = string.IsNullOrWhiteSpace(url)? "http://127.0.0.1:6500" : url;
             _logger.LogInformation($"Grpc cpp proxy initialized for address: {_cppGrpcUri}");
             _toCppChannel = GrpcChannel.ForAddress(_cppGrpcUri);
         }

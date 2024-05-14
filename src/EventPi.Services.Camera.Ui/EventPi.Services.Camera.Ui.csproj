@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable.Blazor\ModelingEvolution.Observable.Blazor.csproj" />
     <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable\ModelingEvolution.Observable.csproj" />
     <ProjectReference Include="..\EventPi.Services.Camera.Contract\EventPi.Services.Camera.Contract.csproj" />
+    <ProjectReference Include="..\EventPi.Services.Camera\EventPi.Services.Camera.csproj" />
   </ItemGroup>
 
 </Project>
