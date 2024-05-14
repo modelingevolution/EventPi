@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using EventPi.Abstractions;
 using MicroPlumberd;
@@ -23,6 +24,7 @@ namespace EventPi.Services.NetworkMonitor.Contract
     [ThrowsFaultException<ProfileNotFound>]
     public record DeleteWirelessProfile
     {
+        [GuidNotEmpty]
         public Guid ProfileId { get; init; }
     }
 
@@ -31,8 +33,9 @@ namespace EventPi.Services.NetworkMonitor.Contract
     [ThrowsFaultException<ProfileNotFound>]
     public record DisconnectWirelessNetwork
     {
-        [NotNull]
+        [Required(AllowEmptyStrings = false)]
         public string Ssid { get; init; }
+        [GuidNotEmpty]
         public Guid ProfileId { get; init; }
     }
 
@@ -40,10 +43,12 @@ namespace EventPi.Services.NetworkMonitor.Contract
     [ThrowsFaultException<ProfileNotFound>]
     public record DeactivateWirelessProfile
     {
+        [GuidNotEmpty]
         public Guid ProfileId { get; init; }
     }
 
     [ThrowsFaultException<WrongHostError>]
+    [ThrowsFaultException<ConnectionError>]
     public record ConnectAccessPoint
     {
         [NotNull]
@@ -53,6 +58,7 @@ namespace EventPi.Services.NetworkMonitor.Contract
     [ThrowsFaultException<ProfileNotFound>]
     public record ActivateWirelessProfile
     {
+        [GuidNotEmpty]
         public Guid ProfileId { get; init; }
     }
     [ThrowsFaultException<WrongHostError>]
@@ -71,13 +77,19 @@ namespace EventPi.Services.NetworkMonitor.Contract
         
     }
     [ThrowsFaultException<WrongHostError>]
+    [ThrowsFaultException<ConnectionError>]
     public record DefineWirelessProfile 
     {
-        public string InterfaceName { get; init; }
-        public string Ssid { get; init; }
-        
+        public string InterfaceName { get; set; }
+
+        [Required(AllowEmptyStrings = false)]
+        [MinLength(1)]
+        public string Ssid { get; set; }
+
         // Should be SecretString
-        public string Password { get; init; }
+        [Required(AllowEmptyStrings = false)]
+        [Length(8, 64)]
+        public string Password { get; set; }
     }
     
 

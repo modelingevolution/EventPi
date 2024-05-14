@@ -9,7 +9,7 @@
     <Histogram >
         <HistogramSeries @bind-Points="@this._cmd.Points" ValuesChanged="this.OnValuesChanged"/>
     </Histogram>
-    <MudButtonGroup Variant="Variant.Filled">
+    <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large">
         <MudButton OnClick="@OnCancel">Cancel</MudButton>
         <MudButton OnClick="@OnSave">Save</MudButton>
     </MudButtonGroup>

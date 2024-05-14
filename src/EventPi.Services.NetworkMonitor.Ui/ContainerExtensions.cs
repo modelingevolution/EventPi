@@ -8,7 +8,7 @@ public static class ContainerExtensions
 {
     public static IServiceCollection AddNetworkManagerUi(this IServiceCollection services) =>
         services
-            .AddSingleton(typeof(VmHostRegister<>))
+            .AddScoped(typeof(VmHostRegister<>))
             .AddTransient<WirelessStationsVm>()
             .AddTransient<WirelessProfilesVm>()
             .AddTransient<WirelessConnectionVm>();

@@ -32,7 +32,7 @@ namespace EventPi.NetworkMonitor.App.Blazor
             
             // Add services to the container.
             var services = builder.Services;
-
+           
             bool disableUi = args.Contains("--disableUi");
             if(disableUi) Console.WriteLine("UI is disabled.");
 
