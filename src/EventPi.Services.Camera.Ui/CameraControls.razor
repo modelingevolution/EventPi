@@ -8,12 +8,22 @@
         <MudSimpleTable Dense="true" Bordered="false">
             <tbody>
             <tr>
+                <td>
+                <MudSelect T="HdrModeEnum" Label="HDR mode" @bind-Value="@_cmd.HdrMode">
+                    @foreach (HdrModeEnum hdrMode in Enum.GetValues(typeof(HdrModeEnum)))
+                    {
+                        <MudSelectItem T="HdrModeEnum" Value="hdrMode">@Enum.GetName(typeof(HdrModeEnum), hdrMode)</MudSelectItem>
+                    }
+                </MudSelect>
+                    </td>
+            </tr>
+            <tr>
                 <td style="width: 150px"><MudNumericField @bind-Value="@_cmd.Shutter" Label="Shutter"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_cmd.Shutter" Min="1" Max="40000" Step="1" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
                 <td style="width: 150px"><MudNumericField @bind-Value="@_cmd.ExposureLevel" Label="Exposure level"></MudNumericField></td>
-                    <td><MudSlider @bind-Value="_cmd.ExposureLevel" Min="-16" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+                <td><MudSlider @bind-Value="_cmd.ExposureLevel" Min="-16" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
                 <td><MudNumericField Label="Analogue Gain:" @bind-Value="@_cmd.AnalogueGain"></MudNumericField></td>

@@ -49,17 +49,19 @@ namespace EventPi.Services.Camera
         }
         public async Task<Empty> ProcessAsync(ICameraParameters ev)
         {
-         //  var clientOptions = new CameraOptions.CameraOptionsClient(_toCppChannel);
-         // await clientOptions.ProcessAsync(new CameraOptionsRequest()
-         //  {
-         //      AnologueGain = ev.AnalogueGain,
-         //      BlueGain = ev.BlueGain,
-         //      RedGain = ev.RedGain,
-         //      Brightness = ev.Brightness,
-         //      Contrast = ev.Contrast,
-         //      DigitalGain = ev.DigitalGain,
-         //      Sharpness = ev.Sharpness
-         //  });
+            _logger.LogInformation("Trying to set parameters to camera...");
+          var clientOptions = new CameraOptions.CameraOptionsClient(_toCppChannel);
+         await clientOptions.ProcessAsync(new CameraOptionsRequest()
+          {
+              AnologueGain = ev.AnalogueGain,
+              BlueGain = ev.BlueGain,
+              RedGain = ev.RedGain,
+              Brightness = ev.Brightness,
+              Contrast = ev.Contrast,
+              DigitalGain = ev.DigitalGain,
+              Sharpness = ev.Sharpness,
+              HdrMode = (int)ev.HdrMode
+          });
           var clientShutter = new CameraShutter.CameraShutterClient(_toCppChannel);
             await clientShutter.ProcessAsync(new ConfigureShutterRequest()
            {

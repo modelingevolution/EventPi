@@ -9,6 +9,7 @@ namespace EventPi.Services.Camera.Contract;
 public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, ICameraParametersReadOnly
 {
     private int _shutter;
+    private HdrModeEnum _hdrMode;
     private float _analogueGain;
     private float _exposureLevel;
     private float _digitalGain;
@@ -19,7 +20,13 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     private float _redGain;
     public Guid Id { get; init; } = Guid.NewGuid();
 
-        [Range(1, 40000)]
+    public HdrModeEnum HdrMode
+    {
+        get => _hdrMode;
+        set => SetField(ref _hdrMode, value);
+    }
+
+    [Range(1, 40000)]
     public int Shutter
     {
         get => _shutter;
@@ -98,6 +105,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     public SetCameraParameters CopyFrom(ICameraParametersReadOnly src, bool raiseChange = false)
     {
         _analogueGain = src.AnalogueGain;
+        _hdrMode = src.HdrMode;
         _digitalGain = src.DigitalGain;
         _contrast = src.Contrast;
         _sharpness = src.Sharpness;

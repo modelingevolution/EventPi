@@ -11,11 +11,13 @@ public interface ICameraParametersReadOnly
      float Brightness { get;  }
      float BlueGain { get;  }
      float RedGain { get;  }
+     HdrModeEnum HdrMode { get;  }
 }
 public interface ICameraParameters
 {
      int Shutter { get; set; }
 
+    HdrModeEnum HdrMode{ get; set; }
     float ExposureLevel { get; set; }
     float DigitalGain { get; set; }
      float Contrast { get; set; }

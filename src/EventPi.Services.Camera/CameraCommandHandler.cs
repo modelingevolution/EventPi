@@ -55,7 +55,10 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
             DigitalGain = cmd.DigitalGain,
             AnalogueGain = cmd.AnalogueGain,
             BlueGain = cmd.BlueGain,
-            RedGain = cmd.RedGain
+            RedGain = cmd.RedGain,
+            ExposureLevel = cmd.ExposureLevel,
+            HdrMode = cmd.HdrMode,
+
         };
         await plumber.AppendState(ev, hostName);
     }
