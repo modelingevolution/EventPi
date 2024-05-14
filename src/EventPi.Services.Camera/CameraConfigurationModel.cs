@@ -31,7 +31,7 @@ public partial class CameraProfileConfigurationModel
     private async Task Given(Metadata m, CameraConfigurationProfileApplied ev)
     {
         var selectedProfile = _availableProfiles[ev.ProfileName];
-        await _cameraProxy.ProcessAsync(selectedProfile);
+       // await _cameraProxy.ProcessAsync(selectedProfile);
         _currentProfile = selectedProfile;
     }
 }

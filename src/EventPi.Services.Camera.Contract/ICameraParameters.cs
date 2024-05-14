@@ -4,7 +4,8 @@ public interface ICameraParametersReadOnly
 {
      int Shutter { get;  }
      float AnalogueGain { get;  }
-     float DigitalGain { get;  }
+     float ExposureLevel { get; }
+    float DigitalGain { get;  }
      float Contrast { get;  }
      float Sharpness { get;  }
      float Brightness { get;  }
@@ -14,8 +15,9 @@ public interface ICameraParametersReadOnly
 public interface ICameraParameters
 {
      int Shutter { get; set; }
-     
-     float DigitalGain { get; set; }
+
+    float ExposureLevel { get; set; }
+    float DigitalGain { get; set; }
      float Contrast { get; set; }
      float Sharpness { get; set; }
      float Brightness { get; set; }

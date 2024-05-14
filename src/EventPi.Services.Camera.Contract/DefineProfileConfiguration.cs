@@ -20,6 +20,7 @@ public class DefineProfileCameraParameters : ICameraParameters
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public int Shutter { get; set; }
+    public float ExposureLevel { get; set; }
     public float DigitalGain { get; set; }
     public float Brightness { get; set; }
     public float BlueGain { get; set; }

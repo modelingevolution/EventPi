@@ -29,6 +29,7 @@ public record CameraProfile : ICameraParametersReadOnly, IStatefulStream<HostPro
     public static string FullStreamName(HostProfilePath id) => $"CameraProfile-{id}";
     
     public int Shutter { get; set; }
+    public float ExposureLevel { get; set; }
     public float DigitalGain { get; set; }
     public float Brightness { get; set; }
     public float Contrast { get; set; }

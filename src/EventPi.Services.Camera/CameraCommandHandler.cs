@@ -8,10 +8,11 @@ using EventPi.Services.Camera.Contract;
 namespace EventPi.Services.Camera;
 
 [CommandHandler]
-public partial class CameraCommandHandler(IPlumber plumber)
+public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy proxy)
 {
     public async Task Handle(HostName hostName, SetCameraHistogramFilter cmd)
     {
+        await proxy.ProcessAsync(cmd);
         var state = new CameraHistogramFilter()
         {
             Values = cmd.Values
@@ -44,6 +45,7 @@ public partial class CameraCommandHandler(IPlumber plumber)
 
     public async Task Handle(HostName hostName, SetCameraParameters cmd)
     {
+        await proxy.ProcessAsync(cmd);
         var ev = new CameraParametersState()
         {
             Brightness = cmd.Brightness,

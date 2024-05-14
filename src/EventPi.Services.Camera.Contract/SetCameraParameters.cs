@@ -10,6 +10,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
 {
     private int _shutter;
     private float _analogueGain;
+    private float _exposureLevel;
     private float _digitalGain;
     private float _contrast;
     private float _sharpness;
@@ -23,6 +24,12 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     {
         get => _shutter;
         set => SetField(ref _shutter, value);
+    }
+    [Range(-16.0f, 16.0f)]
+    public float ExposureLevel
+    {
+        get => _exposureLevel;
+        set => SetField(ref _exposureLevel, value);
     }
 
     [Range(0, 10)]
@@ -94,6 +101,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
         _digitalGain = src.DigitalGain;
         _contrast = src.Contrast;
         _sharpness = src.Sharpness;
+        _exposureLevel = src.ExposureLevel;
         _brightness = src.Brightness;
         _blueGain = src.BlueGain;
         _redGain = src.RedGain;

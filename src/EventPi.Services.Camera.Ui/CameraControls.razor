@@ -12,6 +12,10 @@
                 <td><MudSlider @bind-Value="_cmd.Shutter" Min="1" Max="40000" Step="1" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
+                <td style="width: 150px"><MudNumericField @bind-Value="@_cmd.ExposureLevel" Label="Exposure level"></MudNumericField></td>
+                    <td><MudSlider @bind-Value="_cmd.ExposureLevel" Min="-16" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
                 <td><MudNumericField Label="Analogue Gain:" @bind-Value="@_cmd.AnalogueGain"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_cmd.AnalogueGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
