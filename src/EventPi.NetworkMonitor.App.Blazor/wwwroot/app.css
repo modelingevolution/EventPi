@@ -1,0 +1,4 @@
+@import '_content/EventPi.Services.NetworkMonitor.Ui/EventPi.Services.NetworkMonitor.Ui.bundle.scp.css';
+.blur-background {
+    backdrop-filter: blur(10px);
+}

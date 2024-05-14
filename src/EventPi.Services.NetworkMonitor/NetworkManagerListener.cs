@@ -149,6 +149,20 @@ static class WirelessConnectivityService
                 };
                 await plumber.AppendState(state, env.HostName, token: stoppingToken);
             }
+            else
+            {
+                // We are disconnected
+                WirelessConnectivityState state = new WirelessConnectivityState()
+                {
+                    ConnectionName = null,
+                    Ssid = null,
+                    IpConfig = null,
+                    InterfaceName = wifiDev.InterfaceName,
+                    State = (DeviceStateChanged)wifiDev.State,
+                    Signal = 0
+                };
+                await plumber.AppendState(state, env.HostName, token: stoppingToken);
+            }
         }
 
         
@@ -169,12 +183,13 @@ static class WirelessProfilesService
             .ToHashSetAsync();
 
         bool hasChanged = false;
-        await foreach (var i in client.GetProfiles().WithCancellation(stoppingToken))
+        var actualProfiles = await client.GetProfiles().ToArrayAsync(cancellationToken: stoppingToken);
+        WirelessProfilesState currentState = await plumber.GetState<WirelessProfilesState>(env.HostName);
+        foreach (var i in actualProfiles)
         {
             if (await i.Settings() is WifiProfileSettings wifi)
             {
                 var isActive = activeConnection.Contains(i.Id);
-                WirelessProfilesState currentState = await plumber.GetState<WirelessProfilesState>(env.HostName);
                 var profiles = currentState != null ? currentState.AsEnumerable() : Array.Empty<WirelessProfile>();
                 if (currentState == null || !profiles.Any(x => x.FileName == i.FileName && x.IsConnected == isActive))
                     hasChanged = true;
@@ -189,7 +204,9 @@ static class WirelessProfilesService
                 });
             }
         }
-
+        if(!hasChanged)
+            if (currentState != null && currentState.Count != actualProfiles.Length)
+                hasChanged = true;
         //WirelessProfilesState currentState = await plumber.GetState<WirelessProfilesState>(env.HostName);
         if (hasChanged)
             await plumber.AppendState(state, env.HostName, token: stoppingToken);

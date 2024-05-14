@@ -18,23 +18,26 @@
                         }
                         else
                         {
-                            <MudText Style="font-weight:italic">@_cVm.Connectivity.State</MudText>
+                            <MudText Style="font-weight:italic">@(ConvertToInfo(_cVm.Connectivity.State))</MudText>
                         }
                     </MudStack>
                 </TitleContent>
                 <ChildContent>
-                    <MudTextField Label="Ip configuration" T="string" ReadOnly="true" Text="@_cVm.Connectivity.IpConfig.ToString()"/>
-                    <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary" Class="pt-8">
-                        <MudButton>Disconnect</MudButton>
-                    </MudButtonGroup>
-
+                    @if (_cVm.Connectivity.State == DeviceStateChanged.Activated)
+                    {
+                        <MudTextField Label="Ip configuration" T="string" ReadOnly="true" Text="@_cVm.Connectivity.IpConfig.ToString()"/>
+                        <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary" Class="pt-8">
+                            <MudButton>Disconnect</MudButton>
+                        </MudButtonGroup>
+                    }
+                    <MudText>Available access points:</MudText>
                     <Observable Source="@_sVm" Context="vm">
                         <MudList Clickable="true">
                             @if (_sVm.Stations.Any(x => x.Ssid != _cVm?.Connectivity?.Ssid))
                             {
                                 @foreach (var i in _sVm.Stations.Where(x => x.Ssid != _cVm?.Connectivity?.Ssid))
                                 {
-                                    <MudListItem Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { await _sVm.Connect(i); IsListOpened = false; }">@i.Ssid</MudListItem>
+                                    <MudListItem Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { if(await _sVm.Connect(i)) IsListOpened = false; }">@i.Ssid</MudListItem>
                                 }
                             }
                             else
@@ -54,6 +57,41 @@
 
 @code
 {
+    private static string ConvertToInfo(DeviceStateChanged state)
+    {
+        switch (state)
+        {
+            case DeviceStateChanged.Unknown:
+            case DeviceStateChanged.Unmanaged:
+            case DeviceStateChanged.Unavailable:
+            case DeviceStateChanged.Disconnected:
+            case DeviceStateChanged.Failed:
+                return state.ToString();
+                
+                
+            case DeviceStateChanged.IpConfig:
+            case DeviceStateChanged.IpCheck:
+            case DeviceStateChanged.Prepare:
+            case DeviceStateChanged.Config:
+                return $"Connecting... (stage: {state})";
+                
+            case DeviceStateChanged.NeedAuth:
+                return "Authentication needed...";
+            
+            case DeviceStateChanged.Secondaries:
+                return "Switching to secondaries network.";
+                
+            case DeviceStateChanged.Activated:
+                break;
+            case DeviceStateChanged.Deactivating:
+                return "Disconnecting...";
+            
+            default:
+                throw new ArgumentOutOfRangeException(nameof(state), state, null);
+        }
+
+        return string.Empty;
+    }
     private WirelessConnectionVm? _cVm;
     private WirelessStationsVm? _sVm;
     private bool _isListOpened;

@@ -9,5 +9,17 @@ namespace EventPi.Services.NetworkMonitor.Contract
     {
         public static readonly WrongHostError Error = new();
     }
-    
+
+    public class ConnectionError
+    {
+        public string Message { get; init; }
+        public ConnectionErrorReason Reason { get; init; }
+    }
+
+    public enum ConnectionErrorReason
+    {
+        Unknown,
+        MissingProfile,
+        AccessPointNotFound
+    }
 }
