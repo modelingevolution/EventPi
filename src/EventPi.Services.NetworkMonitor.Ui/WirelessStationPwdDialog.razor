@@ -33,6 +33,9 @@
     public string? InterfaceName { get; set; }
 
     [Parameter]
+    public string? ProfileFileName { get; set; }
+
+    [Parameter]
     public HostName? HostName { get; set; }
 
     private DefineWirelessProfile _pwd = new();
@@ -41,9 +44,9 @@
         _pwd = new();
         _pwd.Ssid = Ssid;
         _pwd.InterfaceName = InterfaceName;
+        _pwd.FileName = ProfileFileName;
     }
 
-   
 
     async Task Close()
     {

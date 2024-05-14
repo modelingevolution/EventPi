@@ -49,6 +49,7 @@ namespace EventPi.NetworkMonitor
             foreach (var i in activeConnections)
             {
                 var active = this.Service.CreateActive(i);
+                
                 var connection = await active.GetConnectionAsync();
                 result.Add(connection.ToString());
             }
@@ -71,35 +72,44 @@ namespace EventPi.NetworkMonitor
                 };
             }
         }
+
+        public async Task<DeviceInfo?> GetDevice(PathId devicePath)
+        {
+            var device = Service.CreateDevice(devicePath.Path);
+            var interfaceName = await device.GetInterfaceAsync();
+            var type = (DeviceType)await device.GetDeviceTypeAsync();
+            var state = (DeviceState)await device.GetStateAsync();
+            if (type == DeviceType.Wifi)
+            {
+                return new WifiDeviceInfo()
+                {
+                    Id = devicePath,
+                    DeviceType = type,
+                    InterfaceName = interfaceName,
+                    Client = this,
+                    State = state
+                };
+            }
+            else
+                return new DeviceInfo()
+                {
+                    Id = devicePath,
+                    DeviceType = type,
+                    InterfaceName = interfaceName,
+                    Client = this,
+                    State = state
+                };
+
+            return null;
+        }
         public async IAsyncEnumerable<DeviceInfo> GetDevices()
         {
 
             foreach (var devicePath in await NetworkManager.GetDevicesAsync())
             {
-                var device = Service.CreateDevice(devicePath);
-                var interfaceName = await device.GetInterfaceAsync();
-                var type = (DeviceType)await device.GetDeviceTypeAsync();
-                var state = (DeviceState)await device.GetStateAsync();
-                if (type == DeviceType.Wifi)
-                {
-                    yield return new WifiDeviceInfo()
-                    {
-                        Id = devicePath,
-                        DeviceType = type,
-                        InterfaceName = interfaceName,
-                        Client = this,
-                        State = state
-                    };
-                }
-                else
-                    yield return new DeviceInfo()
-                    {
-                        Id = devicePath,
-                        DeviceType = type,
-                        InterfaceName = interfaceName,
-                        Client = this,
-                        State = state
-                    };
+                var d = await GetDevice(devicePath);
+                if (d != null)
+                    yield return d;
             }
         }
 

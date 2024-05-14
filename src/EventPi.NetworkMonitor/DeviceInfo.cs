@@ -13,6 +13,12 @@ public class AccessPointNotFoundException : Exception
 {
 
 }
+
+public class ActivationFailedException : Exception
+{
+    public string ProfileFileName { get; init; }
+    public ActivationFailedReason Reason { get; init; }
+}
 public record WifiDeviceInfo : DeviceInfo
 {
     internal Wireless Wifi => Client.Service.CreateWireless(Id.Path);
@@ -25,10 +31,60 @@ public record WifiDeviceInfo : DeviceInfo
             this);
     }
 
-    public async Task ConnectAccessPoint(string ssid)
+    
+    public async Task ConnectAccessPoint(string ssid, bool wait = true)
     {
-        var ap = await Client.GetAccessPoints().Where(x => x.Ssid == ssid).FirstOrDefaultAsync() ?? throw new AccessPointNotFoundException();
-        await this.Client.NetworkManager.ActivateConnectionAsync("/", this.Device.Path, ap.AccessPointPath);
+        var c = await NetworkManagerClient.Create();
+
+        var ap = await c.GetAccessPoints().Where(x => x.Ssid == ssid).FirstOrDefaultAsync() ?? throw new AccessPointNotFoundException();
+        
+        var aPath = await c.NetworkManager.ActivateConnectionAsync("/", this.Device.Path, ap.AccessPointPath);
+        
+        if (wait)
+        {
+            var activeConnection = c.Service.CreateActive(aPath);
+            var conId = await activeConnection.GetConnectionAsync();
+            var con = c.Service.CreateConnection(conId);
+            string fileName = await con.GetFilenameAsync();
+            CancellationTokenSource cts = new CancellationTokenSource();
+            ActivationFailedReason ret = ActivationFailedReason.Unknown;
+            ActivationState state = ActivationState.Unknown;
+            using var d = await activeConnection.WatchStateChangedAsync((Exception? e, (uint state, uint reason) ch) =>
+            {
+                Console.WriteLine($"{(ActivationState)ch.state}:... {(ActivationFailedReason)ch.reason}");
+                if (e != null)
+                {
+                    cts.Cancel();
+                    return;
+                }
+
+                if (ch.state == (uint)ActivationState.Activated || ch.state == (uint)ActivationState.Deactivated)
+                {
+                    ret = (ActivationFailedReason)ch.reason;
+                    state = (ActivationState)ch.state;
+                    cts.Cancel();
+                }
+            }, false);
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(110), cts.Token);
+
+            }
+            catch (OperationCanceledException)
+            {
+                // This is expected.
+                if (state == ActivationState.Activated)
+                    return;
+                if (state == ActivationState.Deactivated)
+                    throw new ActivationFailedException()
+                    {
+                        Reason = ret,
+                        ProfileFileName = fileName
+                    };
+            }
+
+            throw new TimeoutException();
+        }
     }
     public event EventHandler<AccessPointDiscoveryArgs> AccessPointVisilibityChanged;
     public event EventHandler<AccessPointPropertyChangedArgs> AccessPointSignalChanged;

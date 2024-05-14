@@ -4,15 +4,39 @@ using EventPi.Services.NetworkMonitor.Contract;
 using MicroPlumberd;
 using MicroPlumberd.Services;
 using Microsoft.Extensions.Logging;
+using System.Numerics;
+using System.Threading.Channels;
 using Tmds.DBus.Protocol;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using ActivationFailedReason = EventPi.NetworkMonitor.ActivationFailedReason;
+using DeviceState = EventPi.Services.NetworkMonitor.Contract.DeviceState;
 
 namespace EventPi.Services.NetworkMonitor;
 
 [CommandHandler]
-public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment env, ILogger<NetworkManagerCommandHandler> log) : IAsyncDisposable
+public partial class NetworkManagerCommandHandler : IAsyncDisposable
 {
     private NetworkManagerClient? _client;
+    private readonly IPlumber _plumber;
+    private readonly IEnvironment _env;
+    private readonly ILogger<NetworkManagerCommandHandler> _log;
+    private readonly Channel<Func<CancellationToken, Task>> _channel;
+    private readonly CancellationTokenSource _cts;
+    public NetworkManagerCommandHandler(IPlumber plumber, IEnvironment env, ILogger<NetworkManagerCommandHandler> log)
+    {
+        _plumber = plumber;
+        _env = env;
+        _log = log;
+        _channel = Channel.CreateBounded<Func<CancellationToken, Task>>(new BoundedChannelOptions(5) { FullMode = BoundedChannelFullMode.DropOldest });
+        _cts = new CancellationTokenSource();
+        _ = Task.Factory.StartNew(OnStateAppender, TaskCreationOptions.LongRunning);
+    }
+    private async Task OnStateAppender()
+    {
+        await foreach (var i in _channel.Reader.ReadAllAsync(_cts.Token))
+            await i(_cts.Token);
+
+    }
 
     [ThrowsFaultException<WrongHostError>]
     [ThrowsFaultException<ConnectionError>]
@@ -37,7 +61,7 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
                 Message = "Access point was not found. Try again later.",
                 Reason = ConnectionErrorReason.AccessPointNotFound
             });
-        await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
+        await WirelessProfilesService.AppendIfRequired(_client, _plumber, _env);
     }
 
     [ThrowsFaultException<WrongHostError>]
@@ -46,8 +70,8 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     {
         await Prepare(hostName);
 
-        log.LogInformation($"Connect access point: {cmd.Ssid}");
-        if (await _client.GetProfiles().SelectAwait(async x => await x.Settings()).OfType<WifiProfileSettings>()
+        _log.LogInformation($"Connect access point: {cmd.Ssid}");
+        if (await _client!.GetProfiles().SelectAwait(async x => await x.Settings()).OfType<WifiProfileSettings>()
                 .AnyAsync(x => x.Ssid == cmd.Ssid))
         {
             var dev = await _client.GetDevices().OfType<WifiDeviceInfo>().FirstOrDefaultAsync();
@@ -55,8 +79,20 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
             {
                 await dev.ConnectAccessPoint(cmd.Ssid);
             }
+            catch (ActivationFailedException ex)
+            {
+                _log.LogInformation($"Activation log exception, reason: {(uint)ex.Reason} - {ex.Reason.ToString()}");
+                // this should not happen
+                throw new FaultException<ConnectionError>(new ConnectionError()
+                {
+                    Message = ex.Message,
+                    Reason = MapReason(ex.Reason),
+                    ProfileFileName = ex.ProfileFileName
+                });
+            }
             catch (Exception ex)
             {
+                _log.LogInformation($"Activation exception, message: {ex.Message}");
                 throw new FaultException<ConnectionError>(new ConnectionError()
                 {
                     Message = ex.Message,
@@ -73,25 +109,46 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
             });
         }
 
-        await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
-        await WirelessConnectivityService.Append(_client, plumber, env);
+        await WirelessProfilesService.AppendIfRequired(_client, _plumber, _env);
+        await WirelessConnectivityService.Append(_client, _plumber, _env);
     }
+
+    private ConnectionErrorReason MapReason(ActivationFailedReason exReason)
+    {
+        switch (exReason)
+        {
+            case ActivationFailedReason.IpConfigInvalid:
+                return ConnectionErrorReason.IpConfigInvalid;
+            case ActivationFailedReason.ConnectTimeout:
+            case ActivationFailedReason.ServiceStartTimeout:
+                return ConnectionErrorReason.ConnectTimeout;
+            case ActivationFailedReason.NoSecrets:
+                return ConnectionErrorReason.NoSecrets;
+            case ActivationFailedReason.LoginFailed:
+                return ConnectionErrorReason.LoginFailed;
+            case ActivationFailedReason.DeviceDisconnected:
+                return ConnectionErrorReason.DeviceDisconnected;
+            default:
+                return ConnectionErrorReason.Unknown;
+        }
+    }
+
     [ThrowsFaultException<WrongHostError>]
     public async Task Handle(HostName hostName, RequestWifiScan cmd)
     {
         await Prepare(hostName);
 
-        log.LogInformation($"Request wifi scan");
+        _log.LogInformation($"Request wifi scan");
 
         _=Task.Run(async () =>
         {
             await using var c = await NetworkManagerClient.Create();
             await c.RequestWifiScan();
-            await WirelessStationService.AppendIfRequired(c, plumber, env);
-            await WirelessProfilesService.AppendIfRequired(c, plumber, env);
-            await WirelessConnectivityService.Append(c, plumber, env);
+            await WirelessStationService.AppendIfRequired(c, _plumber, _env);
+            await WirelessProfilesService.AppendIfRequired(c, _plumber, _env);
+            await WirelessConnectivityService.Append(c, _plumber, _env);
         });
-        log.LogInformation($"Request send.");
+        _log.LogInformation($"Request send.");
     }
     [ThrowsFaultException<WrongHostError>]
     [ThrowsFaultException<ProfileNotFound>]
@@ -99,7 +156,7 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     {
         await Prepare(hostName);
 
-        log.LogInformation($"Deactivate Wireless Profile");
+        _log.LogInformation($"Deactivate Wireless Profile");
 
         var p = await GetProfileById(profile.ProfileId);
 
@@ -111,7 +168,7 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     {
         await Prepare(hostName);
 
-        log.LogInformation($"Disconnect Wireless Network");
+        _log.LogInformation($"Disconnect Wireless Network");
 
         var p = await GetProfileById(profile.ProfileId);
 
@@ -121,8 +178,8 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
             if (con != p.Id) continue;
             await i.DisconnectAsync();
             
-            await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
-            await WirelessConnectivityService.Append(_client, plumber, env);
+            await WirelessProfilesService.AppendIfRequired(_client, _plumber, _env);
+            await WirelessConnectivityService.Append(_client, _plumber, _env);
             break;
         }
     }
@@ -132,13 +189,13 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     {
         await Prepare(hostName);
 
-        log.LogInformation($"Activate Wireless Profile");
+        _log.LogInformation($"Activate Wireless Profile");
 
         var p = await GetProfileById(profile.ProfileId);
             
         await p.Activate();
-        await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
-        await WirelessConnectivityService.Append(_client, plumber, env);
+        await WirelessProfilesService.AppendIfRequired(_client, _plumber, _env);
+        await WirelessConnectivityService.Append(_client, _plumber, _env);
     }
     [ThrowsFaultException<WrongHostError>]
     [ThrowsFaultException<ProfileNotFound>]
@@ -146,13 +203,13 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
     {
         await Prepare(hostName);
 
-        log.LogInformation($"Delete Wireless Profile");
+        _log.LogInformation($"Delete Wireless Profile");
 
         var p = await GetProfileById(profile.ProfileId);
 
         await p.Delete();
             
-        await WirelessProfilesService.AppendIfRequired(_client, plumber, env);
+        await WirelessProfilesService.AppendIfRequired(_client, _plumber, _env);
     }
 
    
@@ -166,7 +223,7 @@ public partial class NetworkManagerCommandHandler(IPlumber plumber, IEnvironment
 
     private async Task Prepare(HostName hostName)
     {
-        if (hostName != env.HostName) throw new FaultException<WrongHostError>(WrongHostError.Error);
+        if (hostName != _env.HostName) throw new FaultException<WrongHostError>(WrongHostError.Error);
         _client ??= await NetworkManagerClient.Create();
     }
 

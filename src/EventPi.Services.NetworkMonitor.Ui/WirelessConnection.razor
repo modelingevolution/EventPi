@@ -11,7 +11,7 @@
             <MudExpansionPanel @bind-IsExpanded="@IsListOpened" >
                 <TitleContent>
                     <MudStack Row="true" >
-                        @if (_cVm.Connectivity.State == DeviceStateChanged.Activated)
+                        @if (_cVm.Connectivity.State == DeviceState.Activated)
                         {
                             <MudIcon Icon="@SignalToIcon.Convert(_cVm.Connectivity.Signal)" />
                             <MudText>@_cVm.Connectivity.Ssid</MudText>
@@ -23,7 +23,7 @@
                     </MudStack>
                 </TitleContent>
                 <ChildContent>
-                    @if (_cVm.Connectivity.State == DeviceStateChanged.Activated)
+                    @if (_cVm.Connectivity.State == DeviceState.Activated)
                     {
                         <MudTextField Label="Ip configuration" T="string" ReadOnly="true" Text="@_cVm.Connectivity.IpConfig.ToString()"/>
                         <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary" Class="pt-8">
@@ -57,37 +57,37 @@
 
 @code
 {
-    private static string ConvertToInfo(DeviceStateChanged state)
+    private static string ConvertToInfo(DeviceState state)
     {
         switch (state)
         {
-            case DeviceStateChanged.Unknown:
-            case DeviceStateChanged.Unmanaged:
-            case DeviceStateChanged.Unavailable:
-            case DeviceStateChanged.Disconnected:
-            case DeviceStateChanged.Failed:
+            case DeviceState.Unknown:
+            case DeviceState.Unmanaged:
+            case DeviceState.Unavailable:
+            case DeviceState.Disconnected:
+            case DeviceState.Failed:
                 return state.ToString();
                 
                 
-            case DeviceStateChanged.IpConfig:
-            case DeviceStateChanged.IpCheck:
-            case DeviceStateChanged.Prepare:
-            case DeviceStateChanged.Config:
+            case DeviceState.IpConfig:
+            case DeviceState.IpCheck:
+            case DeviceState.Prepare:
+            case DeviceState.Config:
                 return $"Connecting... (stage: {state})";
                 
-            case DeviceStateChanged.NeedAuth:
+            case DeviceState.NeedAuth:
                 return "Authentication needed...";
             
-            case DeviceStateChanged.Secondaries:
+            case DeviceState.Secondaries:
                 return "Switching to secondaries network.";
                 
-            case DeviceStateChanged.Activated:
+            case DeviceState.Activated:
                 break;
-            case DeviceStateChanged.Deactivating:
+            case DeviceState.Deactivating:
                 return "Disconnecting...";
             
             default:
-                throw new ArgumentOutOfRangeException(nameof(state), state, null);
+                return $"Unsupported state: {state}";
         }
 
         return string.Empty;
@@ -115,7 +115,10 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        this._cVm = await _cR.Get(HostName).Initialize(HostName);
+        var tmp = _cR.Get(HostName);
+        tmp.InvokeAsync = this.InvokeAsync;
+        this._cVm = await tmp.Initialize(HostName);
+        
         this._sVm = await _sR.Get(HostName).Initialize(HostName);
     }
 
