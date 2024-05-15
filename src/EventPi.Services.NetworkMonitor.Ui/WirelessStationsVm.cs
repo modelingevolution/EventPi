@@ -36,14 +36,31 @@ internal partial class WirelessStationsVm(IPlumber plumber, ICommandBus bus, IDi
         }
         catch (FaultException<ConnectionError> ex)
         {
-            if (ex.Data.Reason == ConnectionErrorReason.MissingProfile)
+            if (ex.Data.Reason == ConnectionErrorReason.DeviceDisconnected || 
+                ex.Data.Reason == ConnectionErrorReason.LoginFailed ||
+                ex.Data.Reason == ConnectionErrorReason.NoSecrets)
             {
                 var parameters = new DialogParameters<WirelessStationPwdDialog>
                     {
                         { x => x.InterfaceName, st.InterfaceName },
-                        { x => x.Ssid, st.Ssid }
+                        { x => x.Ssid, st.Ssid },
+                        { x => x.ProfileFileName, ex.Data.ProfileFileName}
                     };
                 DialogOptions op = new DialogOptions() { ClassBackground = "blur-background", MaxWidth = MaxWidth.Medium };
+                var dialog = await dialogService.ShowAsync<WirelessStationPwdDialog>($"Wifi needs authentication", parameters, op);
+                var result = await dialog.Result;
+                if (result.Canceled)
+                    return false;
+            }
+            else if (ex.Data.Reason == ConnectionErrorReason.MissingProfile)
+            {
+                var parameters = new DialogParameters<WirelessStationPwdDialog>
+                {
+                    { x => x.InterfaceName, st.InterfaceName },
+                    { x => x.Ssid, st.Ssid }
+                };
+                DialogOptions op = new DialogOptions()
+                    { ClassBackground = "blur-background", MaxWidth = MaxWidth.Medium };
                 var dialog = await dialogService.ShowAsync<WirelessStationPwdDialog>($"Wifi needs authentication", parameters, op);
                 var result = await dialog.Result;
                 if (result.Canceled)

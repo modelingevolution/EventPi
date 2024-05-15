@@ -1,11 +1,11 @@
 ﻿using System.Threading.Channels;
 using EventPi.Abstractions;
 using EventPi.NetworkMonitor;
-using EventPi.Services.NetworkMonitor.Contract;
 using MicroPlumberd;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using DeviceState = EventPi.Services.NetworkMonitor.Contract.DeviceState;
 
 namespace EventPi.Services.NetworkMonitor;
 
@@ -23,7 +23,7 @@ internal class NetworkManagerListener(IPlumber plumber, IEnvironment env, ILogge
         _client = await NetworkManagerClient.Create();
         await AppendStations(stoppingToken);
         await AppendWifiProfiles(stoppingToken);
-        await AppendConnectivity(stoppingToken);
+        await AppendConnectivity(token:stoppingToken);
         var wifis = await _client.GetDevices().OfType<WifiDeviceInfo>().ToArrayAsync();
         
         foreach (var i in wifis)
@@ -58,15 +58,17 @@ internal class NetworkManagerListener(IPlumber plumber, IEnvironment env, ILogge
     }
     private void OnWifiDeviceStateChanged(object? sender, DeviceStateEventArgs e)
     {
+        WifiDeviceInfo w = (WifiDeviceInfo)sender;
         _channel.Writer.WriteAsync(this.AppendStations);
-        _channel.Writer.WriteAsync(this.AppendConnectivity);
+        _channel.Writer.WriteAsync(async (token) => await this.AppendConnectivity((DeviceState)e.NewState,w.Id, token));
         _channel.Writer.WriteAsync(this.AppendWifiProfiles);
     }
 
-    public async Task AppendConnectivity(CancellationToken token)
+    public async Task AppendConnectivity(DeviceState? st = null,
+        PathId? id = null, CancellationToken token = default)
     {
-        await WirelessConnectivityService.Append(_client, plumber, env, token);
-        log.LogInformation("Appending wifi connectivity.");
+        await WirelessConnectivityService.Append(_client, plumber, env, st, id, token);
+        log.LogInformation($"Appending wifi connectivity. ({st})");
     }
     private async Task AppendWifiProfiles(CancellationToken stoppingToken)
     {
@@ -88,128 +90,4 @@ internal class NetworkManagerListener(IPlumber plumber, IEnvironment env, ILogge
     }
 
         
-}
-
-static class WirelessStationService
-{
-    public static async Task<bool> AppendIfRequired(NetworkManagerClient client, IPlumber plumber, IEnvironment env, CancellationToken stoppingToken = default)
-    {
-        WirelessStationsState state = new WirelessStationsState();
-        bool changed = false;
-        WirelessStationsState currentState = await plumber.GetState<WirelessStationsState>(env.HostName);
-        var currentStations = currentState != null ? currentState.ToHashSet() : new HashSet<WirelessStation>();
-
-        await foreach (var i in client.GetAccessPoints().WithCancellation(stoppingToken))
-        {
-            var n = new WirelessStation()
-            {
-                InterfaceName = i.SourceInterface,
-                Signal = i.SignalStrength,
-                Ssid = i.Ssid
-            };
-
-            if (!currentStations.Contains(n))
-                changed = true;
-
-            state.Add(n);
-        }
-        if(changed)
-            await plumber.AppendState(state, env.HostName, token: stoppingToken);
-        return changed;
-    }
-
-}
-
-static class WirelessConnectivityService
-{
-    public static async Task Append(NetworkManagerClient client, IPlumber plumber, IEnvironment env,
-        CancellationToken stoppingToken = default)
-    {
-        
-        var wifiDev = await client.GetDevices().OfType<WifiDeviceInfo>().FirstOrDefaultAsync(cancellationToken: stoppingToken);
-        
-        if (wifiDev != null)
-        {
-            if (wifiDev.State == DeviceState.Activated)
-            {
-                
-                var ac = await wifiDev.GetConnectionProfile();
-                //client.GetProfile(ac);
-                var connectionInfo = await wifiDev.GetConnectionInfo();
-                var accessPointInfo = await wifiDev.AccessPoint();
-
-                WirelessConnectivityState state = new WirelessConnectivityState()
-                {
-                    ConnectionName = ac?.FileName,
-                    Ssid = accessPointInfo.Ssid,
-                    IpConfig = connectionInfo?.Ip4Config,
-                    InterfaceName = wifiDev.InterfaceName,
-                    State = (DeviceStateChanged)wifiDev.State,
-                    Signal = accessPointInfo.SignalStrength
-                };
-                await plumber.AppendState(state, env.HostName, token: stoppingToken);
-            }
-            else
-            {
-                // We are disconnected
-                WirelessConnectivityState state = new WirelessConnectivityState()
-                {
-                    ConnectionName = null,
-                    Ssid = null,
-                    IpConfig = null,
-                    InterfaceName = wifiDev.InterfaceName,
-                    State = (DeviceStateChanged)wifiDev.State,
-                    Signal = 0
-                };
-                await plumber.AppendState(state, env.HostName, token: stoppingToken);
-            }
-        }
-
-        
-    }
-}
-/// <summary>
-/// No need for a domain-service. We just need common procedures.
-/// </summary>
-static class WirelessProfilesService
-{
-    public static async Task<bool> AppendIfRequired(NetworkManagerClient client, IPlumber plumber, IEnvironment env, CancellationToken stoppingToken = default)
-    {
-        WirelessProfilesState state = new WirelessProfilesState();
-        
-        var activeConnection = await client.GetDevices().OfType<WifiDeviceInfo>()
-            .SelectAwait(async x => await x.GetConnectionProfileId())
-            .Where(x=> x != string.Empty && x != "/")
-            .ToHashSetAsync();
-
-        bool hasChanged = false;
-        var actualProfiles = await client.GetProfiles().ToArrayAsync(cancellationToken: stoppingToken);
-        WirelessProfilesState currentState = await plumber.GetState<WirelessProfilesState>(env.HostName);
-        foreach (var i in actualProfiles)
-        {
-            if (await i.Settings() is WifiProfileSettings wifi)
-            {
-                var isActive = activeConnection.Contains(i.Id);
-                var profiles = currentState != null ? currentState.AsEnumerable() : Array.Empty<WirelessProfile>();
-                if (currentState == null || !profiles.Any(x => x.FileName == i.FileName && x.IsConnected == isActive))
-                    hasChanged = true;
-
-                state.Add(new()
-                {
-                    InterfaceName = wifi.InterfaceName,
-                    Ssid = wifi.Ssid,
-                    ProfileName = wifi.ProfileName,
-                    FileName = i.FileName,
-                    IsConnected = isActive
-                });
-            }
-        }
-        if(!hasChanged)
-            if (currentState != null && currentState.Count != actualProfiles.Length)
-                hasChanged = true;
-        //WirelessProfilesState currentState = await plumber.GetState<WirelessProfilesState>(env.HostName);
-        if (hasChanged)
-            await plumber.AppendState(state, env.HostName, token: stoppingToken);
-        return hasChanged;
-    }
 }

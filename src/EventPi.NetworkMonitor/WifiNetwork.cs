@@ -69,7 +69,43 @@ public record AccessPointInfo
     }
 
 
-    public async Task<ProfileInfo> Setup(string pwd, string conName)
+    public async Task<ProfileInfo> UpdatePwd(string pwd, string dataFileName, string connectionId)
+    {
+        var profile = await Client.GetProfiles().FirstOrDefaultAsync(x => x.FileName == dataFileName);
+        if (profile != null)
+        {
+            var connectionSettings = new Dictionary<string, Dictionary<string, Variant>>
+            {
+                {
+                    "802-11-wireless", new Dictionary<string, Variant>
+                    {
+                        { "ssid", Variant.FromArray<byte>(new Array<byte>(Encoding.UTF8.GetBytes(Ssid))) },
+                    }
+                },
+                {
+                    "802-11-wireless-security", new Dictionary<string, Variant>
+                    {
+                        { "psk", new Variant(pwd) },
+                        { "key-mgmt", new Variant("wpa-psk") },
+                        { "psk-flags", new Variant(0u)} // none, system is reposible for storing pwd
+                    }
+                },
+                {
+                    "connection", new Dictionary<string, Variant>
+                    {
+                        { "id", new Variant(connectionId??Ssid) },
+                        { "type", new Variant("802-11-wireless") },
+                        { "interface-name", new Variant(this.SourceInterface)},
+                    }
+                },
+            };
+            // we should update the profile.
+            await profile.Connection.UpdateAsync(connectionSettings);
+            return profile;
+        }
+        else throw new ProfileNotFoundException();
+    }
+    public async Task<ProfileInfo> New(string pwd, string conName)
     {
         var connectionSettings = new Dictionary<string, Dictionary<string, Variant>>
         {
@@ -99,11 +135,14 @@ public record AccessPointInfo
                 }
             },
         };
+       
         var r = await Client.Settings.AddConnectionAsync(connectionSettings);
         var connection = Client.Service.CreateConnection(r);
+        
         return new ProfileInfo()
         {
             Id = r,
+
             FileName = await connection.GetFilenameAsync(),
             Client = Client
         };
