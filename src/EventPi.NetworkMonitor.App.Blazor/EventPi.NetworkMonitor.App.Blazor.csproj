@@ -9,8 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.19.1" />
-    <PackageReference Include="MicroPlumberd.Services" Version="1.0.64.116" />
-    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.64.116" />
+    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.69.119" />
   </ItemGroup>
 
   <ItemGroup>
