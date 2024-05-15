@@ -52,8 +52,12 @@ public partial class NetworkManagerCommandHandler : IAsyncDisposable
         if (ap != null)
         {
             var n = DateTime.Now;
-            await ap.Setup(data.Password,
-                $"{data.Ssid}-connection-{n.Year:D4}{n.Month:D2}{n.Day:D2}.{n.Hour:D2}{n.Minute:D2}{n.Second:D2}");
+            var conName =
+                $"{data.Ssid}-connection-{n.Year:D4}{n.Month:D2}{n.Day:D2}.{n.Hour:D2}{n.Minute:D2}{n.Second:D2}";
+            if (data.FileName != null)
+                await ap.UpdatePwd(data.Password,data.FileName, conName);
+            else
+                await ap.New(data.Password, conName);
         }
         else
             throw new FaultException<ConnectionError>(new ConnectionError()

@@ -16,9 +16,13 @@
                             <MudIcon Icon="@SignalToIcon.Convert(_cVm.Connectivity.Signal)" />
                             <MudText>@_cVm.Connectivity.Ssid</MudText>
                         }
+                        else if(_cVm.Connectivity.State != DeviceState.Disconnected)
+                        {
+                            <MudText Style="font-weight:italic">@(ConvertToInfo(_cVm.Connectivity.State, _cVm.Connectivity.Ssid))</MudText>
+                        } 
                         else
                         {
-                            <MudText Style="font-weight:italic">@(ConvertToInfo(_cVm.Connectivity.State))</MudText>
+                            <MudIcon Icon="@Icons.Material.Filled.WifiOff" Title="Wifi disconnected"/>
                         }
                     </MudStack>
                 </TitleContent>
@@ -37,7 +41,7 @@
                             {
                                 @foreach (var i in _sVm.Stations.Where(x => x.Ssid != _cVm?.Connectivity?.Ssid))
                                 {
-                                    <MudListItem Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { if(await _sVm.Connect(i)) IsListOpened = false; }">@i.Ssid</MudListItem>
+                                    <MudListItem Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { IsListOpened = false; await _sVm.Connect(i); }">@i.Ssid</MudListItem>
                                 }
                             }
                             else
@@ -57,7 +61,7 @@
 
 @code
 {
-    private static string ConvertToInfo(DeviceState state)
+    private static string ConvertToInfo(DeviceState state, string? ssid)
     {
         switch (state)
         {
@@ -73,7 +77,7 @@
             case DeviceState.IpCheck:
             case DeviceState.Prepare:
             case DeviceState.Config:
-                return $"Connecting... (stage: {state})";
+                return string.Join(" ",ssid, $"Connecting... (stage: {state.ToString().ToLower()})");
                 
             case DeviceState.NeedAuth:
                 return "Authentication needed...";

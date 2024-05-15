@@ -52,6 +52,20 @@ internal partial class WirelessStationsVm(IPlumber plumber, ICommandBus bus, IDi
                 if (result.Canceled)
                     return false;
             }
+            else if (ex.Data.Reason == ConnectionErrorReason.MissingProfile)
+            {
+                var parameters = new DialogParameters<WirelessStationPwdDialog>
+                {
+                    { x => x.InterfaceName, st.InterfaceName },
+                    { x => x.Ssid, st.Ssid }
+                };
+                DialogOptions op = new DialogOptions()
+                    { ClassBackground = "blur-background", MaxWidth = MaxWidth.Medium };
+                var dialog = await dialogService.ShowAsync<WirelessStationPwdDialog>($"Wifi needs authentication", parameters, op);
+                var result = await dialog.Result;
+                if (result.Canceled)
+                    return false;
+            }
             else
             {
                 await dialogService.ShowMessageBox("Connection error", ex.Data.Message);

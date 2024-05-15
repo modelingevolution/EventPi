@@ -11,9 +11,8 @@ namespace EventPi.NetworkMonitor;
 
 public class AccessPointNotFoundException : Exception
 {
-
 }
-
+public class ProfileNotFoundException : Exception{}
 public class ActivationFailedException : Exception
 {
     public string ProfileFileName { get; init; }

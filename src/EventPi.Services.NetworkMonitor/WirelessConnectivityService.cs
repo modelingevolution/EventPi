@@ -35,7 +35,7 @@ static class WirelessConnectivityService
                 WirelessConnectivityState state = new WirelessConnectivityState()
                 {
                     ConnectionName = ac?.FileName,
-                    Ssid = accessPointInfo.Ssid,
+                    Ssid = accessPointInfo!.Ssid,
                     IpConfig = connectionInfo?.Ip4Config,
                     InterfaceName = wifiDev.InterfaceName,
                     State = st ?? (DeviceState)wifiDev.State,
@@ -45,15 +45,17 @@ static class WirelessConnectivityService
             }
             else
             {
+                var accessPointInfo = await wifiDev.AccessPoint();
+                var ac = await wifiDev.GetConnectionProfile();
                 // We are disconnected
                 WirelessConnectivityState state = new WirelessConnectivityState()
                 {
-                    ConnectionName = null,
-                    Ssid = null,
+                    ConnectionName = ac?.FileName,
+                    Ssid = accessPointInfo?.Ssid,
                     IpConfig = null,
                     InterfaceName = wifiDev.InterfaceName,
                     State = st ?? (DeviceState)wifiDev.State,
-                    Signal = 0
+                    Signal = accessPointInfo?.SignalStrength ?? 0
                 };
                 await plumber.AppendState(state, env.HostName, token: stoppingToken);
             }
