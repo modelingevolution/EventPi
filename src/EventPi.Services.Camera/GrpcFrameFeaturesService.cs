@@ -3,7 +3,10 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using EventPi.Services.Camera;
 using System;
-using MicroPlumberd.DirectConnect;
+using MicroPlumberd;
+using EventPi.Abstractions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace EventPi.Services.Camera;
 
@@ -28,6 +31,8 @@ public class GrpcFrameFeaturesService : FrameFeatures.FrameFeaturesBase
             TotalSharedArea = request.TotalSharedArea,
             TotalBrightPixels = request.TotalBrightPixels,
             TotalDarkPixels = request.TotalDarkPixels,
+            Lux = request.Lux,
+
         };
         OnFrameFeaturesAppeared.Invoke(this,ev);
       

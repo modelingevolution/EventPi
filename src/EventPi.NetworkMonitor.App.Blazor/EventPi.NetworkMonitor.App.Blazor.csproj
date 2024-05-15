@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>epi-nm</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="6.19.1" />
+    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.69.119" />
+    <PackageReference Include="MicroPlumberd.Services" Version="1.0.69.119" />
+    <PackageReference Include="MicroPlumberd.Encryption" Version="1.0.69.119" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventPi.Services.NetworkMonitor.Ui\EventPi.Services.NetworkMonitor.Ui.csproj" />
+    <ProjectReference Include="..\EventPi.Services.NetworkMonitor\EventPi.Services.NetworkMonitor.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -8,7 +8,8 @@ public static class ContainerExtensions
 {
     public static IServiceCollection AddCameraConfiguration(this IServiceCollection services)
     {
-        services.AddCommandHandler<CameraProfileConfigurationCommandHandler>();
+        services.AddScoped<CameraCommandHandler>();
+        services.AddCommandHandler<CameraCommandHandler>();
         return services;
     }
 }

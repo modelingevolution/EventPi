@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using EventPi.Abstractions;
+using EventPi.Services.Camera.Contract;
 using MicroPlumberd;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EventPi.Services.Camera;
 
@@ -18,18 +20,24 @@ public partial class CameraProfileConfigurationModel
     {
         _availableProfiles = new ConcurrentDictionary<string, CameraConfigurationProfile>();
         _cameraProxy = cameraProxy;
-        _cameraProxy.InitProxy();
     }
-    private async Task Given(Metadata m, CameraProfileConfigurationDefined ev)
+
+    public CameraConfigurationProfile? GetProfileByName(string name)
     {
+        _availableProfiles.TryGetValue(name, out var profile);
+        return profile;
+    }
+    private async Task Given(Metadata m, CameraProfile ev)
+    {
+        var id = m.StreamId<HostProfilePath>();
         var profile = new CameraConfigurationProfile(ev);
-       _availableProfiles.AddOrUpdate(profile.ProfileName,profile, (key, oldValue) => profile);
+       _availableProfiles.AddOrUpdate(id.ProfileName, profile, (key, oldValue) => profile);
     }
 
     private async Task Given(Metadata m, CameraConfigurationProfileApplied ev)
     {
         var selectedProfile = _availableProfiles[ev.ProfileName];
-        await _cameraProxy.ProcessAsync(selectedProfile);
+       // await _cameraProxy.ProcessAsync(selectedProfile);
         _currentProfile = selectedProfile;
     }
 }

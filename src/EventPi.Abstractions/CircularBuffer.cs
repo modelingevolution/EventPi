@@ -1,5 +1,6 @@
 using System.Collections;
 
+
 namespace EventPi.Abstractions;
 
 public class CircularBuffer<T> : IEnumerable<T>

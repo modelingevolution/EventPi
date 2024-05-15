@@ -1,0 +1,59 @@
+@using EventPi.Abstractions
+@using EventPi.Services.Camera.Contract
+@using MicroPlumberd
+@using ModelingEvolution.Controls.Blazor.HistogramControl
+@using ModelingEvolution.Drawing
+@inject IPlumber _plumber
+@inject ICommandBus _bus
+<MudStack Style="@Style">
+    <Histogram >
+        <HistogramSeries @bind-Points="@this._cmd.Points" ValuesChanged="this.OnValuesChanged"/>
+    </Histogram>
+    <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large">
+        <MudButton OnClick="@OnCancel">Cancel</MudButton>
+        <MudButton OnClick="@OnSave">Save</MudButton>
+    </MudButtonGroup>
+</MudStack>
+@code
+{
+    [Parameter]
+    public string HostName { get; set; }
+
+    [Parameter]
+    public string? ProfileName { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    
+
+    private HostProfilePath Id() => HostProfilePath.Create(HostName, ProfileName);
+    private DefineProfileCameraHistogramFilter _cmd = new DefineProfileCameraHistogramFilter();
+    private PointD[] _prv;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        CameraProfileHistogramFilter state = await _plumber.GetState<CameraProfileHistogramFilter>(Id());
+        if (state != null)
+        {
+            _cmd.Points = _prv = state.Points;
+        }
+    }
+
+    private void OnCancel()
+    {
+        _cmd.Points = _prv;
+    }
+
+    private async Task OnSave()
+    {
+        var dto = _cmd with { Id = Guid.NewGuid() };
+        await _bus.SendAsync(Id(), dto);
+    }
+
+    private async Task OnValuesChanged(byte[] arg)
+    {
+        var dto = new SetCameraHistogramFilter() { Values = arg };
+        await _bus.SendAsync((HostName)HostName, dto);
+    }
+}

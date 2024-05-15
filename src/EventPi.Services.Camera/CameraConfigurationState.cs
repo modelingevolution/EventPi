@@ -1,31 +1,43 @@
-﻿namespace EventPi.Services.Camera;
+﻿using System.Diagnostics.CodeAnalysis;
+using EventPi.Services.Camera.Contract;
 
-public record CameraConfigurationProfile{
+namespace EventPi.Services.Camera;
+
+public record CameraConfigurationProfile : ICameraParametersReadOnly
+{
     public CameraConfigurationProfile()
     {
         
     }
-    public CameraConfigurationProfile(CameraProfileConfigurationDefined ev)
+    public CameraConfigurationProfile(CameraProfile ev)
     {
-        Hostname = ev.Hostname;
+        
         Shutter = ev.Shutter;
-        AnalogGain = ev.AnalogGain;
+        AnalogueGain = ev.AnalogueGain;
         DigitalGain = ev.DigitalGain;
         Brightness = ev.Brightness;
         Contrast = ev.Contrast;
         Sharpness = ev.Sharpness;
         CameraId = ev.CameraId;
-        ProfileName = ev.Profile;
+        HdrMode = ev.HdrMode;
+        ExposureLevel = ev.ExposureLevel;
+        BlueGain = ev.BlueGain;
+        RedGain = ev.RedGain;
+
+        
     }
-   
-    public string Hostname { get; set; }
+
+    public HdrModeEnum HdrMode { get; set; }
     public int Shutter { get; set; }
-    public double AnalogGain { get; set; }
-    public double DigitalGain { get; set; }
-    public double Brightness { get; set; }
-    public double Contrast { get; set; }
-    public double Sharpness { get; set; }
+    public float ExposureLevel { get; set; }
+    public float DigitalGain { get; set; }
+    public float Brightness { get; set; }
+    public float Contrast { get; set; }
+    public float Sharpness { get; set; }
     public int CameraId { get; set; }
-    public string ProfileName { get; set; }
+    public float BlueGain { get; set; }
+    public float RedGain { get; set; }
+    public float AnalogueGain { get; set; }
+
 
 }

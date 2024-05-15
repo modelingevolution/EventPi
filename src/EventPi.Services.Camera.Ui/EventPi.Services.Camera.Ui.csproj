@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -12,11 +12,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageReference Include="MudBlazor" Version="6.19.1" />
+    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.69.119" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Controls.Blazor\Source\ModelingEvolution.Controls.Blazor.HistogramControl\ModelingEvolution.Controls.Blazor.HistogramControl.csproj" />
+    <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable.Blazor\ModelingEvolution.Observable.Blazor.csproj" />
+    <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable\ModelingEvolution.Observable.csproj" />
     <ProjectReference Include="..\EventPi.Services.Camera.Contract\EventPi.Services.Camera.Contract.csproj" />
+    <ProjectReference Include="..\EventPi.Services.Camera\EventPi.Services.Camera.csproj" />
   </ItemGroup>
 
 </Project>

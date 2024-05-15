@@ -1,0 +1,58 @@
+@using EventPi.Abstractions
+@inject VmHostRegister<WirelessProfilesVm> _r
+
+@if (_vm != null)
+{
+    <Observable Source="@_vm" Context="vm">
+        <MudDataGrid Items="@_vm.Profiles" SortMode="@SortMode.None" Dense="true"
+                     Filterable="false" QuickFilter="@_vm.Filter"
+                     RowStyle="font-weight: bold;" 
+                     Groupable="false">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Profiles</MudText>
+                <MudSpacer/>
+                <MudTextField @bind-Value="@_vm.SearchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.ProfileName" Title="Name" CellStyleFunc="@(x=> _vm.Style(x))" />
+                <PropertyColumn Property="x => x.Ssid" CellStyleFunc="@(x=> _vm.Style(x))" />
+                <PropertyColumn Property="x => x.InterfaceName" Title="Interface" CellStyleFunc="@(x=> _vm.Style(x))" />
+                
+                <TemplateColumn CellClass="" Title="Actions">
+                    <CellTemplate>
+                        <MudStack Row="true" Style="padding:0px; margin:0px" >
+                            
+                            @if (!context.Item.IsConnected)
+                            {
+                                <MudButton Style="padding:2px 8px; margin:0px" OnClick="@(() => _vm.Activate(context.Item))">Connect</MudButton>
+                            }
+                            else
+                            {
+                                <MudButton Style="padding:2px 8px; margin:0px" Variant="Variant.Filled" Color="@Color.Primary" OnClick="@(() => _vm.Disconnect(context.Item))">Disconnect</MudButton>
+                            }
+                            <MudIconButton Style="padding:0px; margin:0px" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => _vm.Delete(context.Item))"></MudIconButton>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    </Observable>
+}
+
+
+@code
+{
+    private WirelessProfilesVm? _vm;
+
+    [Parameter]
+    public HostName HostName { get; set; }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        this._vm = await _r.Get(HostName).Initialize(HostName);
+    }
+
+}
