@@ -6,6 +6,7 @@ using System.Diagnostics;
 using EventPi.Abstractions;
 using EventPi.Services.NetworkMonitor.Ui;
 using EventStore.Client;
+using MicroPlumberd.Encryption;
 
 namespace EventPi.NetworkMonitor.App.Blazor
 {
@@ -32,18 +33,17 @@ namespace EventPi.NetworkMonitor.App.Blazor
             
             // Add services to the container.
             var services = builder.Services;
-           
+            services.AddEncryption();
             bool disableUi = args.Contains("--disableUi");
             if(disableUi) Console.WriteLine("UI is disabled.");
 
             services.AddEventPiAbstractions()
-                .AddPlumberd(sp => EventStoreClientSettings.Create(sp.GetRequiredService<IConfiguration>().GetValue<string>("EventStore")!));
+                .AddPlumberd(sp => EventStoreClientSettings.Create(sp.GetRequiredService<IConfiguration>().GetValue<string>("EventStore")!), (sp, c) => c.EnableEncryption());
 
             if (!disableUi)
             {
                 services.AddMudServices()
                     .AddNetworkManagerUi()
-                    .AddPlumberd(sp => EventStoreClientSettings.Create(sp.GetRequiredService<IConfiguration>().GetValue<string>("EventStore")!))
                     .AddRazorComponents()
                     .AddInteractiveServerComponents();
             }

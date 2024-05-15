@@ -7,12 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroPlumberd" Version="1.0.64.116" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
-    <PackageReference Include="MicroPlumberd.Services" Version="1.0.64.116" />
+    <PackageReference Include="MicroPlumberd.Services" Version="1.0.69.119" />
+    <PackageReference Include="MicroPlumberd.Encryption" Version="1.0.69.119" />
   </ItemGroup>
 
 </Project>

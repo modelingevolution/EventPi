@@ -38,7 +38,7 @@
     [Parameter]
     public HostName? HostName { get; set; }
 
-    private DefineWirelessProfile _pwd = new();
+    private DefineWirelessProfileSurrogate _pwd = new();
     protected override void OnParametersSet()
     {
         _pwd = new();
@@ -52,7 +52,8 @@
     {
         try
         {
-            await _bus.SendAsync(HostName ?? _env.HostName, _pwd);
+            var hn = HostName ?? _env.HostName;
+            await _bus.SendAsync(hn, _pwd.Command(hn));
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch(ValidationException) {}

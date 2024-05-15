@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using MicroPlumberd.Encryption;
 using MicroPlumberd.Services;
 
 namespace EventPi.Services.NetworkMonitor.Contract;
@@ -14,8 +15,6 @@ public record DefineWirelessProfile
     [MinLength(1)]
     public string Ssid { get; set; }
 
-    // Should be SecretString
-    [Required(AllowEmptyStrings = false)]
-    [Length(8, 64)]
-    public string Password { get; set; }
+    public SecretObject<string> Password { get; set; }
 }
+

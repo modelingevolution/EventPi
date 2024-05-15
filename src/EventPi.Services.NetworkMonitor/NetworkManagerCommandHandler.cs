@@ -42,6 +42,10 @@ public partial class NetworkManagerCommandHandler : IAsyncDisposable
     [ThrowsFaultException<ConnectionError>]
     public async Task Handle(HostName hostName, DefineWirelessProfile data)
     {
+        if (string.IsNullOrWhiteSpace(data.Password.Value) || data.Password.Value.Length < 8 || data.Password.Value.Length > 64)
+            throw new FaultException<ConnectionError>(new ConnectionError()
+                { Message = "Password cannot be empty. Must be at least 8 and less than 64 chars.", Reason = ConnectionErrorReason.Unknown });
+
         await Prepare(hostName);
 
         var ap = await _client.GetAccessPoints()
