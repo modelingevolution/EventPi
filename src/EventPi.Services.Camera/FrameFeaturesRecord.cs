@@ -9,9 +9,10 @@ public record FrameFeaturesRecord
     public float TotalSharedArea { get; set; }
     public int TotalBrightPixels { get; set; }
     public int TotalDarkPixels { get; set; }
+    public float Lux { get; set; }
 
     public override string ToString()
     {
-        return $"Bright pixels: {TotalBrightPixels} \n Dark pixels: {TotalDarkPixels} \n";
+        return $"Bright pixels: {TotalBrightPixels} \n Dark pixels: {TotalDarkPixels} \n Lux: {Lux}";
     }
 }

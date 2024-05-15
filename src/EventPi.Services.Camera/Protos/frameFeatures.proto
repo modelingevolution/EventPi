@@ -20,4 +20,5 @@ message FrameFeaturesRequest
     float TotalSharedArea = 5;
     int32 TotalBrightPixels = 6;
     int32 TotalDarkPixels = 7;
+    float Lux = 8;
 }

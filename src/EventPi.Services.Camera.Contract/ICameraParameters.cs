@@ -4,18 +4,22 @@ public interface ICameraParametersReadOnly
 {
      int Shutter { get;  }
      float AnalogueGain { get;  }
-     float DigitalGain { get;  }
+     float ExposureLevel { get; }
+    float DigitalGain { get;  }
      float Contrast { get;  }
      float Sharpness { get;  }
      float Brightness { get;  }
      float BlueGain { get;  }
      float RedGain { get;  }
+     HdrModeEnum HdrMode { get;  }
 }
 public interface ICameraParameters
 {
      int Shutter { get; set; }
-     
-     float DigitalGain { get; set; }
+
+    HdrModeEnum HdrMode{ get; set; }
+    float ExposureLevel { get; set; }
+    float DigitalGain { get; set; }
      float Contrast { get; set; }
      float Sharpness { get; set; }
      float Brightness { get; set; }

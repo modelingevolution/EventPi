@@ -4,12 +4,35 @@
 @inject CameraControlVmRegister _vmRegister
 
 <MudStack>
+    <MudSwitch @bind-Value="@_vm.RecognitionService.TryDetect" Color="Color.Primary" Label="Try detect welding"  />
     <Observable Source="@_vm.SetCameraParameters">
         <MudSimpleTable Dense="true" Bordered="false">
             <tbody>
             <tr>
+                <td style="width: 150px"><MudNumericField @bind-Value="@_vm.RecognitionService.DetectWeldingBound" Label="Welding bound"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_vm.RecognitionService.DetectWeldingBound" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
+                <td style="width: 150px"><MudNumericField @bind-Value="@_vm.RecognitionService.DetectNonWeldingBound" Label="Non Welding bound"></MudNumericField></td>
+                    <td><MudSlider @bind-Value="_vm.RecognitionService.DetectNonWeldingBound" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
+                <td>
+                    <MudSelect T="HdrModeEnum" Label="HDR mode" @bind-Value="@_cmd.HdrMode">
+                        @foreach (HdrModeEnum hdrMode in Enum.GetValues(typeof(HdrModeEnum)))
+                        {
+                            <MudSelectItem T="HdrModeEnum" Value="hdrMode">@Enum.GetName(typeof(HdrModeEnum), hdrMode)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </td>
+            </tr>
+            <tr>
                 <td style="width: 150px"><MudNumericField @bind-Value="@_cmd.Shutter" Label="Shutter"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_cmd.Shutter" Min="1" Max="40000" Step="1" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
+                <td style="width: 150px"><MudNumericField @bind-Value="@_cmd.ExposureLevel" Label="Exposure level"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.ExposureLevel" Min="-16" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
                 <td><MudNumericField Label="Analogue Gain:" @bind-Value="@_cmd.AnalogueGain"></MudNumericField></td>
@@ -31,9 +54,9 @@
             </tbody>
         </MudSimpleTable>
     </Observable>
-    <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large" >
-        <MudButton OnClick="@_vm.Cancel" >Cancel</MudButton>
-        <MudButton OnClick="@_vm.Save" >Save</MudButton>
+    <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large">
+        <MudButton OnClick="@_vm.Cancel">Cancel</MudButton>
+        <MudButton OnClick="@_vm.Save">Save</MudButton>
     </MudButtonGroup>
 </MudStack>
 

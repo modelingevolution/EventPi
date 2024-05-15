@@ -11,4 +11,5 @@ service CameraShutter {
 
 message ConfigureShutterRequest {
   int32 Shutter = 1;
+  float ExposureLevel =2;
 }

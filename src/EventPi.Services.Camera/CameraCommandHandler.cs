@@ -8,10 +8,11 @@ using EventPi.Services.Camera.Contract;
 namespace EventPi.Services.Camera;
 
 [CommandHandler]
-public partial class CameraCommandHandler(IPlumber plumber)
+public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy proxy)
 {
     public async Task Handle(HostName hostName, SetCameraHistogramFilter cmd)
     {
+        await proxy.ProcessAsync(cmd);
         var state = new CameraHistogramFilter()
         {
             Values = cmd.Values
@@ -37,6 +38,8 @@ public partial class CameraCommandHandler(IPlumber plumber)
             AnalogueGain = cmd.AnalogueGain,
             DigitalGain = cmd.DigitalGain,
             CameraId = cmd.CameraId,
+            ExposureLevel = cmd.ExposureLevel,
+            HdrMode = cmd.HdrMode,
         };
         
         await plumber.AppendState(ev, hostProfilePath);
@@ -44,6 +47,7 @@ public partial class CameraCommandHandler(IPlumber plumber)
 
     public async Task Handle(HostName hostName, SetCameraParameters cmd)
     {
+        await proxy.ProcessAsync(cmd);
         var ev = new CameraParametersState()
         {
             Brightness = cmd.Brightness,
@@ -53,7 +57,10 @@ public partial class CameraCommandHandler(IPlumber plumber)
             DigitalGain = cmd.DigitalGain,
             AnalogueGain = cmd.AnalogueGain,
             BlueGain = cmd.BlueGain,
-            RedGain = cmd.RedGain
+            RedGain = cmd.RedGain,
+            ExposureLevel = cmd.ExposureLevel,
+            HdrMode = cmd.HdrMode,
+
         };
         await plumber.AppendState(ev, hostName);
     }

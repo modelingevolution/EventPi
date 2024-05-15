@@ -8,8 +8,14 @@ namespace EventPi.Services.Camera.Contract;
 [OutputStream("Camera")]
 public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, ICameraParametersReadOnly
 {
+    public SetCameraParameters()
+    {
+        _shutter = 1;
+    }
     private int _shutter;
+    private HdrModeEnum _hdrMode;
     private float _analogueGain;
+    private float _exposureLevel;
     private float _digitalGain;
     private float _contrast;
     private float _sharpness;
@@ -18,28 +24,40 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     private float _redGain;
     public Guid Id { get; init; } = Guid.NewGuid();
 
-        [Range(1, 40000)]
+    public HdrModeEnum HdrMode
+    {
+        get => _hdrMode;
+        set => SetField(ref _hdrMode, value);
+    }
+
+    [Range(1, 40000)]
     public int Shutter
     {
         get => _shutter;
         set => SetField(ref _shutter, value);
     }
+    [Range(-16.0f, 16.0f)]
+    public float ExposureLevel
+    {
+        get => _exposureLevel;
+        set => SetField(ref _exposureLevel, value);
+    }
 
-    [Range(0, 10)]
+    [Range(-16, 16)]
     public float AnalogueGain
     {
         get => _analogueGain;
         set => SetField(ref _analogueGain, value);
     }
 
-    [Range(0, 10)]
+    [Range(-16, 16)]
     public float DigitalGain
     {
         get => _digitalGain;
         set => SetField(ref _digitalGain, value);
     }
 
-    [Range(0, 10)]
+    [Range(-16, 16)]
     public float Contrast
     {
         get => _contrast;
@@ -91,9 +109,11 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     public SetCameraParameters CopyFrom(ICameraParametersReadOnly src, bool raiseChange = false)
     {
         _analogueGain = src.AnalogueGain;
+        _hdrMode = src.HdrMode;
         _digitalGain = src.DigitalGain;
         _contrast = src.Contrast;
         _sharpness = src.Sharpness;
+        _exposureLevel = src.ExposureLevel;
         _brightness = src.Brightness;
         _blueGain = src.BlueGain;
         _redGain = src.RedGain;

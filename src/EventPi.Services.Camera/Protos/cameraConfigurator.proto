@@ -1,0 +1,21 @@
+﻿syntax = "proto3";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "WeldingAutomation.CameraConfigurator";
+
+package cameraAI;
+
+// The greeting service definition.
+service CameraConfigurator {
+  // Sends a greeting
+  rpc Process (ConfigureHistogramRequest) returns (google.protobuf.Empty);
+  rpc Snapshot (google.protobuf.Empty) returns (PhotoResponse);
+}
+
+// The request message containing the user's name.
+message ConfigureHistogramRequest {
+  bytes Histogram = 1;
+  string ConfigurationName = 2;
+}
+message PhotoResponse {
+  bytes Data = 1;
+}
