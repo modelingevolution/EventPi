@@ -38,13 +38,12 @@ namespace EventPi.NetworkMonitor.App.Blazor
             if(disableUi) Console.WriteLine("UI is disabled.");
 
             services.AddEventPiAbstractions()
-                .AddPlumberd(sp => EventStoreClientSettings.Create(sp.GetRequiredService<IConfiguration>().GetValue<string>("EventStore")!));
+                .AddPlumberd(sp => EventStoreClientSettings.Create(sp.GetRequiredService<IConfiguration>().GetValue<string>("EventStore")!), (sp, c) => c.EnableEncryption());
 
             if (!disableUi)
             {
                 services.AddMudServices()
                     .AddNetworkManagerUi()
-                    .AddPlumberd(sp => EventStoreClientSettings.Create(sp.GetRequiredService<IConfiguration>().GetValue<string>("EventStore")!), (sp,c)=>c.EnableEncryption())
                     .AddRazorComponents()
                     .AddInteractiveServerComponents();
             }
