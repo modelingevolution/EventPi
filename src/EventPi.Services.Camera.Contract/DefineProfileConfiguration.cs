@@ -35,6 +35,8 @@ public class DefineProfileCameraParameters : ICameraParameters
     public DefineProfileCameraParameters CopyFrom(ICameraParametersReadOnly src)
     {
         Shutter = src.Shutter;
+        ExposureLevel = src.ExposureLevel;
+        HdrMode = src.HdrMode;
         DigitalGain = src.DigitalGain;
         Brightness = src.Brightness;
         BlueGain = src.BlueGain;

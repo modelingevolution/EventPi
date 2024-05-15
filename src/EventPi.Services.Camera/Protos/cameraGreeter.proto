@@ -1,0 +1,16 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "WeldingAutomation.CameraGreeter";
+
+package cameraAI;
+
+// The greeting service definition.
+service CameraGreeter {
+  // Sends a greeting
+  rpc Process (google.protobuf.Empty) returns (CameraInfo);
+
+}
+
+message CameraInfo {
+  string Config=1;
+}

@@ -35,9 +35,10 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
             Contrast = cmd.Contrast,
             Shutter = cmd.Shutter,
             Sharpness = cmd.Sharpness,
-            AnalogueGain = cmd.AnalogueGain,
             DigitalGain = cmd.DigitalGain,
-            CameraId = cmd.CameraId,
+            AnalogueGain = cmd.AnalogueGain,
+            BlueGain = cmd.BlueGain,
+            RedGain = cmd.RedGain,
             ExposureLevel = cmd.ExposureLevel,
             HdrMode = cmd.HdrMode,
         };

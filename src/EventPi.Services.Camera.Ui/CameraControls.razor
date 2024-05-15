@@ -38,6 +38,10 @@
                 <td><MudNumericField Label="Analogue Gain:" @bind-Value="@_cmd.AnalogueGain"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_cmd.AnalogueGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
+            <tr>
+                <td><MudNumericField Label="Digital Gain:" @bind-Value="@_cmd.DigitalGain" For="() => _cmd.DigitalGain"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.DigitalGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+            </tr>
 
             <tr>
                 <td><MudNumericField Label="Sharpness:" @bind-Value="@_cmd.Sharpness" For="() => _cmd.Sharpness"></MudNumericField></td>
@@ -45,12 +49,21 @@
             </tr>
             <tr>
                 <td><MudNumericField Label="Brightness:" @bind-Value="@_cmd.Brightness" For="() => _cmd.Brightness"></MudNumericField></td>
-                <td><MudSlider @bind-Value="_cmd.Brightness" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+                <td><MudSlider @bind-Value="_cmd.Brightness" Min="0" Max="1" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
                 <td><MudNumericField Label="Contrast:" @bind-Value="@_cmd.Contrast" For="() => _cmd.Contrast"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_cmd.Contrast" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
+            <tr>
+                <td><MudNumericField Label="Blue Gain:" @bind-Value="@_cmd.BlueGain" For="() => _cmd.BlueGain"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.BlueGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
+                    <td><MudNumericField Label="Red Gain:" @bind-Value="@_cmd.RedGain" For="() => _cmd.RedGain"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_cmd.RedGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+            </tr
+           
             </tbody>
         </MudSimpleTable>
     </Observable>

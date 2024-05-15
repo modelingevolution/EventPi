@@ -17,13 +17,9 @@
 	  <Authors>ModelingEvolution Team</Authors>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Protos\cameraConfigurator.proto" />
-  </ItemGroup>
-
-
 
 	<ItemGroup>
+		<Protobuf Include="Protos\cameraGreeter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraConfigurator.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraShutter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\frameFeatures.proto" GrpcServices="Server" />
