@@ -48,6 +48,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
+    <ProjectReference Include="..\EventPi.Pid\EventPi.Pid.csproj" />
     <ProjectReference Include="..\EventPi.Services.Camera.Contract\EventPi.Services.Camera.Contract.csproj" />
   </ItemGroup>
 
