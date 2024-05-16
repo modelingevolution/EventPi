@@ -17,12 +17,13 @@
     <PackageReference Include="MudBlazor" Version="6.19.1" />
     <PackageReference Include="MicroPlumberd.Services" Version="1.0.69.119" />
     <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.69.119" />
+    <PackageReference Include="ModelingEvolution.Observable" Version="0.0.5.4" />
+    <PackageReference Include="ModelingEvolution.Observable.Blazor" Version="0.0.5.4" />
+    <PackageReference Include="ModelingEvolution.Controls.Blazor.HistogramControl" Version="0.0.3.13" />
+
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Controls.Blazor\Source\ModelingEvolution.Controls.Blazor.HistogramControl\ModelingEvolution.Controls.Blazor.HistogramControl.csproj" />
-    <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable.Blazor\ModelingEvolution.Observable.Blazor.csproj" />
-    <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable\ModelingEvolution.Observable.csproj" />
     <ProjectReference Include="..\EventPi.Services.Camera.Contract\EventPi.Services.Camera.Contract.csproj" />
     <ProjectReference Include="..\EventPi.Services.Camera\EventPi.Services.Camera.csproj" />
   </ItemGroup>

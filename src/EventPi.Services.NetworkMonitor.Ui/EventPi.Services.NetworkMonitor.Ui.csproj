@@ -17,11 +17,12 @@
     <PackageReference Include="MudBlazor" Version="6.19.1" />
     <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.69.119" />
     <PackageReference Include="MicroPlumberd.Services" Version="1.0.69.119" />
+    <PackageReference Include="ModelingEvolution.Observable" Version="0.0.5.4" />
+    <PackageReference Include="ModelingEvolution.Observable.Blazor" Version="0.0.5.4" />
+
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable.Blazor\ModelingEvolution.Observable.Blazor.csproj" />
-    <ProjectReference Include="..\..\..\Observable\Source\ModelingEvolution.Observable\ModelingEvolution.Observable.csproj" />
     <ProjectReference Include="..\EventPi.Services.NetworkMonitor.Contract\EventPi.Services.NetworkMonitor.Contract.csproj" />
   </ItemGroup>
 
