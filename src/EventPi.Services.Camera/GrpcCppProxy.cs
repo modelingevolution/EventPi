@@ -4,6 +4,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using WeldingAutomation.CameraAutoShutter;
 using WeldingAutomation.CameraConfigurator;
 using WeldingAutomation.CameraGreeter;
 using WeldingAutomation.CameraOptions;
@@ -33,6 +34,19 @@ namespace EventPi.Services.Camera
             _toCppChannel = GrpcChannel.ForAddress(_cppGrpcUri);
         }
 
+        public async Task<Empty> ProcessAsync(CameraAutoShutterRequest ev)
+        {
+            var client = new CameraAutoShutter.CameraAutoShutterClient(_toCppChannel);
+            try
+            {
+                await client.ProcessAsync(ev);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Couldn't set CameraAutoShutterRequest via gRPC!");
+            }
+            return new Empty();
+        }
         public async Task<Empty> ProcessAsync(SetCameraHistogramFilter ev)
         {
             var client = new CameraConfigurator.CameraConfiguratorClient(_toCppChannel);

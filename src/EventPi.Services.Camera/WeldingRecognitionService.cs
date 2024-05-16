@@ -1,6 +1,9 @@
-﻿using EventPi.Pid;
+﻿using EventPi.Abstractions;
+using EventPi.Pid;
 using EventPi.Services.Camera.Contract;
 using Microsoft.Extensions.Logging;
+using System.Threading.Channels;
+using WeldingAutomation.CameraAutoShutter;
 
 namespace EventPi.Services.Camera;
 
@@ -12,8 +15,10 @@ public class WeldingRecognitionService
     public bool IsWelding { get; set; }
     private readonly GrpcCppCameraProxy _proxy;
     private SetCameraParameters _cameraParameters = new SetCameraParameters();
+    private readonly Channel<SetCameraParameters> _channel;
     public ICameraParametersReadOnly DefaultProfile { get; set; }
     public ICameraParametersReadOnly WeldingProfile { get; set; }
+  
     public double DetectWeldingBound { get; set; }
     public double WeldingBrightPixelsTarget { get; set; }
     public double CurrentAppliedShutter { get; set; }
@@ -23,7 +28,45 @@ public class WeldingRecognitionService
     public double KI { get; set; }
     public double OutputLowerLimit { get; set; }
     public double OutputUpperLimit { get; set; }
+
+    public int BrightBorder
+    {
+        get => _brightBorder;
+        set
+        {
+            if (_brightBorder != value)
+            {
+                _brightBorder = value;
+                _proxy.ProcessAsync(new CameraAutoShutterRequest()
+                {
+                    LowerBound = _darkBorder,
+                    UpperBound = _brightBorder
+                });
+            }
+        }
+    }
+
+    public int DarkBorder
+    {
+        get => _darkBorder;
+        set
+        {
+            if (_darkBorder != value)
+            {
+                _darkBorder = value;
+                _proxy.ProcessAsync(new CameraAutoShutterRequest()
+                    { LowerBound = _darkBorder,
+                        UpperBound = _brightBorder });
+            }
+        }
+    }
+
     public bool TryDetect { get; set; }
+    private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+    private int _darkBorder;
+    private int _brightBorder;
+    private int _shutterOffset;
+
     public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc)
     {
         _logger = logger;
@@ -37,6 +80,23 @@ public class WeldingRecognitionService
         KP = 0.01;
         OutputLowerLimit = -100;
         OutputUpperLimit = 100;
+        _darkBorder = 20;
+        _brightBorder = 200;
+        _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
+        Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
+    }
+
+    private async Task OnSendCommand()
+    {
+        try
+        {
+            while (!_cts.IsCancellationRequested)
+            {
+                var cmd = await _channel.Reader.ReadAsync(_cts.Token);
+                await _proxy.ProcessAsync(cmd);
+            }
+        }
+        catch (OperationCanceledException) { }
     }
 
     private void OnDetectWelding(object? sender, FrameFeaturesRecord e)
@@ -47,10 +107,11 @@ public class WeldingRecognitionService
         {
             IsWelding = true;
             _logger.LogInformation("Welding detected");
-            _cameraParameters = new SetCameraParameters();
-            _cameraParameters.CopyFrom(WeldingProfile);
-            _proxy.ProcessAsync(_cameraParameters);
-            CurrentAppliedShutter = _cameraParameters.Shutter;
+            var camParams = new SetCameraParameters();
+            camParams.CopyFrom(WeldingProfile);
+            _channel.Writer.WriteAsync(camParams);
+            _shutterOffset = 0;
+            CurrentAppliedShutter = camParams.Shutter;
         }
         else
         {
@@ -58,10 +119,11 @@ public class WeldingRecognitionService
             {
                 _logger.LogInformation("Welding not detected");
                 IsWelding = false;
-                _cameraParameters = new SetCameraParameters();
-                _cameraParameters.CopyFrom(DefaultProfile);
-                _proxy.ProcessAsync(_cameraParameters);
-                CurrentAppliedShutter = _cameraParameters.Shutter;
+                var camParams = new SetCameraParameters();
+                camParams.CopyFrom(DefaultProfile);
+                _channel.Writer.WriteAsync(camParams);
+                _shutterOffset = 0;
+                CurrentAppliedShutter = camParams.Shutter;
             }
         }
 
@@ -70,8 +132,12 @@ public class WeldingRecognitionService
             PidController pid = new PidController(KP, KD, KI, OutputUpperLimit, OutputLowerLimit);
             var result =pid.CalculateOutput(WeldingBrightPixelsTarget,e.TotalBrightPixels, TimeSpan.FromSeconds(1));
 
-            _cameraParameters.Shutter += (int)result;
-            _proxy.ProcessAsync(_cameraParameters);
+            _shutterOffset += (int)result;
+          
+            var camParams = new SetCameraParameters();
+            camParams.CopyFrom(WeldingProfile);
+            camParams.Shutter += _shutterOffset;
+            _channel.Writer.WriteAsync(camParams);
             CurrentAppliedShutter = _cameraParameters.Shutter;
         }
       

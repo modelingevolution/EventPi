@@ -20,6 +20,7 @@
 
 	<ItemGroup>
 		<Protobuf Include="Protos\cameraGreeter.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\cameraAutoShutter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraConfigurator.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraShutter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\frameFeatures.proto" GrpcServices="Server" />
