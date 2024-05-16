@@ -14,6 +14,7 @@ public class WeldingRecognitionService
     public ICameraParametersReadOnly DefaultProfile { get; set; }
     public ICameraParametersReadOnly WeldingProfile { get; set; }
     public double DetectWeldingBound { get; set; }
+    public double WeldingBrightPixelsTarget { get; set; }
     public double DetectNonWeldingBound { get; set; }
     public bool TryDetect { get; set; }
     public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc)
@@ -46,6 +47,15 @@ public class WeldingRecognitionService
                 _logger.LogInformation("Welding not detected");
                 IsWelding = false;
                 _proxy.ProcessAsync(_cameraParameters.CopyFrom(DefaultProfile));
+            }
+        }
+
+        if (IsWelding)
+        {
+            if (e.TotalBrightPixels > WeldingBrightPixelsTarget)
+            {
+                _cameraParameters.Shutter -= 50;
+                _proxy.ProcessAsync(_cameraParameters);
             }
         }
       

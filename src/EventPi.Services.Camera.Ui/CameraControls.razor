@@ -9,12 +9,17 @@
         <MudSimpleTable Dense="true" Bordered="false">
             <tbody>
             <tr>
+                <td style="width: 150px"><MudNumericField @bind-Value="@_vm.RecognitionService.WeldingBrightPixelsTarget" Label="Bright pixels target"></MudNumericField></td>
+                <td><MudSlider @bind-Value="_vm.RecognitionService.WeldingBrightPixelsTarget" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
+            </tr>
+            <tr>
                 <td style="width: 150px"><MudNumericField @bind-Value="@_vm.RecognitionService.DetectWeldingBound" Label="Welding bound"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_vm.RecognitionService.DetectWeldingBound" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
             </tr>
+
             <tr>
                 <td style="width: 150px"><MudNumericField @bind-Value="@_vm.RecognitionService.DetectNonWeldingBound" Label="Non Welding bound"></MudNumericField></td>
-                    <td><MudSlider @bind-Value="_vm.RecognitionService.DetectNonWeldingBound" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
+                <td><MudSlider @bind-Value="_vm.RecognitionService.DetectNonWeldingBound" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
                 <td>
@@ -60,10 +65,10 @@
                 <td><MudSlider @bind-Value="_cmd.BlueGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
-                    <td><MudNumericField Label="Red Gain:" @bind-Value="@_cmd.RedGain" For="() => _cmd.RedGain"></MudNumericField></td>
+                <td><MudNumericField Label="Red Gain:" @bind-Value="@_cmd.RedGain" For="() => _cmd.RedGain"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_cmd.RedGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr
-           
+
             </tbody>
         </MudSimpleTable>
     </Observable>
