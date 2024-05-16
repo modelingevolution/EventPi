@@ -12,9 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="MudBlazor" Version="6.19.1" />
+    <PackageReference Include="MicroPlumberd.Services" Version="1.0.69.119" />
     <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.69.119" />
   </ItemGroup>
 
