@@ -124,8 +124,8 @@ public class LocalDiscoveryService : ILocalDiscoveryService
             {
                 Hostname = hostName,
                 ServiceName = service,
-                Urls = urls
-
+                Urls = urls,
+                Properties = properties.SelectMany(x=>x).ToDictionary()
             };
             lock (_sync)
             {

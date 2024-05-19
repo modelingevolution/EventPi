@@ -53,20 +53,20 @@ public static class DiscoveryProperties
         wifiAddress = String.Empty;
         ethernetAddress = String.Empty;
         schema = "tcp";
-        foreach (var pair in properties)
+        foreach (var dict in properties)
         {
-            if (pair.ContainsKey("Ethernet"))
+            if (dict.ContainsKey("Ethernet"))
             {
-                ethernetAddress = pair["Ethernet"];
+                ethernetAddress = dict["Ethernet"];
             }
 
-            if (pair.ContainsKey("Wifi"))
+            if (dict.ContainsKey("Wifi"))
             {
-                wifiAddress = pair["Wifi"];
+                wifiAddress = dict["Wifi"];
             }
 
-            if (pair.ContainsKey("Schema"))
-                schema = pair["Schema"];
+            if (dict.ContainsKey("Schema"))
+                schema = dict["Schema"];
         }
         
     }
