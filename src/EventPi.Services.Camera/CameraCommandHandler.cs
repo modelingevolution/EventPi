@@ -32,6 +32,9 @@ public readonly record struct CameraResolution(int Width, int Height) : IParsabl
         return new CameraResolution(int.Parse(segments[0]), int.Parse(segments[1]));
     }
 
+    public static bool TryParse(string? s, out CameraResolution result) =>
+        CameraResolution.TryParse(s, null, out result);
+
     public static bool TryParse(string? s, IFormatProvider? provider, out CameraResolution result)
     {
         if(s == null)         {
@@ -67,7 +70,8 @@ public enum Codec
 
 public static class ConfigurationExtensions
 {
-    public static CameraResolution GetCameraResolution(this IConfiguration configuration) => configuration.GetValue<CameraResolution?>("CameraResolution") ?? CameraResolution.FullHd;
+    public static CameraResolution GetCameraResolution(this IConfiguration configuration) => CameraResolution.TryParse(configuration.GetValue<string>("CameraResolution"), out var r) ? r : CameraResolution.FullHd;
+
     public static bool GetCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>("CameraAutostart");
     public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraPath") ?? LibCameraVid.DefaultPath;
 
