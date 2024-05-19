@@ -85,7 +85,7 @@ public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraSta
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if(!configuration.GetCameraAutostart()) return;
-
+        
         var resolution = configuration.GetCameraResolution();
         var libCameraPath = configuration.GetLibCameraPath();
         var vid = new LibCameraVid(libCameraPath);
