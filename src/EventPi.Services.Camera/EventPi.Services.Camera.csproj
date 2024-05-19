@@ -20,6 +20,7 @@
 
 	<ItemGroup>
 		<Protobuf Include="Protos\cameraGreeter.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\cameraAutoShutter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraConfigurator.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraShutter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\frameFeatures.proto" GrpcServices="Server" />
@@ -49,6 +50,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
+    <ProjectReference Include="..\EventPi.Pid\EventPi.Pid.csproj" />
     <ProjectReference Include="..\EventPi.Services.Camera.Contract\EventPi.Services.Camera.Contract.csproj" />
   </ItemGroup>
 

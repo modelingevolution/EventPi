@@ -9,14 +9,6 @@
         <MudSimpleTable Dense="true" Bordered="false">
             <tbody>
             <tr>
-                <td style="width: 150px"><MudNumericField @bind-Value="@_vm.RecognitionService.DetectWeldingBound" Label="Welding bound"></MudNumericField></td>
-                <td><MudSlider @bind-Value="_vm.RecognitionService.DetectWeldingBound" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
-            </tr>
-            <tr>
-                <td style="width: 150px"><MudNumericField @bind-Value="@_vm.RecognitionService.DetectNonWeldingBound" Label="Non Welding bound"></MudNumericField></td>
-                    <td><MudSlider @bind-Value="_vm.RecognitionService.DetectNonWeldingBound" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
-            </tr>
-            <tr>
                 <td>
                     <MudSelect T="HdrModeEnum" Label="HDR mode" @bind-Value="@_cmd.HdrMode">
                         @foreach (HdrModeEnum hdrMode in Enum.GetValues(typeof(HdrModeEnum)))
@@ -36,11 +28,11 @@
             </tr>
             <tr>
                 <td><MudNumericField Label="Analogue Gain:" @bind-Value="@_cmd.AnalogueGain"></MudNumericField></td>
-                <td><MudSlider @bind-Value="_cmd.AnalogueGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+                <td><MudSlider @bind-Value="_cmd.AnalogueGain" Min="-16" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
                 <td><MudNumericField Label="Digital Gain:" @bind-Value="@_cmd.DigitalGain" For="() => _cmd.DigitalGain"></MudNumericField></td>
-                <td><MudSlider @bind-Value="_cmd.DigitalGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
+                <td><MudSlider @bind-Value="_cmd.DigitalGain" Min="-16" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
 
             <tr>
@@ -60,10 +52,10 @@
                 <td><MudSlider @bind-Value="_cmd.BlueGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr>
             <tr>
-                    <td><MudNumericField Label="Red Gain:" @bind-Value="@_cmd.RedGain" For="() => _cmd.RedGain"></MudNumericField></td>
+                <td><MudNumericField Label="Red Gain:" @bind-Value="@_cmd.RedGain" For="() => _cmd.RedGain"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_cmd.RedGain" Min="-2" Max="16" Step="0.01f" Color="Color.Info"></MudSlider></td>
             </tr
-           
+
             </tbody>
         </MudSimpleTable>
     </Observable>
