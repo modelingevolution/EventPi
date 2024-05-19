@@ -1,33 +1,41 @@
 ﻿using System.Net;
 using Makaretu.Dns;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Zeroconf;
 
 namespace EventPi.Advertiser.Sender
 {
 
-    internal class AdvertiserService : IHostedService
+    internal class AdvertiserService : BackgroundService
     {
         private CancellationTokenSource _cancellationTokenSource;
+        private readonly IServer _host;
         private readonly ILogger<AdvertiserService> _logger;
+        private readonly IServiceProfileEnricher _enricher;
+        private readonly ServiceInfo[] _services;
         private readonly List<AdvertiseSender> _advertisers;
 
 
-        public AdvertiserService(ILogger<AdvertiserService> logger, IServiceProfileEnricher enrichers, IEnumerable<IServiceInfo> services)
+        public AdvertiserService(IServer host, ILogger<AdvertiserService> logger, 
+            IServiceProfileEnricher enricher, IEnumerable<ServiceInfo> services)
         {
+            _host = host;
             _logger = logger;
+            _enricher = enricher;
+            _services = services.ToArray();
             _advertisers = new List<AdvertiseSender>();
-            foreach (var service in services)
-            {
-                _advertisers.Add(AdvertiseSender.Create(enrichers, service.Schema, Dns.GetHostName(),  service.ServiceName, service.Port));
-                logger.LogInformation($"Advertising {service.ServiceName}: {service.Schema}://{{IP}}:{service.Port}");
-            }
+            
 
         }
 
-        private async Task AdvertiseRegisteredServices(CancellationToken cancellationToken)
+        private async Task Do(CancellationToken cancellationToken)
         {
             _logger.LogInformation($"Starting advertising {Dns.GetHostName()} in local network!");
             while (!cancellationToken.IsCancellationRequested)
@@ -42,19 +50,35 @@ namespace EventPi.Advertiser.Sender
 
 
         }
-        public Task StartAsync(CancellationToken cancellationToken)
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (_cancellationTokenSource != null)
-                throw new InvalidOperationException("You cannot invoke start when already running (AdvertiserService).");
-            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            Task.Factory.StartNew(async () => await AdvertiseRegisteredServices(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
-            return Task.CompletedTask;
+            await Task.Yield();
+            await Task.Delay(2000,stoppingToken); // wait for the server to start
+            Init();
+            await Do(stoppingToken);
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        private void Init()
         {
-            await _cancellationTokenSource.CancelAsync();
-            _cancellationTokenSource = null;
+            var urls = _host.Features.Get<IServerAddressesFeature>();
+            var ports = urls.Addresses.Select(x => new Uri(x)).Select(x => x.Port).Distinct().ToArray();
+            foreach (var service in _services)
+            {
+                if (!service.Port.HasValue)
+                    foreach (var i in ports)
+                        CreateAdvertiser(service, i);
+                else
+                    CreateAdvertiser(service, service.Port.Value);
+            }
+        }
+
+        private void CreateAdvertiser(ServiceInfo service, int port)
+        {
+            _logger.LogInformation(
+                $"Advertising {service.ServiceName}: {service.Schema}://{{IP}}:{port}");
+            _advertisers.Add(AdvertiseSender.Create(_enricher, Dns.GetHostName(),
+                service.Schema, service.ServiceName, port, service.Properties));
         }
     }
 }
