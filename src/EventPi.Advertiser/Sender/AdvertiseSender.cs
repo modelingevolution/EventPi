@@ -6,7 +6,7 @@ public class AdvertiseSender
 {
     private readonly ServiceProfile _serviceProfile;
     private readonly ServiceDiscovery _discoverService;
-    
+    public ServiceProfile Profile => _serviceProfile;
 
     private AdvertiseSender(ServiceProfile serviceProfile, ServiceDiscovery discovery)
     {
