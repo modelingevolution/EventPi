@@ -6,20 +6,6 @@ using Zeroconf;
 
 namespace EventPi.Advertiser.Receiver;
 
-//public class DiscoveryServiceLiteDbPersister
-//{
-
-//    public DiscoveryServiceLiteDbPersister(ILocalDiscoveryService discovery)
-//    {
-//        discovery.Se
-//    }
-
-//    private void RegisterService()
-//    {
-
-
-//    }
-//}
 
 public class LocalDiscoveryService : ILocalDiscoveryService
 {

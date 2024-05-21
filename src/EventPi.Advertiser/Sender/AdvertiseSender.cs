@@ -15,11 +15,16 @@ public class AdvertiseSender
         
     }
 
-    public static AdvertiseSender Create(IServiceProfileEnricher profileEnricher,string schema,  string instanceName, string serviceName, int port)
+    public static AdvertiseSender Create(IServiceProfileEnricher profileEnricher, string instanceName, string schema,
+        string serviceName, int port, params ServiceProperty[] properties)
     {
         var profile = new ServiceProfile(instanceName, serviceName, (ushort)port);
         profile.AddProperty("Schema", schema);
         profileEnricher.Enrich(profile);
+        foreach(var property in properties)
+        {
+            profile.AddProperty(property.Key, property.Value);
+        }
         
         var sender = new AdvertiseSender(profile, new ServiceDiscovery());
         return sender;

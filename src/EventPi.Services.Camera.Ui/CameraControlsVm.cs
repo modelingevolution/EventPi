@@ -80,7 +80,7 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
         }
         _hostName = hostName;
         _profileName = profileName ?? "default";
-        
+       
         _initialized = true;
         //await (_camParametersSub=_plumber.Subscribe(CameraParametersState.FullStreamName(_hostName), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
         //    .WithSnapshotHandler(this);

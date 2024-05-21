@@ -12,6 +12,7 @@
     <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large">
         <MudButton OnClick="@OnCancel">Cancel</MudButton>
         <MudButton OnClick="@OnSave">Save</MudButton>
+        <MudButton OnClick="@OnSetDefault">Default</MudButton>
     </MudButtonGroup>
 </MudStack>
 @code
@@ -55,5 +56,21 @@
     {
         var dto = new SetCameraHistogramFilter() { Values = arg };
         await _bus.SendAsync((HostName)HostName, dto);
+    }
+
+    private async Task OnSetDefault()
+    {
+        var defaultPoints = new List<Point<double>>();
+        var bytes = new List<byte>();
+        for (int index = 0; index < 255; index++)
+        {
+            defaultPoints.Add(new Point<double>(index,index));
+            bytes.Add((byte)index);
+        }
+        _cmd.Points = defaultPoints.ToArray();
+
+        var dto = new SetCameraHistogramFilter() { Values = bytes.ToArray() };
+        await _bus.SendAsync((HostName)HostName, dto);
+ 
     }
 }

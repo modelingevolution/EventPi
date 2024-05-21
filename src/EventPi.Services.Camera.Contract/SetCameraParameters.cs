@@ -64,28 +64,28 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
         set => SetField(ref _contrast, value);
     }
 
-    [Range(0, 1)]
+    [Range(-1, 16)]
     public float Sharpness
     {
         get => _sharpness;
         set => SetField(ref _sharpness, value);
     }
 
-    [Range(-1, 1)]
+    [Range(0,1)]
     public float Brightness
     {
         get => _brightness;
         set => SetField(ref _brightness, value);
     }
 
-    [Range(-1, 10)]
+    [Range(-16, 16)]
     public float BlueGain
     {
         get => _blueGain;
         set => SetField(ref _blueGain, value);
     }
 
-    [Range(-1, 10)]
+    [Range(-16, 16)]
     public float RedGain
     {
         get => _redGain;
