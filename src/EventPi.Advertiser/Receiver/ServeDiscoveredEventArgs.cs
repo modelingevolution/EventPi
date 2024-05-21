@@ -7,7 +7,7 @@ public class ServerDiscoveredEventArgs : EventArgs
     public required HostName Hostname { get; init; }
     public required ServiceName ServiceName { get; init; }
     public required IDictionary<InterfaceType, Uri> Urls { get; init; }
-
+    public required IReadOnlyDictionary<string, string> Properties { get; init; }
     public Uri Url
     {
         get
