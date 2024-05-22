@@ -10,7 +10,6 @@ public static class ContainerExtensions
     {
         services.AddSingleton<GrpcCppCameraProxy>();
         services.AddSingleton<WeldingRecognitionService>();
-        services.AddSingleton<GrpcFrameFeaturesService>();
         services.AddScoped<CameraCommandHandler>();
         services.AddCommandHandler<CameraCommandHandler>();
         return services;

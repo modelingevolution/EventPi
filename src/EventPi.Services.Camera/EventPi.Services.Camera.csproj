@@ -10,7 +10,7 @@
 	  <FileVersion>0.0.0.1</FileVersion>
 	  <PackageTags>Rpi;EventStore;CQRS;EventSourcing</PackageTags>
 	  <PackageDescription>EventPi services for camera configuration on Raspberry Pi (rpicamera).</PackageDescription>
-	  
+	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	  <RepositoryUrl>https://github.com/modelingevolution/eventpi</RepositoryUrl>
 	  <GenerateDocumentationFile>False</GenerateDocumentationFile>
 	  <Copyright>ModelingEvolution</Copyright>

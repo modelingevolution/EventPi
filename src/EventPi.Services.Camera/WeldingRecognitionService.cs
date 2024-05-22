@@ -18,7 +18,8 @@ public class WeldingRecognitionService
     private readonly Channel<SetCameraParameters> _channel;
     public ICameraParametersReadOnly DefaultProfile { get; set; }
     public ICameraParametersReadOnly WeldingProfile { get; set; }
-  
+    private CircularBuffer<int> _bufferBrightPixels;
+    private CircularBuffer<int> _bufferDarkPixels;
     public double DetectWeldingBound { get; set; }
     public double WeldingBrightPixelsTarget { get; set; }
     public double CurrentAppliedShutter { get; set; }
@@ -82,6 +83,8 @@ public class WeldingRecognitionService
         OutputUpperLimit = 100;
         _darkBorder = 20;
         _brightBorder = 200;
+        _bufferBrightPixels = new CircularBuffer<int>(3);
+        _bufferDarkPixels = new CircularBuffer<int>(3);
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
         Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
     }
@@ -101,9 +104,11 @@ public class WeldingRecognitionService
 
     private void OnDetectWelding(object? sender, FrameFeaturesRecord e)
     {
+        _bufferBrightPixels.AddLast(e.TotalBrightPixels);
+        _bufferDarkPixels.AddLast(e.TotalDarkPixels);
         if (!TryDetect) return;
 
-        if (e.TotalBrightPixels > DetectWeldingBound && !IsWelding)
+        if (_bufferBrightPixels.Average() > DetectWeldingBound && !IsWelding)
         {
             IsWelding = true;
             _logger.LogInformation("Welding detected");
@@ -115,7 +120,7 @@ public class WeldingRecognitionService
         }
         else
         {
-            if (e.TotalDarkPixels > DetectNonWeldingBound && IsWelding)
+            if (_bufferDarkPixels.Average() > DetectNonWeldingBound && IsWelding)
             {
                 _logger.LogInformation("Welding not detected");
                 IsWelding = false;
