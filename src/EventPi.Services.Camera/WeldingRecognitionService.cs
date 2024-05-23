@@ -22,7 +22,7 @@ public class WeldingRecognitionService
     private CircularBuffer<int> _bufferDarkPixels;
     public double DetectWeldingBound { get; set; }
     public double WeldingBrightPixelsTarget { get; set; }
-    public double CurrentAppliedShutter { get; set; }
+    public ICameraParametersReadOnly CurrentAppliedProfile { get; set; }
     public double DetectNonWeldingBound { get; set; }
     public double KP { get; set; }
     public double KD { get; set; }
@@ -67,9 +67,10 @@ public class WeldingRecognitionService
     private int _darkBorder;
     private int _brightBorder;
     private int _shutterOffset;
-
+    public bool AutoShutterIsOn { get; set; }
     public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc)
     {
+        CurrentAppliedProfile = new CameraProfile();
         _logger = logger;
         _grpcService = gprc;
         _grpcService.OnFrameFeaturesAppeared += OnDetectWelding;
@@ -116,7 +117,7 @@ public class WeldingRecognitionService
             camParams.CopyFrom(WeldingProfile);
             _channel.Writer.WriteAsync(camParams);
             _shutterOffset = 0;
-            CurrentAppliedShutter = camParams.Shutter;
+            CurrentAppliedProfile = camParams;
         }
         else
         {
@@ -128,11 +129,11 @@ public class WeldingRecognitionService
                 camParams.CopyFrom(DefaultProfile);
                 _channel.Writer.WriteAsync(camParams);
                 _shutterOffset = 0;
-                CurrentAppliedShutter = camParams.Shutter;
+                CurrentAppliedProfile = camParams;
             }
         }
 
-        if (IsWelding)
+        if (IsWelding && AutoShutterIsOn)
         {
             PidController pid = new PidController(KP, KD, KI, OutputUpperLimit, OutputLowerLimit);
             var result =pid.CalculateOutput(WeldingBrightPixelsTarget,e.TotalBrightPixels, TimeSpan.FromSeconds(1));
@@ -143,8 +144,10 @@ public class WeldingRecognitionService
             camParams.CopyFrom(WeldingProfile);
             camParams.Shutter += _shutterOffset;
             _channel.Writer.WriteAsync(camParams);
-            CurrentAppliedShutter = _cameraParameters.Shutter;
+            CurrentAppliedProfile = camParams;
         }
       
     }
+
+   
 }

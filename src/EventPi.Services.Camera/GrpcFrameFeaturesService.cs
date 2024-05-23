@@ -12,13 +12,10 @@ namespace EventPi.Services.Camera;
 
 public class GrpcFrameFeaturesService : FrameFeatures.FrameFeaturesBase
 {
-    private readonly ILogger<GrpcFrameFeaturesService> _logger;
-
     public event EventHandler<FrameFeaturesRecord> OnFrameFeaturesAppeared;
-
-    public GrpcFrameFeaturesService(ILogger<GrpcFrameFeaturesService> logger)
+    public GrpcFrameFeaturesService()
     {
-        _logger = logger;
+     
     }
     public override async Task<Empty> Process(FrameFeaturesRequest request, ServerCallContext context)
     {

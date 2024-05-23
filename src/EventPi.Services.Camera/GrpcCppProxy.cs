@@ -19,6 +19,7 @@ namespace EventPi.Services.Camera
         private readonly ILogger<GrpcCppCameraProxy> _logger;
         private string _cppGrpcUri = "";
 
+        
         public GrpcCppCameraProxy(ILogger<GrpcCppCameraProxy> logger, IConfiguration config)
         {
             _logger = logger;

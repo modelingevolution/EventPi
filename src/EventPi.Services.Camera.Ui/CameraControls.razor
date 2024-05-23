@@ -4,7 +4,7 @@
 @inject CameraControlVmRegister _vmRegister
 
 <MudStack>
-    <MudSwitch @bind-Value="@_vm.RecognitionService.TryDetect" Color="Color.Primary" Label="Try detect welding"  />
+    
     <Observable Source="@_vm.SetCameraParameters">
         <MudSimpleTable Dense="true" Bordered="false">
             <tbody>
