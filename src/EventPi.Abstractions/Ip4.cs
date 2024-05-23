@@ -1,26 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace EventPi.Abstractions;
 
-public readonly record struct Ip4Config(Ip4 Ip, uint Prefix, Ip4 Gateway)
-{
-    public override string ToString()
-    {
-        return $"{Ip}/{Prefix}, gw. {Gateway}";
-    }
-}
-[AttributeUsage(AttributeTargets.Property |
-                AttributeTargets.Field, AllowMultiple = false)]
-public sealed class GuidNotEmptyAttribute : ValidationAttribute
-{
-    public bool AllowNull { get; set; }
-    public override bool IsValid(object? value)
-    {
-        if (value is Guid g) return g != Guid.Empty;
-        return value == null && AllowNull;
-    }
-}
 [JsonConverter(typeof(JsonParsableConverter<Ip4>))]
 public readonly record struct Ip4 : IParsable<Ip4>
 {
