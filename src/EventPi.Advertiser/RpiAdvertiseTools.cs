@@ -19,16 +19,19 @@ public static class DiscoveryProperties
         var interfaceEthernet = string.Empty;
         foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
         {
-            if(ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet && ni.OperationalStatus==OperationalStatus.Up && ni.Name=="Ethernet")
+            // A very dirty heuristics.
+            if(ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet && ni.OperationalStatus==OperationalStatus.Up && ni.Name.Contains("Ethernet"))
             {
+                if(ni.Description.Contains("Hyper-V")) 
+                    continue;
                 interfaceEthernet = GetInterfaceAddress(ni);
+                break;
             }
             //for Rpi
-            switch (ni.Description)
+            if (ni.Description == "eth0")
             {
-                case "eth0":
-                    interfaceEthernet = GetInterfaceAddress(ni);
-                    break;
+                interfaceEthernet = GetInterfaceAddress(ni);
+                break;
             }
         }
         return interfaceEthernet;
@@ -38,11 +41,16 @@ public static class DiscoveryProperties
         var interfaceWifi = string.Empty;
         foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
         {
-            switch (ni.Description)
+            if (ni.Description == "wlan0")
             {
-                case "wlan0":
-                    interfaceWifi = GetInterfaceAddress(ni);
-                    break;
+                interfaceWifi = GetInterfaceAddress(ni);
+                break;
+            }
+            else if (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 &&
+                     ni.OperationalStatus == OperationalStatus.Up)
+            {
+                interfaceWifi = GetInterfaceAddress(ni);
+                break;
             }
         }
         return interfaceWifi;
@@ -53,20 +61,20 @@ public static class DiscoveryProperties
         wifiAddress = String.Empty;
         ethernetAddress = String.Empty;
         schema = "tcp";
-        foreach (var pair in properties)
+        foreach (var dict in properties)
         {
-            if (pair.ContainsKey("Ethernet"))
+            if (dict.ContainsKey("Ethernet"))
             {
-                ethernetAddress = pair["Ethernet"];
+                ethernetAddress = dict["Ethernet"];
             }
 
-            if (pair.ContainsKey("Wifi"))
+            if (dict.ContainsKey("Wifi"))
             {
-                wifiAddress = pair["Wifi"];
+                wifiAddress = dict["Wifi"];
             }
 
-            if (pair.ContainsKey("Schema"))
-                schema = pair["Schema"];
+            if (dict.ContainsKey("Schema"))
+                schema = dict["Schema"];
         }
         
     }
