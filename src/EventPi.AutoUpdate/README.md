@@ -17,20 +17,20 @@ There are 3 main update processes supported:
 
 The `EventPi.AutoUpdate.Host` application will check for updates on a regular interval. If a new version is available, the application will download the new version and create a new container.
 
-a) ```docker pull``` will be performed to get the latest version of the container.
-b) Old version of the updater will hand-over the control to the new version of the updater, by invoking a REST-API call.
-c) Communication between old and new version of the updater will be done through external docker-network, to which containers will be attached to.
-d) Once the new version successfully receives the control, it will stop the old version of the updater and remove the container.
+1. ```docker pull``` will be performed to get the latest version of the container.
+2. Old version of the updater will hand-over the control to the new version of the updater, by invoking a REST-API call.
+3. Communication between old and new version of the updater will be done through external docker-network, to which containers will be attached to.
+4. Once the new version successfully receives the control, it will stop the old version of the updater and remove the container.
 
 ## Updating external containers through docker-compose
 
 The `EventPi.AutoUpdate.Host` application can also update external containers through docker-compose. The `EventPi.AutoUpdate.Host` application will check for updates on a regular interval. If a new version is available, the application will download the new version and restart the external container:
 
-a) 'docker-compose.yml' files are stored in a git repository on a branch dedicated for IoT client.
-b) The `EventPi.AutoUpdate.Host` application will clone the repository and checkout the branch.
-c) The `EventPi.AutoUpdate.Host` application will perform a ```git pull``` to get the latest version of the repository. If there are changes next steps will be perfomed.
-d) The `EventPi.AutoUpdate.Host` application will perform a ```docker-compose pull``` to get the latest version of the container.
-e) The `EventPi.AutoUpdate.Host` application will perform a ```docker-compose up -d``` to restart the container at the right moment defined in our policies. (for instance only on RPI start)
+1. 'docker-compose.yml' files are stored in a git repository on a branch dedicated for IoT client.
+2. The `EventPi.AutoUpdate.Host` application will clone the repository and checkout the branch.
+3. The `EventPi.AutoUpdate.Host` application will perform a ```git pull``` to get the latest version of the repository. If there are changes next steps will be perfomed.
+4. The `EventPi.AutoUpdate.Host` application will perform a ```docker-compose pull``` to get the latest version of the container.
+5. The `EventPi.AutoUpdate.Host` application will perform a ```docker-compose up -d``` to restart the container at the right moment defined in our policies. (for instance only on RPI start)
 
 ## Updating the system: docker-host
 
