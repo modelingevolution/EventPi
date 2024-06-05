@@ -183,6 +183,7 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
             RedGain = cmd.RedGain,
             ExposureLevel = cmd.ExposureLevel,
             HdrMode = cmd.HdrMode,
+            AutoHistogramEnabled = cmd.AutoHistogramEnabled
         };
         
         await plumber.AppendState(ev, hostProfilePath);
@@ -203,7 +204,7 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
             RedGain = cmd.RedGain,
             ExposureLevel = cmd.ExposureLevel,
             HdrMode = cmd.HdrMode,
-
+            AutoHistogramEnabled = cmd.AutoHistogramEnabled
         };
         await plumber.AppendState(ev, hostName);
     }

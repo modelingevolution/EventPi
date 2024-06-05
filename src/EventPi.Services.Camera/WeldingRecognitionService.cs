@@ -3,7 +3,7 @@ using EventPi.Pid;
 using EventPi.Services.Camera.Contract;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
-using WeldingAutomation.CameraAutoShutter;
+using EventPi.Services.CameraAutoShutter;
 
 namespace EventPi.Services.Camera;
 

@@ -1,0 +1,15 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "EventPi.Services.CameraAutoHistogram";
+
+package cameraAI;
+
+service CameraAutoHistogram {
+  rpc Process (CameraAutoHistogramRequest) returns (google.protobuf.Empty);
+}
+
+
+message CameraAutoHistogramRequest {
+    bool EnableAutoHistogram = 1;
+
+}

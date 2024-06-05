@@ -23,11 +23,13 @@ public record CameraConfigurationProfile : ICameraParametersReadOnly
         ExposureLevel = ev.ExposureLevel;
         BlueGain = ev.BlueGain;
         RedGain = ev.RedGain;
+        AutoHistogramEnabled = ev.AutoHistogramEnabled;
 
         
     }
 
     public HdrModeEnum HdrMode { get; set; }
+    public bool AutoHistogramEnabled { get; set; }
     public int Shutter { get; set; }
     public float ExposureLevel { get; set; }
     public float DigitalGain { get; set; }

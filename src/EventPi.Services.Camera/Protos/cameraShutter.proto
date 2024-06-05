@@ -1,6 +1,6 @@
 ﻿syntax = "proto3";
 import "google/protobuf/empty.proto";
-option csharp_namespace = "WeldingAutomation.CameraShutter";
+option csharp_namespace = "EventPi.Services.CameraShutter";
 
 package cameraAI;
 
