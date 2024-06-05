@@ -58,3 +58,21 @@ The external container update process can handle errors in the following ways:
 2. The reason for that might be that the video-storage is full. So when ffmpeg saves the stream, we need to contantly monitor the space. If space is less than 15% the recording process should be stopped.
 3. Another reason might be that docker images are taking too much space. The space could be reclaimed by executing ```docker system prune``` command by the AutoUpdater.
 3. The lest reason might be that OS simply get's bigger. In this case we need to patiently wait for space to be reclaimed. Maybe a notification to the user, that videos need to be deleted?
+
+## Resizing RPI partition
+
+1. Execute on windows:
+```cmd
+GET-CimInstance -query "SELECT * from Win32_DiskDrive"
+```
+2. Find the disk that is your SD card.
+3. Execute on windows:
+```cmd
+wsl --mount <DiskPath>
+```
+4. Execute on wsl linux:
+```bash
+sudo fdisk -l # OR
+sudo 
+sudo resize2fs /dev/<Partition>
+```
