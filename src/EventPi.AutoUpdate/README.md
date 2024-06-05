@@ -6,9 +6,10 @@ The project is split into two parts:
 1. The `EventPi.AutoUpdate` project which is a .NET Core console application that will check for updates and restart the container if a new version is available.
 2. The `EventPi.AutoUpdate.Host` project which is a docker container that will run the `EventPi.AutoUpdate` application.
 
-There are two main update processes supported:
-1. Updating the AutoUpdate application itself.
-2. Updating external contianers through docker-compose.
+There are 3 main update processes supported:
+1. Updating the AutoUpdate application itself,
+2. Updating external contianers through docker-compose,
+3. Updating the system.
 
 ## Updating the AutoUpdate application
 
