@@ -61,11 +61,12 @@ The external container update process can handle errors in the following ways:
 
 ## Resizing RPI partition
 
-1. Execute on windows:
+### If you have a hard disk, not a usb stick
+1. 1. Execute on windows:
 ```cmd
 GET-CimInstance -query "SELECT * from Win32_DiskDrive"
 ```
-2. Find the disk that is your SD card.
+2. Find the disk.
 3. Execute on windows:
 ```cmd
 wsl --mount <DiskPath>
@@ -76,3 +77,16 @@ sudo fdisk -l # OR
 sudo 
 sudo resize2fs /dev/<Partition>
 ```
+
+### If you have a usb stick
+
+Boot Ubuntu Desktop from USB stick.
+Execute
+```bash
+# Check the disks and partitions
+lsblk
+resize2fs /dev/<YOUR_ID>
+```
+
+Alternatively:
+https://github.com/jovton/USB-Storage-on-WSL2
