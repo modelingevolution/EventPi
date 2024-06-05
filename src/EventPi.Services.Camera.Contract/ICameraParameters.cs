@@ -12,6 +12,7 @@ public interface ICameraParametersReadOnly
      float BlueGain { get;  }
      float RedGain { get;  }
      HdrModeEnum HdrMode { get;  }
+     bool AutoHistogramEnabled { get;  }
 }
 public interface ICameraParameters
 {
@@ -26,6 +27,7 @@ public interface ICameraParameters
      float BlueGain { get; set; }
      float RedGain { get; set; }
      float AnalogueGain { get; set; }
+     bool AutoHistogramEnabled{ get; set; }
 
 
 }

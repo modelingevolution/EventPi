@@ -29,6 +29,7 @@ public record CameraProfile : ICameraParametersReadOnly, IStatefulStream<HostPro
     public static string FullStreamName(HostProfilePath id) => $"CameraProfile-{id}";
     
     public HdrModeEnum HdrMode { get; set; }
+    public bool AutoHistogramEnabled { get; set; }
     public int Shutter { get; set; }
     public float ExposureLevel { get; set; }
     public float DigitalGain { get; set; }

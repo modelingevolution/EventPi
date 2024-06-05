@@ -19,6 +19,9 @@
                 </td>
             </tr>
             <tr>
+                <td style="width: 150px"><MudCheckBox @bind-Value="@_cmd.AutoHistogramEnabled" Label="AutoHistogram enabled"></MudCheckBox></td>
+            </tr>
+            <tr>
                 <td style="width: 150px"><MudNumericField @bind-Value="@_cmd.Shutter" Label="Shutter"></MudNumericField></td>
                 <td><MudSlider @bind-Value="_cmd.Shutter" Min="1" Max="40000" Step="1" Color="Color.Info"></MudSlider></td>
             </tr>

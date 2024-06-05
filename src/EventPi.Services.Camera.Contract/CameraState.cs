@@ -17,4 +17,5 @@ public record CameraParametersState : ICameraParametersReadOnly
     public float BlueGain { get; init; }
     public float RedGain { get; init; }
     public HdrModeEnum HdrMode { get; init; }
+    public bool AutoHistogramEnabled { get; init; }
 }

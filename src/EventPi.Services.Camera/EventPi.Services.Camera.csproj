@@ -17,8 +17,13 @@
 	  <Authors>ModelingEvolution Team</Authors>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Protos\cameraAutoHistogram.proto" />
+  </ItemGroup>
+
 
 	<ItemGroup>
+		<Protobuf Include="Protos\cameraAutoHistogram.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraGreeter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraAutoShutter.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\cameraConfigurator.proto" GrpcServices="Client" />

@@ -27,6 +27,7 @@ public class DefineProfileCameraParameters : ICameraParameters
     public float BlueGain { get; set; }
     public float RedGain { get; set; }
     public float AnalogueGain { get; set; }
+    public bool AutoHistogramEnabled { get; set; }
     public float Contrast { get; set; }
     public float Sharpness { get; set; }
     public int CameraId { get; set; }
@@ -44,7 +45,7 @@ public class DefineProfileCameraParameters : ICameraParameters
         AnalogueGain = src.AnalogueGain;
         Contrast = src.Contrast;
         Sharpness = src.Sharpness;
-
+        AutoHistogramEnabled = src.AutoHistogramEnabled;
         return this;
     }
 }

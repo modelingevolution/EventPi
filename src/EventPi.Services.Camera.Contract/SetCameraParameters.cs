@@ -22,6 +22,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     private float _brightness;
     private float _blueGain;
     private float _redGain;
+    private bool _autoHistogramEnabled;
     public Guid Id { get; init; } = Guid.NewGuid();
 
     public HdrModeEnum HdrMode
@@ -48,6 +49,12 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     {
         get => _analogueGain;
         set => SetField(ref _analogueGain, value);
+    }
+
+    public bool AutoHistogramEnabled
+    {
+        get => _autoHistogramEnabled;
+        set => SetField(ref _autoHistogramEnabled, value);
     }
 
     [Range(-16, 16)]
@@ -118,6 +125,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
         _blueGain = src.BlueGain;
         _redGain = src.RedGain;
         _shutter = src.Shutter;
+        _autoHistogramEnabled = src.AutoHistogramEnabled;
         if(raiseChange)
             this.OnPropertyChanged();
         return this;

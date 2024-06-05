@@ -1,14 +1,16 @@
 ﻿using EventPi.Services.Camera.Contract;
+using EventPi.Services.CameraAutoHistogram;
+using EventPi.Services.CameraAutoShutter;
+using EventPi.Services.CameraConfigurator;
+using EventPi.Services.CameraOptions;
+using EventPi.Services.CameraShutter;
+using EventPi.Services.CameraGreeter;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using WeldingAutomation.CameraAutoShutter;
-using WeldingAutomation.CameraConfigurator;
-using WeldingAutomation.CameraGreeter;
-using WeldingAutomation.CameraOptions;
-using WeldingAutomation.CameraShutter;
+
 using static System.Net.WebRequestMethods;
 
 namespace EventPi.Services.Camera
@@ -37,7 +39,7 @@ namespace EventPi.Services.Camera
 
         public async Task<Empty> ProcessAsync(CameraAutoShutterRequest ev)
         {
-            var client = new CameraAutoShutter.CameraAutoShutterClient(_toCppChannel);
+            var client = new CameraAutoShutter.CameraAutoShutter.CameraAutoShutterClient(_toCppChannel);
             try
             {
                 await client.ProcessAsync(ev);
@@ -50,7 +52,7 @@ namespace EventPi.Services.Camera
         }
         public async Task<Empty> ProcessAsync(SetCameraHistogramFilter ev)
         {
-            var client = new CameraConfigurator.CameraConfiguratorClient(_toCppChannel);
+            var client = new CameraConfigurator.CameraConfigurator.CameraConfiguratorClient(_toCppChannel);
 
             try
             {
@@ -72,7 +74,7 @@ namespace EventPi.Services.Camera
         {
             try
             {
-                var clientOptions = new CameraGreeter.CameraGreeterClient(_toCppChannel);
+                var clientOptions = new CameraGreeter.CameraGreeter.CameraGreeterClient(_toCppChannel);
                 var result = clientOptions.ProcessAsync(new Empty()).GetAwaiter().GetResult();
 
                 if (result.Config == "Hello!")
@@ -98,7 +100,7 @@ namespace EventPi.Services.Camera
 
             try
             {
-                var clientOptions = new CameraOptions.CameraOptionsClient(_toCppChannel);
+                var clientOptions = new CameraOptions.CameraOptions.CameraOptionsClient(_toCppChannel);
                 await clientOptions.ProcessAsync(new CameraOptionsRequest()
                 {
                     AnologueGain = ev.AnalogueGain,
@@ -118,7 +120,7 @@ namespace EventPi.Services.Camera
 
             try
             {
-                var clientShutter = new CameraShutter.CameraShutterClient(_toCppChannel);
+                var clientShutter = new CameraShutter.CameraShutter.CameraShutterClient(_toCppChannel);
                 await clientShutter.ProcessAsync(new ConfigureShutterRequest()
                 {
                     Shutter = ev.Shutter,
@@ -130,7 +132,22 @@ namespace EventPi.Services.Camera
             {
                 _logger.LogError("Couldn't send camera shutter via gRPC!");
             }
-         
+
+            try
+            {
+                var clientAutoHistogram =
+                    new CameraAutoHistogram.CameraAutoHistogram.CameraAutoHistogramClient(_toCppChannel);
+                await clientAutoHistogram.ProcessAsync(new CameraAutoHistogramRequest()
+                {
+                    EnableAutoHistogram = ev.AutoHistogramEnabled
+
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Couldn't send camera auto histogram via gRPC!");
+            }
+
             return new Empty();
         }
 
