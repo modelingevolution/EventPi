@@ -98,13 +98,6 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
         _prv = ev;
         this.SetCameraParameters.CopyFrom(ev,true);
         OnPropertyChanged("Command");
-
-
-        //TEST PURPOSE
-        if (_profileName == "default")
-            RecognitionService.DefaultProfile = ev;
-        if (_profileName == "welding")
-            RecognitionService.WeldingProfile = ev;
     }
     //private async Task Given(Metadata m, CameraParametersState ev)
     //{

@@ -3,7 +3,6 @@ using EventPi.Pid;
 using EventPi.Services.Camera.Contract;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
-using EventPi.Services.CameraAutoShutter;
 
 namespace EventPi.Services.Camera;
 
@@ -12,7 +11,7 @@ public class WeldingRecognitionService
     private readonly ILogger<WeldingRecognitionService> _logger;
     private readonly GrpcFrameFeaturesService _grpcService;
 
-    public bool IsWelding { get; set; }
+    public bool IsWelding { get; private set; }
     private readonly GrpcCppCameraProxy _proxy;
     private SetCameraParameters _cameraParameters = new SetCameraParameters();
     private readonly Channel<SetCameraParameters> _channel;
@@ -20,54 +19,20 @@ public class WeldingRecognitionService
     public ICameraParametersReadOnly WeldingProfile { get; set; }
     private CircularBuffer<int> _bufferBrightPixels;
     private CircularBuffer<int> _bufferDarkPixels;
-    public double DetectWeldingBound { get; set; }
+
+    private WeldingRecognitionModel _recognitionModel;
+  
     public double WeldingBrightPixelsTarget { get; set; }
     public ICameraParametersReadOnly CurrentAppliedProfile { get; set; }
-    public double DetectNonWeldingBound { get; set; }
+
     public double KP { get; set; }
     public double KD { get; set; }
     public double KI { get; set; }
     public double OutputLowerLimit { get; set; }
     public double OutputUpperLimit { get; set; }
 
-    public int BrightBorder
-    {
-        get => _brightBorder;
-        set
-        {
-            if (_brightBorder != value)
-            {
-                _brightBorder = value;
-                _proxy.ProcessAsync(new CameraAutoShutterRequest()
-                {
-                    LowerBound = _darkBorder,
-                    UpperBound = _brightBorder
-                });
-            }
-        }
-    }
-
-    public int DarkBorder
-    {
-        get => _darkBorder;
-        set
-        {
-            if (_darkBorder != value)
-            {
-                _darkBorder = value;
-                _proxy.ProcessAsync(new CameraAutoShutterRequest()
-                    { LowerBound = _darkBorder,
-                        UpperBound = _brightBorder });
-            }
-        }
-    }
-
-    public bool TryDetect { get; set; }
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
-    private int _darkBorder;
-    private int _brightBorder;
-    private int _shutterOffset;
-    public bool AutoShutterIsOn { get; set; }
+   
     public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc)
     {
         CurrentAppliedProfile = new CameraProfile();
@@ -77,13 +42,10 @@ public class WeldingRecognitionService
         _proxy = proxy;
         WeldingProfile = new CameraProfile();
         DefaultProfile = new CameraProfile();
-        DetectWeldingBound = 400 * 400 * 0.8;
-        DetectNonWeldingBound = 400 * 400 * 0.8;
         KP = 0.01;
         OutputLowerLimit = -100;
         OutputUpperLimit = 100;
-        _darkBorder = 20;
-        _brightBorder = 200;
+    
         _bufferBrightPixels = new CircularBuffer<int>(3);
         _bufferDarkPixels = new CircularBuffer<int>(3);
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
@@ -107,44 +69,28 @@ public class WeldingRecognitionService
     {
         _bufferBrightPixels.AddLast(e.TotalBrightPixels);
         _bufferDarkPixels.AddLast(e.TotalDarkPixels);
-        if (!TryDetect) return;
+        if (!_recognitionModel.DetectionEnabled) return;
 
-        if (_bufferBrightPixels.Average() > DetectWeldingBound && !IsWelding)
+        if (_bufferBrightPixels.Average() > _recognitionModel.WeldingBound && !IsWelding)
         {
             IsWelding = true;
             _logger.LogInformation("Welding detected");
             var camParams = new SetCameraParameters();
             camParams.CopyFrom(WeldingProfile);
             _channel.Writer.WriteAsync(camParams);
-            _shutterOffset = 0;
             CurrentAppliedProfile = camParams;
         }
         else
         {
-            if (_bufferDarkPixels.Average() > DetectNonWeldingBound && IsWelding)
+            if (_bufferDarkPixels.Average() > _recognitionModel.NonWeldingBound && IsWelding)
             {
                 _logger.LogInformation("Welding not detected");
                 IsWelding = false;
                 var camParams = new SetCameraParameters();
                 camParams.CopyFrom(DefaultProfile);
                 _channel.Writer.WriteAsync(camParams);
-                _shutterOffset = 0;
                 CurrentAppliedProfile = camParams;
             }
-        }
-
-        if (IsWelding && AutoShutterIsOn)
-        {
-            PidController pid = new PidController(KP, KD, KI, OutputUpperLimit, OutputLowerLimit);
-            var result =pid.CalculateOutput(WeldingBrightPixelsTarget,e.TotalBrightPixels, TimeSpan.FromSeconds(1));
-
-            _shutterOffset += (int)result;
-          
-            var camParams = new SetCameraParameters();
-            camParams.CopyFrom(WeldingProfile);
-            camParams.Shutter += _shutterOffset;
-            _channel.Writer.WriteAsync(camParams);
-            CurrentAppliedProfile = camParams;
         }
       
     }

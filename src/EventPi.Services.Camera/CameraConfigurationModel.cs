@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EventPi.Services.Camera;
 
+
+
 [EventHandler]
 public partial class CameraProfileConfigurationModel
 {

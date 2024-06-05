@@ -1,0 +1,15 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "EventPi.Services.CameraFrameFeaturesConfigurator";
+
+package cameraAI;
+
+service CameraFrameFeaturesConfigurator {
+  rpc Process (CameraFrameFeaturesConfiguratorRequest) returns (google.protobuf.Empty);
+}
+
+
+message CameraFrameFeaturesConfiguratorRequest {
+    int32 BrightPixelsBorder = 1;
+    int32 DarkPixelsBorder = 2;
+}

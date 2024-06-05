@@ -1,7 +1,7 @@
 ﻿using EventPi.Services.Camera.Contract;
 using EventPi.Services.CameraAutoHistogram;
-using EventPi.Services.CameraAutoShutter;
 using EventPi.Services.CameraConfigurator;
+using EventPi.Services.CameraFrameFeaturesConfigurator;
 using EventPi.Services.CameraOptions;
 using EventPi.Services.CameraShutter;
 using EventPi.Services.CameraGreeter;
@@ -37,16 +37,16 @@ namespace EventPi.Services.Camera
             _toCppChannel = GrpcChannel.ForAddress(_cppGrpcUri);
         }
 
-        public async Task<Empty> ProcessAsync(CameraAutoShutterRequest ev)
+        public async Task<Empty> ProcessAsync(CameraFrameFeaturesConfiguratorRequest ev)
         {
-            var client = new CameraAutoShutter.CameraAutoShutter.CameraAutoShutterClient(_toCppChannel);
+            var client = new CameraFrameFeaturesConfigurator.CameraFrameFeaturesConfigurator.CameraFrameFeaturesConfiguratorClient(_toCppChannel);
             try
             {
                 await client.ProcessAsync(ev);
             }
             catch (Exception e)
             {
-                _logger.LogError("Couldn't set CameraAutoShutterRequest via gRPC!");
+                _logger.LogError("Couldn't set CameraFrameFeaturesConfiguratorRequest via gRPC!");
             }
             return new Empty();
         }
