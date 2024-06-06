@@ -79,9 +79,11 @@ public static class ConfigurationExtensions
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
         IPAddress.TryParse(configuration.GetValue<string>("LibCameraListenIp"), out var p) ? p : IPAddress.Loopback;
     public static int GetLibCameraListenPort(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraListenPort") ?? 6000;
+
+    public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraTuningFilePath") ?? LibCameraVid.DefaultTuningFilePath;
 }
 
-public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraStarter> log) : BackgroundService
+public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraStarter> log, string grpcClientAddress) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -91,13 +93,14 @@ public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraSta
         var libCameraPath = configuration.GetLibCameraPath();
         var vid = new LibCameraVid(libCameraPath);
         if(vid.KillAll()) await Task.Delay(1000);
-        var p = await vid.Start(resolution, Codec.mjpeg, configuration.GetLibCameraListenIp(), configuration.GetLibCameraListenPort());
+        var p = await vid.Start(resolution, Codec.mjpeg, configuration.GetLibCameraTuningPath(), configuration.GetLibCameraListenIp(), configuration.GetLibCameraListenPort(), grpcClientAddress);
         log.LogInformation($"libcamera-vid started, pid: {p.ProcessId}");
     }
 }
 public class LibCameraVid(string? appName =null)
 {
     public const string DefaultPath = "/usr/local/bin/rocketwelder-vid";
+    public const string DefaultTuningFilePath = "/app/imx296.json";
     private readonly string _appName = appName ?? DefaultPath;
     private CommandTask<CommandResult>? _runningApp;
     private CancellationTokenSource? _cstForce;
@@ -122,9 +125,10 @@ public class LibCameraVid(string? appName =null)
         }
         return killed;
     }
-    public async Task<CommandTask<CommandResult>> Start(CameraResolution resolution, Codec codec, IPAddress? listenAddress = null, int listenPort = 6000)
+    public async Task<CommandTask<CommandResult>> Start(CameraResolution resolution, Codec codec, string tuningFilePath, IPAddress? listenAddress = null, int listenPort = 6000, string grpcClientAddress = "127.0.0.1:8080")
     {
         if (_runningApp != null) throw new InvalidOperationException();
+        if(!File.Exists(tuningFilePath)) throw new FileNotFoundException($"Tuning file not found at {tuningFilePath} !");
 
         _cstForce = new CancellationTokenSource();
         _cstGrace = new CancellationTokenSource();
@@ -141,7 +145,13 @@ public class LibCameraVid(string? appName =null)
                 "--width", resolution.Width.ToString(), 
                 "--height", resolution.Height.ToString(), 
                 "--codec", codec.ToString(), 
-                "--inline", "--listen", 
+                "--inline", "--listen",
+                "--awbgains -1,-1", 
+                "--info-text \"\"",
+                "--metering spot",
+                "--tuning-file",tuningFilePath,
+                "--saturation 0.0",
+                "--grpc-client-address", grpcClientAddress,
                 "-o", $"tcp://{address}:{listenPort}"
             });
         _runningApp = cmd.ExecuteAsync(_cstForce.Token, _cstGrace.Token);
