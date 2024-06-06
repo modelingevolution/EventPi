@@ -23,6 +23,9 @@ public static class ContainerExtensions
         services.AddSingleton<GrpcFrameFeaturesService>();
         services.AddScoped<CameraCommandHandler>();
         services.AddCommandHandler<CameraCommandHandler>();
+        services.AddCommandHandler<WeldingRecognitionCommandHandler>();
+        services.AddEventHandler<CameraProfileConfigurationModel>(false, FromStream.Start);
+        services.AddEventHandler<WeldingRecognitionModel>(FromRelativeStreamPosition.End-1); 
         return services;
     }
 }
