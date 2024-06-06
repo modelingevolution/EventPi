@@ -22,6 +22,23 @@
                     <td style="width: 150px"><MudSwitch @bind-Value="@_cmd.DetectionEnabled" Color="Color.Primary" Label="Try detect welding" /></td>
                 </tr>
                 <tr>
+                    <td><MudNumericField Label="Bright Pixel Border:" @bind-Value="@_cmd.BrightPixelsBorder" For="() => _cmd.BrightPixelsBorder"></MudNumericField></td>
+                    <td><MudSlider @bind-Value="_cmd.BrightPixelsBorder" Min="0" Max="255" Step="1" Color="Color.Info"></MudSlider></td>
+                </tr>
+                <tr>
+                            <td><MudNumericField Label="Dark Pixel Border:" @bind-Value="@_cmd.DarkPixelsBorder" For="() => _cmd.DarkPixelsBorder"></MudNumericField></td>
+                            <td><MudSlider @bind-Value="_cmd.DarkPixelsBorder" Min="0" Max="255" Step="1" Color="Color.Info"></MudSlider></td>
+                </tr>
+                <tr>
+                            <td><MudNumericField Label="Bright Pixels amount to switch:" @bind-Value="@_cmd.WeldingValue" For="() => _cmd.WeldingValue"></MudNumericField></td>
+                            <td><MudSlider @bind-Value="_cmd.WeldingValue" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
+                </tr>
+                <tr>
+                            <td><MudNumericField Label="Dark Pixels amount to switch:" @bind-Value="@_cmd.NonWeldingValue" For="() => _cmd.NonWeldingValue"></MudNumericField></td>
+                            <td><MudSlider @bind-Value="_cmd.NonWeldingValue" Min="0" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
+                </tr>
+              
+                <tr>
                     <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Shutter" Label="Shutter"> </MudTextField></td>
                     <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.AnalogueGain" Label="Analogue Gain"> </MudTextField></td>
                     <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Brightness" Label="Brightness"> </MudTextField></td>

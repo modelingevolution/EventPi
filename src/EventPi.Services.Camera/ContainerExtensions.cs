@@ -29,8 +29,8 @@ public static class ContainerExtensions
         services.AddSingleton<CameraCommandHandler>();
         services.AddCommandHandler<CameraCommandHandler>();
         services.AddCommandHandler<WeldingRecognitionCommandHandler>();
-        services.AddEventHandler<CameraProfileConfigurationModel>(false, FromStream.Start);
-        services.AddEventHandler<WeldingRecognitionModel>(FromRelativeStreamPosition.End-1); 
+        services.AddEventHandler<CameraProfileConfigurationModel>(true, FromStream.Start);
+        services.AddEventHandler<WeldingRecognitionModel>(true, FromStream.Start); 
         return services;
     }
 }
