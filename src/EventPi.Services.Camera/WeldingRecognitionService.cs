@@ -3,10 +3,11 @@ using EventPi.Pid;
 using EventPi.Services.Camera.Contract;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
+using Microsoft.Extensions.Hosting;
 
 namespace EventPi.Services.Camera;
 
-public class WeldingRecognitionService
+public class WeldingRecognitionService : BackgroundService
 {
     private readonly ILogger<WeldingRecognitionService> _logger;
     private readonly GrpcFrameFeaturesService _grpcService;
@@ -26,7 +27,6 @@ public class WeldingRecognitionService
     public double OutputLowerLimit { get; set; }
     public double OutputUpperLimit { get; set; }
 
-    private readonly CancellationTokenSource _cts = new CancellationTokenSource();
    
     public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc, WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
     {
@@ -44,16 +44,16 @@ public class WeldingRecognitionService
         _bufferBrightPixels = new CircularBuffer<int>(3);
         _bufferDarkPixels = new CircularBuffer<int>(3);
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
-        Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
+       
     }
 
-    private async Task OnSendCommand()
+    private async Task OnSendCommand(CancellationToken token)
     {
         try
         {
-            while (!_cts.IsCancellationRequested)
+            while (!token.IsCancellationRequested)
             {
-                var cmd = await _channel.Reader.ReadAsync(_cts.Token);
+                var cmd = await _channel.Reader.ReadAsync(token);
                 await _proxy.ProcessAsync(cmd);
             }
         }
@@ -90,5 +90,10 @@ public class WeldingRecognitionService
       
     }
 
-   
+
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        Task.Factory.StartNew(()=>OnSendCommand(stoppingToken), TaskCreationOptions.LongRunning);
+        return Task.CompletedTask;
+    }
 }

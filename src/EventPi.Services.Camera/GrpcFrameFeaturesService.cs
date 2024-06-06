@@ -31,7 +31,7 @@ public class GrpcFrameFeaturesService : FrameFeatures.FrameFeaturesBase
             Lux = request.Lux,
 
         };
-        OnFrameFeaturesAppeared.Invoke(this,ev);
+        OnFrameFeaturesAppeared?.Invoke(this,ev);
       
         return new Empty();
     }
