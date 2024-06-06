@@ -157,17 +157,22 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
             });
         StringBuilder sb = new StringBuilder();
         StringBuilder err = new StringBuilder();
-        _runningApp = cmd.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sb))
+        _runningApp = cmd
+            .WithStandardOutputPipe(PipeTarget.ToStringBuilder(sb))
             .WithStandardErrorPipe(PipeTarget.ToStringBuilder(err))
             .ExecuteAsync(_cstForce.Token, _cstGrace.Token);
-       _ =  _runningApp.Task.ContinueWith(x =>
+        _ = Task.Run(async () =>
         {
-            logger.LogInformation($"{_appName} exited with code: {x.Result.ExitCode}");
-            if(!string.IsNullOrWhiteSpace(err.ToString()))
+            var x = await _runningApp;
+            logger.LogInformation($"{_appName} exited with code: {x.ExitCode}");
+            if (!string.IsNullOrWhiteSpace(err.ToString()))
                 logger.LogError(err.ToString());
-            if(!string.IsNullOrEmpty(sb.ToString()))
+            if (!string.IsNullOrEmpty(sb.ToString()))
                 logger.LogInformation(sb.ToString());
+
         });
+        
+        
         return _runningApp;
     }
 }
