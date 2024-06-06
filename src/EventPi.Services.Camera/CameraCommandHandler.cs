@@ -147,11 +147,11 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
                 "--height", resolution.Height.ToString(), 
                 "--codec", codec.ToString(), 
                 "--inline", "--listen",
-                "--awbgains -1,-1", 
-                "--metering spot",
-                "--frame-counter 1",
+                "--awbgains","-1,-1", 
+                "--metering","spot",
+                "--frame-counter","1",
                 "--tuning-file",tuningFilePath,
-                "--saturation 0.0",
+                "--saturation","0.0",
                 "--grpc-client-address", grpcClientAddress,
                 "-o", $"tcp://{address}:{listenPort}"
             });
