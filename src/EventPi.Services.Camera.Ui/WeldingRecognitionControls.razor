@@ -1,0 +1,108 @@
+﻿@using EventPi.Services.Camera.Contract
+@using Microsoft.AspNetCore.Http
+@using ModelingEvolution.Observable.Blazor
+@inject GrpcCppCameraProxy _proxy
+@inject CameraProfileConfigurationModel _profileModel
+@inject WeldingRecognitionService _recognitionService
+@inject GrpcFrameFeaturesService _grpcFrameService
+@inject WeldingRecognitionVmRegister _vmRegister
+<MudStack>
+
+    <MudExpansionPanels MultiExpansion="true">
+        <MudExpansionPanel Text="Testing panel" @bind-IsExpanded="@_isTestTurnedOn">
+            <MudButton OnClick="OnSwitchToWeldingProfile"> Switch to Welding profile </MudButton>
+            <MudButton OnClick="OnSwitchToDefaultProfile"> Switch to Default profile </MudButton>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+    <MudExpansionPanels MultiExpansion="true">
+        <MudExpansionPanel Text="Auto switch mode" @bind-IsExpanded="@_isAutoSwitchExpanded">
+            <MudSimpleTable Dense="true" Bordered="false">
+                <tbody>
+                    <tr>
+                        <td style="width: 150px"><MudSwitch @bind-Value="@_cmd.DetectionEnabled" Color="Color.Primary" Label="Try detect welding" /></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Shutter" Label="Shutter"> </MudTextField></td>
+                        <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.AnalogueGain" Label="Analogue Gain"> </MudTextField></td>
+                        <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Brightness" Label="Brightness"> </MudTextField></td>
+                        <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Contrast" Label="Contrast"> </MudTextField></td>
+                        <td style="width: 150px"><MudTextField Variant="Variant.Text" Value="@Enum.GetName(typeof(HdrModeEnum), _recognitionService.CurrentAppliedProfile.HdrMode)" Label="HDR mode"> </MudTextField></td>
+
+
+                    </tr>
+                    <tr>
+                        <td style="width: 150px"> <MudText> Grpc status:</MudText></td>
+                        <td> <MudIcon Icon="@Icons.Filled.Circle" Color="@(_isConnectedViaGrpcToRpiCam ? Color.Success : Color.Error)"></MudIcon></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 150px"> <MudText> Bright pixels: @_brightPixels </MudText></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 150px"> <MudText> Dark pixels: @_darkPixels </MudText></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 150px"> <MudText> Current applied shutter: @_currentAppliedShutter </MudText></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 150px"> <MudText> Welding status:</MudText></td>
+                        <td> <MudIcon Icon="@Icons.Filled.Circle" Color="@(_isWelding ? Color.Success : Color.Error)"></MudIcon></td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+            <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large">
+                <MudButton OnClick="@_vm.Save">Save</MudButton>
+                <MudButton OnClick="@_vm.Cancel">Cancel</MudButton>
+            </MudButtonGroup>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string HostName { get; set; }
+
+    private bool _isConnectedViaGrpcToRpiCam = false;
+
+    private int _brightPixels;
+    private int _darkPixels;
+    private int _currentAppliedShutter;
+    private bool _isWelding;
+    private bool _adminMode;
+    private bool _isTestTurnedOn;
+    private bool _isAutoSwitchExpanded;
+    SetWeldingRecognitionConfiguration _cmd = new SetWeldingRecognitionConfiguration();
+    private WeldingRecognitionVm _vm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isConnectedViaGrpcToRpiCam = await _proxy.GreetWithRpiCam();
+        _grpcFrameService.OnFrameFeaturesAppeared += OnChangeFrameParams;
+
+        _vm = _vmRegister.Get($"{HostName}");
+        _cmd = _vm.SetWeldingRecognitionConfiguration;
+  
+        await _vm.Initialize(HostName);
+    }
+
+    private async Task OnSwitchToWeldingProfile()
+    {
+        var camParams = new SetCameraParameters();
+        camParams.CopyFrom(_profileModel.WeldingProfile);
+        await _proxy.ProcessAsync(camParams);
+    }
+    private async Task OnSwitchToDefaultProfile()
+    {
+        var camParams = new SetCameraParameters();
+        camParams.CopyFrom(_profileModel.DefaultProfile);
+        await _proxy.ProcessAsync(camParams);
+    }
+    private void OnChangeFrameParams(object? sender, FrameFeaturesRecord e)
+    {
+        _brightPixels = e.TotalBrightPixels;
+        _darkPixels = e.TotalDarkPixels;
+        _isWelding = _recognitionService.IsWelding;
+    }
+   
+
+}

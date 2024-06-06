@@ -3,7 +3,7 @@
 namespace EventPi.Services.Camera.Contract;
 
 [OutputStream("WeldingRecognition")]
-public record WeldingRecognitionConfigurationState
+public record WeldingRecognitionConfigurationState : IWeldingRecognitionConfigurationParameters
 {
     public static string FullStreamName(string hostname) => $"WeldingRecognition-{StreamId(hostname)}";
     public static string StreamId(string hostname) => hostname;
