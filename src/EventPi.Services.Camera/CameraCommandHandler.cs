@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Drawing;
 using System.Net;
+using System.Text;
 using System.Text.Json.Serialization;
 using CliWrap;
 using EventPi.Abstractions;
@@ -83,7 +84,7 @@ public static class ConfigurationExtensions
     public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraTuningFilePath") ?? LibCameraVid.DefaultTuningFilePath;
 }
 
-public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraStarter> log, string grpcClientAddress) : BackgroundService
+public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraStarter> log, ILogger<LibCameraVid> logLibCameraVid, string grpcClientAddress) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -91,13 +92,13 @@ public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraSta
         
         var resolution = configuration.GetCameraResolution();
         var libCameraPath = configuration.GetLibCameraPath();
-        var vid = new LibCameraVid(libCameraPath);
+        var vid = new LibCameraVid(logLibCameraVid, libCameraPath);
         if(vid.KillAll()) await Task.Delay(1000);
         var p = await vid.Start(resolution, Codec.mjpeg, configuration.GetLibCameraTuningPath(), configuration.GetLibCameraListenIp(), configuration.GetLibCameraListenPort(), grpcClientAddress);
         log.LogInformation($"libcamera-vid started, pid: {p.ProcessId}");
     }
 }
-public class LibCameraVid(string? appName =null)
+public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
 {
     public const string DefaultPath = "/usr/local/bin/rocketwelder-vid";
     public const string DefaultTuningFilePath = "/app/imx296.json";
@@ -154,8 +155,19 @@ public class LibCameraVid(string? appName =null)
                 "--grpc-client-address", grpcClientAddress,
                 "-o", $"tcp://{address}:{listenPort}"
             });
-        _runningApp = cmd.ExecuteAsync(_cstForce.Token, _cstGrace.Token);
-        
+        StringBuilder sb = new StringBuilder();
+        StringBuilder err = new StringBuilder();
+        _runningApp = cmd.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sb))
+            .WithStandardErrorPipe(PipeTarget.ToStringBuilder(err))
+            .ExecuteAsync(_cstForce.Token, _cstGrace.Token);
+       _ =  _runningApp.Task.ContinueWith(x =>
+        {
+            logger.LogInformation($"{_appName} exited with code: {x.Result.ExitCode}");
+            if(!string.IsNullOrWhiteSpace(err.ToString()))
+                logger.LogError(err.ToString());
+            if(!string.IsNullOrEmpty(sb.ToString()))
+                logger.LogInformation(sb.ToString());
+        });
         return _runningApp;
     }
 }
