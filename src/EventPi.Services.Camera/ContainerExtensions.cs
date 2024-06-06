@@ -20,6 +20,7 @@ public static class ContainerExtensions
     {
         services.AddSingleton<GrpcCppCameraProxy>();
         services.AddSingleton<WeldingRecognitionService>();
+        services.AddHostedService<WeldingRecognitionService>();
         services.AddSingleton<FrameFeatureAccessor>();
         services.AddSingleton<FeaturePerformanceInfo>();
         services.AddSingleton<CameraProfileConfigurationModel>( );
