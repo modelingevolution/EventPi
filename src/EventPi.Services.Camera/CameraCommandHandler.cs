@@ -14,6 +14,7 @@ using EventPi.Services.Camera.Contract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System.Xml.Linq;
+using CliWrap.Buffered;
 using Microsoft.Extensions.Logging;
 
 namespace EventPi.Services.Camera;
@@ -95,7 +96,7 @@ public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraSta
         var vid = new LibCameraVid(logLibCameraVid, libCameraPath);
         if(vid.KillAll()) await Task.Delay(1000);
         var p = await vid.Start(resolution, Codec.mjpeg, configuration.GetLibCameraTuningPath(), configuration.GetLibCameraListenIp(), configuration.GetLibCameraListenPort(), grpcClientAddress);
-        log.LogInformation($"libcamera-vid started, pid: {p.ProcessId}");
+        log.LogInformation($"libcamera-vid started, pid: {p}");
     }
 }
 public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
@@ -126,7 +127,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
         }
         return killed;
     }
-    public async Task<CommandTask<CommandResult>> Start(CameraResolution resolution, Codec codec, string tuningFilePath, IPAddress? listenAddress = null, int listenPort = 6000, string grpcClientAddress = "127.0.0.1:8080")
+    public async Task<int> Start(CameraResolution resolution, Codec codec, string tuningFilePath, IPAddress? listenAddress = null, int listenPort = 6000, string grpcClientAddress = "127.0.0.1:8080")
     {
         if (_runningApp != null) throw new InvalidOperationException();
         if(!File.Exists(tuningFilePath)) throw new FileNotFoundException($"Tuning file not found at {tuningFilePath} !");
@@ -139,41 +140,49 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
             i.Kill();
 
         var address = listenAddress ?? IPAddress.Loopback;
+        var args = new[]
+        {
+            "-t", "0", 
+            "--width", resolution.Width.ToString(), 
+            "--height", resolution.Height.ToString(), 
+            "--codec", codec.ToString(), 
+            "--inline", "--listen",
+            "--awbgains","-1,-1", 
+            "--metering","spot",
+            "--frame-counter","1",
+            "--tuning-file",tuningFilePath,
+            "--saturation","0.0",
+            "--grpc-client-address", grpcClientAddress,
+            "-o", $"tcp://{address}:{listenPort}"
+        };
         var cmd=  CliWrap.Cli.Wrap(_appName)
-            .WithArguments(new string[]
-            {
-                "-t", "0", 
-                "--width", resolution.Width.ToString(), 
-                "--height", resolution.Height.ToString(), 
-                "--codec", codec.ToString(), 
-                "--inline", "--listen",
-                "--awbgains","-1,-1", 
-                "--metering","spot",
-                "--frame-counter","1",
-                "--tuning-file",tuningFilePath,
-                "--saturation","0.0",
-                "--grpc-client-address", grpcClientAddress,
-                "-o", $"tcp://{address}:{listenPort}"
-            });
-        StringBuilder sb = new StringBuilder();
-        StringBuilder err = new StringBuilder();
-        _runningApp = cmd
-            .WithStandardOutputPipe(PipeTarget.ToStringBuilder(sb))
-            .WithStandardErrorPipe(PipeTarget.ToStringBuilder(err))
-            .ExecuteAsync(_cstForce.Token, _cstGrace.Token);
+            .WithArguments(args);
+       
+        logger.LogInformation(string.Join(' ', args.Prepend(_appName)));
+        var ret = cmd
+            .ExecuteBufferedAsync(Encoding.UTF8, 
+                Encoding.UTF8,
+                _cstForce.Token, 
+                _cstGrace.Token);
         _ = Task.Run(async () =>
         {
-            var x = await _runningApp;
-            logger.LogInformation($"{_appName} exited with code: {x.ExitCode}");
-            if (!string.IsNullOrWhiteSpace(err.ToString()))
-                logger.LogError(err.ToString());
-            if (!string.IsNullOrEmpty(sb.ToString()))
-                logger.LogInformation(sb.ToString());
-
+            try
+            {
+                var x = await ret;
+                logger.LogInformation($"{_appName} exited with code: {x.ExitCode}");
+                if (!string.IsNullOrWhiteSpace(x.StandardError))
+                    logger.LogError(x.StandardError);
+                if (!string.IsNullOrEmpty(x.StandardOutput))
+                    logger.LogInformation(x.StandardOutput);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error at capturing results about " + _appName);
+            }
         });
         
         
-        return _runningApp;
+        return ret.ProcessId;
     }
 }
 
