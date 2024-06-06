@@ -124,11 +124,14 @@
         _brightPixels = e.TotalBrightPixels;
         _darkPixels = e.TotalDarkPixels;
         _isWelding = _recognitionService.IsWelding;
-        _recognitionService.DetectionEnabled = _cmd.DetectionEnabled;
-        _recognitionService.NonWeldingProfile = _profileNonWeldingVm.SetCameraParameters;
-        _recognitionService.WeldingProfile = _profileWeldingVm.SetCameraParameters;
-        _recognitionService.WeldingBound = _cmd.WeldingValue;
-        _recognitionService.NonWeldingBound = _cmd.NonWeldingValue;
+        if (_cmd != null)
+        {
+            _recognitionService.DetectionEnabled = _cmd.DetectionEnabled;
+            _recognitionService.NonWeldingProfile = _profileNonWeldingVm.SetCameraParameters;
+            _recognitionService.WeldingProfile = _profileWeldingVm.SetCameraParameters;
+            _recognitionService.WeldingBound = _cmd.WeldingValue;
+            _recognitionService.NonWeldingBound = _cmd.NonWeldingValue;
+        }
 
         InvokeAsync(StateHasChanged);
     }

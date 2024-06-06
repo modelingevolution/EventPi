@@ -47,7 +47,7 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
             while (!token.IsCancellationRequested)
             {
                 var cmd = await _channel.Reader.ReadAsync(token);
-                await _proxy.ProcessAsync(cmd);
+               // await _proxy.ProcessAsync(cmd);
             }
         }
         catch (OperationCanceledException) { }
@@ -66,6 +66,7 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
             var camParams = new SetCameraParameters();
            // camParams.CopyFrom(_cameraModel.WeldingProfile);
             camParams.CopyFrom(WeldingProfile);
+             _proxy.ProcessAsync(camParams);
             _channel.Writer.WriteAsync(camParams);
             CurrentAppliedProfile = camParams;
         }
@@ -77,7 +78,8 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
                 IsWelding = false;
                 var camParams = new SetCameraParameters();
                 // camParams.CopyFrom(_cameraModel.DefaultProfile);
-                camParams.CopyFrom(NonWeldingProfile);
+                camParams.CopyFrom(NonWeldingProfile); 
+                _proxy.ProcessAsync(camParams);
                 _channel.Writer.WriteAsync(camParams);
                 CurrentAppliedProfile = camParams;
             }
@@ -89,5 +91,6 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
+      
     }
 }
