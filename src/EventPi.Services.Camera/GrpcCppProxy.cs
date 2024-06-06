@@ -25,7 +25,7 @@ namespace EventPi.Services.Camera
         public GrpcCppCameraProxy(ILogger<GrpcCppCameraProxy> logger, IConfiguration config)
         {
             _logger = logger;
-            _toCppChannel = GrpcChannel.ForAddress(config.GetLibcameraFullListenAddress());
+            _toCppChannel = GrpcChannel.ForAddress(config.GetLibcameraGrpcFullListenAddress());
         }
 
       
