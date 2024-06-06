@@ -30,7 +30,7 @@ public static class ContainerExtensions
         services.AddCommandHandler<CameraCommandHandler>();
         services.AddCommandHandler<WeldingRecognitionCommandHandler>();
         services.AddEventHandler<CameraProfileConfigurationModel>(false, FromStream.Start);
-        services.AddEventHandler<WeldingRecognitionModel>(false, FromStream.Start); // TODO: Should be relative end -1!!!
+        services.AddEventHandler<WeldingRecognitionModel>(FromRelativeStreamPosition.End-1); 
         return services;
     }
 }
