@@ -24,7 +24,7 @@ public class WeldingRecognitionService : BackgroundService
 
     public ICameraParametersReadOnly WeldingProfile { get; set; }
     public ICameraParametersReadOnly NonWeldingProfile { get; set; }
-
+    private CancellationToken token = new CancellationToken();
 
 public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc, WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
     {
@@ -40,7 +40,7 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
        
     }
 
-    private async Task OnSendCommand(CancellationToken token)
+    private async Task OnSendCommand()
     {
         try
         {
@@ -86,9 +86,8 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
     }
 
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Task.Factory.StartNew(()=>OnSendCommand(stoppingToken), TaskCreationOptions.LongRunning);
-        return Task.CompletedTask;
+        await Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
     }
 }
