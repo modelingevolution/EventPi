@@ -2,6 +2,7 @@
 
 namespace EventPi.Services.Camera.Contract;
 
+
 [OutputStream("WeldingRecognition")]
 public record WeldingRecognitionConfigurationState : IWeldingRecognitionConfigurationParameters
 {

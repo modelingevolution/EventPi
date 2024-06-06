@@ -7,7 +7,7 @@
 @inject GrpcFrameFeaturesService _grpcFrameService
 @inject WeldingRecognitionVmRegister _vmRegister
 <MudStack>
-
+    <Observable Source="@_vm.SetWeldingRecognitionConfiguration">
     <MudExpansionPanels MultiExpansion="true">
         <MudExpansionPanel Text="Testing panel" @bind-IsExpanded="@_isTestTurnedOn">
             <MudButton OnClick="OnSwitchToWeldingProfile"> Switch to Welding profile </MudButton>
@@ -18,35 +18,35 @@
         <MudExpansionPanel Text="Auto switch mode" @bind-IsExpanded="@_isAutoSwitchExpanded">
             <MudSimpleTable Dense="true" Bordered="false">
                 <tbody>
-                    <tr>
-                        <td style="width: 150px"><MudSwitch @bind-Value="@_cmd.DetectionEnabled" Color="Color.Primary" Label="Try detect welding" /></td>
-                    </tr>
-                    <tr>
-                        <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Shutter" Label="Shutter"> </MudTextField></td>
-                        <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.AnalogueGain" Label="Analogue Gain"> </MudTextField></td>
-                        <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Brightness" Label="Brightness"> </MudTextField></td>
-                        <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Contrast" Label="Contrast"> </MudTextField></td>
-                        <td style="width: 150px"><MudTextField Variant="Variant.Text" Value="@Enum.GetName(typeof(HdrModeEnum), _recognitionService.CurrentAppliedProfile.HdrMode)" Label="HDR mode"> </MudTextField></td>
+                <tr>
+                    <td style="width: 150px"><MudSwitch @bind-Value="@_cmd.DetectionEnabled" Color="Color.Primary" Label="Try detect welding" /></td>
+                </tr>
+                <tr>
+                    <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Shutter" Label="Shutter"> </MudTextField></td>
+                    <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.AnalogueGain" Label="Analogue Gain"> </MudTextField></td>
+                    <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Brightness" Label="Brightness"> </MudTextField></td>
+                    <td style="width: 150px"><MudTextField Value="@_recognitionService.CurrentAppliedProfile.Contrast" Label="Contrast"> </MudTextField></td>
+                    <td style="width: 150px"><MudTextField Variant="Variant.Text" Value="@Enum.GetName(typeof(HdrModeEnum), _recognitionService.CurrentAppliedProfile.HdrMode)" Label="HDR mode"> </MudTextField></td>
 
 
-                    </tr>
-                    <tr>
-                        <td style="width: 150px"> <MudText> Grpc status:</MudText></td>
-                        <td> <MudIcon Icon="@Icons.Filled.Circle" Color="@(_isConnectedViaGrpcToRpiCam ? Color.Success : Color.Error)"></MudIcon></td>
-                    </tr>
-                    <tr>
-                        <td style="width: 150px"> <MudText> Bright pixels: @_brightPixels </MudText></td>
-                    </tr>
-                    <tr>
-                        <td style="width: 150px"> <MudText> Dark pixels: @_darkPixels </MudText></td>
-                    </tr>
-                    <tr>
-                        <td style="width: 150px"> <MudText> Current applied shutter: @_currentAppliedShutter </MudText></td>
-                    </tr>
-                    <tr>
-                        <td style="width: 150px"> <MudText> Welding status:</MudText></td>
-                        <td> <MudIcon Icon="@Icons.Filled.Circle" Color="@(_isWelding ? Color.Success : Color.Error)"></MudIcon></td>
-                    </tr>
+                </tr>
+                <tr>
+                    <td style="width: 150px"> <MudText> Grpc status:</MudText></td>
+                    <td> <MudIcon Icon="@Icons.Filled.Circle" Color="@(_isConnectedViaGrpcToRpiCam ? Color.Success : Color.Error)"></MudIcon></td>
+                </tr>
+                <tr>
+                    <td style="width: 150px"> <MudText> Bright pixels: @_brightPixels </MudText></td>
+                </tr>
+                <tr>
+                    <td style="width: 150px"> <MudText> Dark pixels: @_darkPixels </MudText></td>
+                </tr>
+                <tr>
+                    <td style="width: 150px"> <MudText> Current applied shutter: @_currentAppliedShutter </MudText></td>
+                </tr>
+                <tr>
+                    <td style="width: 150px"> <MudText> Welding status:</MudText></td>
+                    <td> <MudIcon Icon="@Icons.Filled.Circle" Color="@(_isWelding ? Color.Success : Color.Error)"></MudIcon></td>
+                </tr>
                 </tbody>
             </MudSimpleTable>
             <MudButtonGroup Variant="Variant.Filled" Style="align-self:center" Size="Size.Large">
@@ -55,6 +55,7 @@
             </MudButtonGroup>
         </MudExpansionPanel>
     </MudExpansionPanels>
+    </Observable>
 </MudStack>
 
 @code {
@@ -71,7 +72,7 @@
     private bool _adminMode;
     private bool _isTestTurnedOn;
     private bool _isAutoSwitchExpanded;
-    SetWeldingRecognitionConfiguration _cmd = new SetWeldingRecognitionConfiguration();
+    SetWeldingRecognitionConfiguration _cmd;
     private WeldingRecognitionVm _vm;
 
     protected override async Task OnInitializedAsync()

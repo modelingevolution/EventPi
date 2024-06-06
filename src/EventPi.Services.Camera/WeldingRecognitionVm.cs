@@ -3,26 +3,27 @@ using MicroPlumberd;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
+using EventPi.Abstractions;
 
 namespace EventPi.Services.Camera;
 [EventHandler]
 public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDisposable
 {
-    private readonly WeldingRecognitionModel _model;
     private readonly ICommandBus _bus;
     private bool _initialized;
     private string _hostName;
-    private WeldingRecognitionConfigurationState? _prv;
+    private WeldingRecognitionConfiguration? _prv;
     private SetWeldingRecognitionConfiguration _setWeldingRecognitionConfiguration = new SetWeldingRecognitionConfiguration();
+    private DefineWeldingRecognitionConfiguration _defineWeldingRecognitionConfiguration = new DefineWeldingRecognitionConfiguration();
     public SetWeldingRecognitionConfiguration SetWeldingRecognitionConfiguration => _setWeldingRecognitionConfiguration;
+    public DefineWeldingRecognitionConfiguration DefineWeldingRecognitionConfiguration => _defineWeldingRecognitionConfiguration;
     private ISubscriptionRunner? _weldingRecognitionConfigSub;
     private readonly IPlumber _plumber;
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
     public event PropertyChangedEventHandler? PropertyChanged;
     private readonly Channel<SetWeldingRecognitionConfiguration> _channel;
-    public WeldingRecognitionVm(WeldingRecognitionModel model, ICommandBus bus, IPlumber plumber)
+    public WeldingRecognitionVm(ICommandBus bus, IPlumber plumber)
     {
-        _model = model;
         _bus = bus;
         _plumber = plumber;
         _channel = Channel.CreateBounded<SetWeldingRecognitionConfiguration>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
@@ -55,7 +56,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
     }
     public async Task Save()
     {
-        var dto = _setWeldingRecognitionConfiguration.CopyFrom(SetWeldingRecognitionConfiguration);
+        var dto = _defineWeldingRecognitionConfiguration.CopyFrom(SetWeldingRecognitionConfiguration);
         await _bus.SendAsync(_hostName, dto);
     }
     public async Task Cancel()
@@ -65,7 +66,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
         SetWeldingRecognitionConfig();
     }
 
-    private async Task Given(Metadata m, WeldingRecognitionConfigurationState ev)
+    private async Task Given(Metadata m, WeldingRecognitionConfiguration ev)
     {
         _prv = ev;
         this.SetWeldingRecognitionConfiguration.CopyFrom(ev, true);
@@ -83,7 +84,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
         _hostName = hostName;
         _initialized = true;
 
-        await(_weldingRecognitionConfigSub = _plumber.Subscribe(WeldingRecognitionConfigurationState.FullStreamName(_hostName), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
+        await(_weldingRecognitionConfigSub = _plumber.Subscribe(WeldingRecognitionConfiguration.FullStreamName(HostName.From(_hostName)), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
             .WithSnapshotHandler(this);
     }
 
