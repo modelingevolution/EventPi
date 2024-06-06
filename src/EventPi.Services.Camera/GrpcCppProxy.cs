@@ -13,36 +13,33 @@ using Microsoft.Extensions.Logging;
 
 using static System.Net.WebRequestMethods;
 
+//TODO: refactor explicit metody
+
 namespace EventPi.Services.Camera
 {
     public class GrpcCppCameraProxy : IDisposable
     {
-        private GrpcChannel _toCppChannel;
+        private readonly GrpcChannel _toCppChannel;
         private readonly ILogger<GrpcCppCameraProxy> _logger;
-        private string _cppGrpcUri = "";
-
         
         public GrpcCppCameraProxy(ILogger<GrpcCppCameraProxy> logger, IConfiguration config)
         {
             _logger = logger;
-            var grpcUrl = config["RpiCam" + ":GrpcReceiverAddress"]?? string.Empty;
-            InitProxy(grpcUrl);
+            _toCppChannel = GrpcChannel.ForAddress(config.GetLibcameraFullListenAddress());
         }
 
-        public void InitProxy(string url="")
+      
+        public async Task<Empty> SetRecognitionBorders(int brightPixelsBorder, int darkPixelsBorder)
         {
-            //_cppGrpcUri = string.IsNullOrWhiteSpace(url)? "http://192.168.0.105:6500" : url;
-            _cppGrpcUri = string.IsNullOrWhiteSpace(url)? "http://127.0.0.1:6500" : url;
-            _logger.LogInformation($"Grpc cpp proxy initialized for address: {_cppGrpcUri}");
-            _toCppChannel = GrpcChannel.ForAddress(_cppGrpcUri);
-        }
-
-        public async Task<Empty> ProcessAsync(CameraFrameFeaturesConfiguratorRequest ev)
-        {
+            var request = new CameraFrameFeaturesConfiguratorRequest()
+            {
+                BrightPixelsBorder = brightPixelsBorder,
+                DarkPixelsBorder = darkPixelsBorder
+            };
             var client = new CameraFrameFeaturesConfigurator.CameraFrameFeaturesConfigurator.CameraFrameFeaturesConfiguratorClient(_toCppChannel);
             try
             {
-                await client.ProcessAsync(ev);
+                await client.ProcessAsync(request);
             }
             catch (Exception e)
             {
@@ -69,6 +66,7 @@ namespace EventPi.Services.Camera
             }
            
         return new Empty();
+
         }
         public async Task<bool> GreetWithRpiCam()
         {

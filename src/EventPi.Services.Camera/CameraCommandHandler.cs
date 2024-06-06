@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Drawing;
 using System.Net;
+using System.Text;
 using System.Text.Json.Serialization;
 using CliWrap;
 using EventPi.Abstractions;
@@ -75,12 +76,15 @@ public static class ConfigurationExtensions
     public static bool GetCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>("CameraAutostart");
     public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraPath") ?? LibCameraVid.DefaultPath;
 
+    public static Uri GetLibcameraFullListenAddress(this IConfiguration configuration) => new Uri($"http://{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraListenPort()}");
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
         IPAddress.TryParse(configuration.GetValue<string>("LibCameraListenIp"), out var p) ? p : IPAddress.Loopback;
     public static int GetLibCameraListenPort(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraListenPort") ?? 6000;
+
+    public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraTuningFilePath") ?? LibCameraVid.DefaultTuningFilePath;
 }
 
-public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraStarter> log) : BackgroundService
+public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraStarter> log, ILogger<LibCameraVid> logLibCameraVid, string grpcClientAddress) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -88,15 +92,16 @@ public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraSta
         
         var resolution = configuration.GetCameraResolution();
         var libCameraPath = configuration.GetLibCameraPath();
-        var vid = new LibCameraVid(libCameraPath);
+        var vid = new LibCameraVid(logLibCameraVid, libCameraPath);
         if(vid.KillAll()) await Task.Delay(1000);
-        var p = await vid.Start(resolution, Codec.mjpeg, configuration.GetLibCameraListenIp(), configuration.GetLibCameraListenPort());
+        var p = await vid.Start(resolution, Codec.mjpeg, configuration.GetLibCameraTuningPath(), configuration.GetLibCameraListenIp(), configuration.GetLibCameraListenPort(), grpcClientAddress);
         log.LogInformation($"libcamera-vid started, pid: {p.ProcessId}");
     }
 }
-public class LibCameraVid(string? appName =null)
+public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
 {
-    public const string DefaultPath = "/usr/bin/libcamera-vid";
+    public const string DefaultPath = "/usr/local/bin/rocketwelder-vid";
+    public const string DefaultTuningFilePath = "/app/imx296.json";
     private readonly string _appName = appName ?? DefaultPath;
     private CommandTask<CommandResult>? _runningApp;
     private CancellationTokenSource? _cstForce;
@@ -121,9 +126,10 @@ public class LibCameraVid(string? appName =null)
         }
         return killed;
     }
-    public async Task<CommandTask<CommandResult>> Start(CameraResolution resolution, Codec codec, IPAddress? listenAddress = null, int listenPort = 6000)
+    public async Task<CommandTask<CommandResult>> Start(CameraResolution resolution, Codec codec, string tuningFilePath, IPAddress? listenAddress = null, int listenPort = 6000, string grpcClientAddress = "127.0.0.1:8080")
     {
         if (_runningApp != null) throw new InvalidOperationException();
+        if(!File.Exists(tuningFilePath)) throw new FileNotFoundException($"Tuning file not found at {tuningFilePath} !");
 
         _cstForce = new CancellationTokenSource();
         _cstGrace = new CancellationTokenSource();
@@ -140,11 +146,28 @@ public class LibCameraVid(string? appName =null)
                 "--width", resolution.Width.ToString(), 
                 "--height", resolution.Height.ToString(), 
                 "--codec", codec.ToString(), 
-                "--inline", "--listen", 
+                "--inline", "--listen",
+                "--awbgains -1,-1", 
+                "--info-text \"\"",
+                "--metering spot",
+                "--tuning-file",tuningFilePath,
+                "--saturation 0.0",
+                "--grpc-client-address", grpcClientAddress,
                 "-o", $"tcp://{address}:{listenPort}"
             });
-        _runningApp = cmd.ExecuteAsync(_cstForce.Token, _cstGrace.Token);
-        
+        StringBuilder sb = new StringBuilder();
+        StringBuilder err = new StringBuilder();
+        _runningApp = cmd.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sb))
+            .WithStandardErrorPipe(PipeTarget.ToStringBuilder(err))
+            .ExecuteAsync(_cstForce.Token, _cstGrace.Token);
+       _ =  _runningApp.Task.ContinueWith(x =>
+        {
+            logger.LogInformation($"{_appName} exited with code: {x.Result.ExitCode}");
+            if(!string.IsNullOrWhiteSpace(err.ToString()))
+                logger.LogError(err.ToString());
+            if(!string.IsNullOrEmpty(sb.ToString()))
+                logger.LogInformation(sb.ToString());
+        });
         return _runningApp;
     }
 }

@@ -10,20 +10,15 @@ public class WeldingRecognitionService
 {
     private readonly ILogger<WeldingRecognitionService> _logger;
     private readonly GrpcFrameFeaturesService _grpcService;
+    private readonly GrpcCppCameraProxy _proxy;
+    private readonly Channel<SetCameraParameters> _channel;
+    private readonly CircularBuffer<int> _bufferBrightPixels;
+    private readonly CircularBuffer<int> _bufferDarkPixels;
+    private readonly WeldingRecognitionModel _recognitionModel;
+    private readonly CameraProfileConfigurationModel _cameraModel;
 
     public bool IsWelding { get; private set; }
-    private readonly GrpcCppCameraProxy _proxy;
-    private SetCameraParameters _cameraParameters = new SetCameraParameters();
-    private readonly Channel<SetCameraParameters> _channel;
-    public ICameraParametersReadOnly DefaultProfile { get; set; }
-    public ICameraParametersReadOnly WeldingProfile { get; set; }
-    private CircularBuffer<int> _bufferBrightPixels;
-    private CircularBuffer<int> _bufferDarkPixels;
-
-    private WeldingRecognitionModel _recognitionModel;
-  
-    public double WeldingBrightPixelsTarget { get; set; }
-    public ICameraParametersReadOnly CurrentAppliedProfile { get; set; }
+    public ICameraParametersReadOnly CurrentAppliedProfile { get; private set; }
 
     public double KP { get; set; }
     public double KD { get; set; }
@@ -33,15 +28,15 @@ public class WeldingRecognitionService
 
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
    
-    public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc)
+    public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc, WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
     {
         CurrentAppliedProfile = new CameraProfile();
         _logger = logger;
         _grpcService = gprc;
         _grpcService.OnFrameFeaturesAppeared += OnDetectWelding;
         _proxy = proxy;
-        WeldingProfile = new CameraProfile();
-        DefaultProfile = new CameraProfile();
+        _recognitionModel = model;
+        _cameraModel = cameraModel;
         KP = 0.01;
         OutputLowerLimit = -100;
         OutputUpperLimit = 100;
@@ -76,7 +71,7 @@ public class WeldingRecognitionService
             IsWelding = true;
             _logger.LogInformation("Welding detected");
             var camParams = new SetCameraParameters();
-            camParams.CopyFrom(WeldingProfile);
+            camParams.CopyFrom(_cameraModel.WeldingProfile);
             _channel.Writer.WriteAsync(camParams);
             CurrentAppliedProfile = camParams;
         }
@@ -87,7 +82,7 @@ public class WeldingRecognitionService
                 _logger.LogInformation("Welding not detected");
                 IsWelding = false;
                 var camParams = new SetCameraParameters();
-                camParams.CopyFrom(DefaultProfile);
+                camParams.CopyFrom(_cameraModel.DefaultProfile);
                 _channel.Writer.WriteAsync(camParams);
                 CurrentAppliedProfile = camParams;
             }
