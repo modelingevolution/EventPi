@@ -150,6 +150,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
                 "--awbgains -1,-1", 
                 "--info-text \"\"",
                 "--metering spot",
+                "--frame-counter 1",
                 "--tuning-file",tuningFilePath,
                 "--saturation 0.0",
                 "--grpc-client-address", grpcClientAddress,
