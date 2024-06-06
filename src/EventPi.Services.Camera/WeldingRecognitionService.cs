@@ -21,12 +21,7 @@ public class WeldingRecognitionService : BackgroundService
     public bool IsWelding { get; private set; }
     public ICameraParametersReadOnly CurrentAppliedProfile { get; private set; }
 
-    public double KP { get; set; }
-    public double KD { get; set; }
-    public double KI { get; set; }
-    public double OutputLowerLimit { get; set; }
-    public double OutputUpperLimit { get; set; }
-
+  
    
     public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc, WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
     {
@@ -37,10 +32,6 @@ public class WeldingRecognitionService : BackgroundService
         _proxy = proxy;
         _recognitionModel = model;
         _cameraModel = cameraModel;
-        KP = 0.01;
-        OutputLowerLimit = -100;
-        OutputUpperLimit = 100;
-    
         _bufferBrightPixels = new CircularBuffer<int>(3);
         _bufferDarkPixels = new CircularBuffer<int>(3);
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
