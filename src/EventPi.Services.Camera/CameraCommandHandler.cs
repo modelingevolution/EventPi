@@ -75,6 +75,7 @@ public static class ConfigurationExtensions
     public static bool GetCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>("CameraAutostart");
     public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraPath") ?? LibCameraVid.DefaultPath;
 
+    public static Uri GetLibcameraFullListenAddress(this IConfiguration configuration) => new Uri($"http://{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraListenPort()}");
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
         IPAddress.TryParse(configuration.GetValue<string>("LibCameraListenIp"), out var p) ? p : IPAddress.Loopback;
     public static int GetLibCameraListenPort(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraListenPort") ?? 6000;
@@ -96,7 +97,7 @@ public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraSta
 }
 public class LibCameraVid(string? appName =null)
 {
-    public const string DefaultPath = "/usr/bin/libcamera-vid";
+    public const string DefaultPath = "/usr/local/bin/rocketwelder-vid";
     private readonly string _appName = appName ?? DefaultPath;
     private CommandTask<CommandResult>? _runningApp;
     private CancellationTokenSource? _cstForce;

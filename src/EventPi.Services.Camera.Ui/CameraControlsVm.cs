@@ -23,16 +23,15 @@ public partial class CameraControlsVm : INotifyPropertyChanged,  IAsyncDisposabl
     private readonly ICommandBus _bus;
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
     private string _profileName;
-    public WeldingRecognitionService RecognitionService { get; set; }
+  
 
-    public CameraControlsVm(IPlumber plumber, ICommandBus bus, WeldingRecognitionService recognitionService)
+    public CameraControlsVm(IPlumber plumber, ICommandBus bus)
     {
         _plumber = plumber;
         _bus = bus;
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
         Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
         _setCameraParameters.PropertyChanged += OnSetCameraParametersPropertyChanged;
-        RecognitionService=recognitionService;
     }
 
     private async Task OnSendCommand()

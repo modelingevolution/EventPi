@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Collections;
+using System.Collections.Concurrent;
 using EventPi.Abstractions;
 using EventPi.Services.Camera.Contract;
 using MicroPlumberd;
@@ -11,35 +12,33 @@ namespace EventPi.Services.Camera;
 [EventHandler]
 public partial class CameraProfileConfigurationModel
 {
+    private ICameraParametersReadOnly _weldingProfile;
+    private ICameraParametersReadOnly _defaultProfile;
 
-    private CameraConfigurationProfile? _currentProfile;
+    public ICameraParametersReadOnly WeldingProfile => _weldingProfile;
 
-    private ConcurrentDictionary<string, CameraConfigurationProfile> _availableProfiles;
-    private readonly GrpcCppCameraProxy _cameraProxy;
-
-    public CameraConfigurationProfile? CurrentProfile => _currentProfile;
-    public CameraProfileConfigurationModel(IEnvironment env, GrpcCppCameraProxy cameraProxy)
+    public ICameraParametersReadOnly DefaultProfile => _defaultProfile;
+ 
+    public CameraProfileConfigurationModel()
     {
-        _availableProfiles = new ConcurrentDictionary<string, CameraConfigurationProfile>();
-        _cameraProxy = cameraProxy;
+        _weldingProfile = new SetCameraParameters();
+        _defaultProfile = new SetCameraParameters();
     }
 
-    public CameraConfigurationProfile? GetProfileByName(string name)
-    {
-        _availableProfiles.TryGetValue(name, out var profile);
-        return profile;
-    }
     private async Task Given(Metadata m, CameraProfile ev)
     {
         var id = m.StreamId<HostProfilePath>();
         var profile = new CameraConfigurationProfile(ev);
-       _availableProfiles.AddOrUpdate(id.ProfileName, profile, (key, oldValue) => profile);
+
+        if (id.ProfileName.Equals("welding", StringComparison.InvariantCultureIgnoreCase))
+        {
+            _weldingProfile = profile;
+        }
+        else
+        {
+            _defaultProfile = profile;
+        }
+        
     }
 
-    private async Task Given(Metadata m, CameraConfigurationProfileApplied ev)
-    {
-        var selectedProfile = _availableProfiles[ev.ProfileName];
-       // await _cameraProxy.ProcessAsync(selectedProfile);
-        _currentProfile = selectedProfile;
-    }
 }
