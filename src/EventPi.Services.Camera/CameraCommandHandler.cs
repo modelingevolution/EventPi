@@ -226,7 +226,6 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
         };
         
         await plumber.AppendState(ev, hostProfilePath);
-        await plumber.AppendEvent(ev, hostProfilePath);
     }
 
     public async Task Handle(HostName hostName, SetCameraParameters cmd)

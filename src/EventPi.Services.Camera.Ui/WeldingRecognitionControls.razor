@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Http
 @using ModelingEvolution.Observable.Blazor
 @inject GrpcCppCameraProxy _proxy
-@inject CameraProfileConfigurationModel _profileModel
+@inject CameraControlVmRegister _profileRegister
 @inject WeldingRecognitionService _recognitionService
 @inject GrpcFrameFeaturesService _grpcFrameService
 @inject WeldingRecognitionVmRegister _vmRegister
@@ -91,12 +91,16 @@
     private bool _isAutoSwitchExpanded;
     SetWeldingRecognitionConfiguration _cmd;
     private WeldingRecognitionVm _vm;
+    private CameraControlsVm _profileWeldingVm;
+    private CameraControlsVm _profileNonWeldingVm;
 
     protected override async Task OnInitializedAsync()
     {
         _isConnectedViaGrpcToRpiCam = await _proxy.GreetWithRpiCam();
         _grpcFrameService.OnFrameFeaturesAppeared += OnChangeFrameParams;
 
+        _profileWeldingVm = _profileRegister.Get($"{HostName}/welding");
+        _profileNonWeldingVm = _profileRegister.Get($"{HostName}/default");
         _vm = _vmRegister.Get($"{HostName}");
         _cmd = _vm.SetWeldingRecognitionConfiguration;
   
@@ -106,13 +110,13 @@
     private async Task OnSwitchToWeldingProfile()
     {
         var camParams = new SetCameraParameters();
-        camParams.CopyFrom(_profileModel.WeldingProfile);
+        camParams.CopyFrom(_profileWeldingVm.SetCameraParameters);
         await _proxy.ProcessAsync(camParams);
     }
     private async Task OnSwitchToDefaultProfile()
     {
         var camParams = new SetCameraParameters();
-        camParams.CopyFrom(_profileModel.DefaultProfile);
+        camParams.CopyFrom(_profileNonWeldingVm.SetCameraParameters);
         await _proxy.ProcessAsync(camParams);
     }
     private void OnChangeFrameParams(object? sender, FrameFeaturesRecord e)
@@ -120,6 +124,12 @@
         _brightPixels = e.TotalBrightPixels;
         _darkPixels = e.TotalDarkPixels;
         _isWelding = _recognitionService.IsWelding;
+        _recognitionService.DetectionEnabled = _cmd.DetectionEnabled;
+        _recognitionService.NonWeldingProfile = _profileNonWeldingVm.SetCameraParameters;
+        _recognitionService.WeldingProfile = _profileWeldingVm.SetCameraParameters;
+        _recognitionService.WeldingBound = _cmd.WeldingValue;
+        _recognitionService.NonWeldingBound = _cmd.NonWeldingValue;
+
         InvokeAsync(StateHasChanged);
     }
    

@@ -35,6 +35,6 @@ public partial class WeldingRecognitionCommandHandler(IPlumber plumber, GrpcCppC
 
         };
         await plumber.AppendState(ev, hostName);
-        await plumber.AppendEvent(ev, hostName);
+     
     }
 }
