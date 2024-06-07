@@ -12,7 +12,6 @@ using CliWrap;
 using EventPi.Abstractions;
 using EventPi.Services.Camera.Contract;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using System.Xml.Linq;
 using CliWrap.Buffered;
 using Microsoft.Extensions.Logging;
@@ -85,20 +84,6 @@ public static class ConfigurationExtensions
     public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraTuningFilePath") ?? LibCameraVid.DefaultTuningFilePath;
 }
 
-public class LibCameraStarter(IConfiguration configuration, ILogger<LibCameraStarter> log, ILogger<LibCameraVid> logLibCameraVid, string grpcClientAddress) : BackgroundService
-{
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        if(!configuration.GetCameraAutostart()) return;
-        
-        var resolution = configuration.GetCameraResolution();
-        var libCameraPath = configuration.GetLibCameraPath();
-        var vid = new LibCameraVid(logLibCameraVid, libCameraPath);
-        if(vid.KillAll()) await Task.Delay(1000);
-        var p = await vid.Start(resolution, Codec.mjpeg, configuration.GetLibCameraTuningPath(), configuration.GetLibCameraListenIp(), configuration.GetLibCameraVideoListenPort(), configuration.GetLibcameraGrpcFullListenAddress(), grpcClientAddress);
-        log.LogInformation($"libcamera-vid started, pid: {p}");
-    }
-}
 public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
 {
     public const string DefaultPath = "/usr/local/bin/rocketwelder-vid";
