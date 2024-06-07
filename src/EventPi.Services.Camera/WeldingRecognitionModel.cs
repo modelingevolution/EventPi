@@ -13,7 +13,7 @@ public partial class WeldingRecognitionModel
     public int DarkPixelsBorder { get; private set; }
     public int BrightPixelsBorder { get; private set; }
    
-    private async Task Given(Metadata m, WeldingRecognitionConfigurationState ev)
+    private async Task Given(Metadata m, WeldingRecognitionConfiguration ev)
     {
         WeldingBound = ev.WeldingValue;
         NonWeldingBound = ev.NonWeldingValue;

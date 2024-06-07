@@ -133,6 +133,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
             "--codec", codec.ToString(), 
             "--inline", "--listen",
             "--awbgains","-1,-1",
+            "--info-text","\"\"",
             "--bind-listen-port",grpcListenAddress,
             "--metering","spot",
             "--frame-counter","1",
