@@ -21,6 +21,7 @@ public class DefineProfileCameraParameters : ICameraParameters
 
     public int Shutter { get; set; }
     public HdrModeEnum HdrMode { get; set; }
+    public ColormapTypes ColorMap { get; set; }
     public float ExposureLevel { get; set; }
     public float DigitalGain { get; set; }
     public float Brightness { get; set; }
@@ -41,6 +42,7 @@ public class DefineProfileCameraParameters : ICameraParameters
         DigitalGain = src.DigitalGain;
         Brightness = src.Brightness;
         BlueGain = src.BlueGain;
+        ColorMap = src.ColorMap;
         RedGain = src.RedGain;
         AnalogueGain = src.AnalogueGain;
         Contrast = src.Contrast;

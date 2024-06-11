@@ -10,6 +10,16 @@
             <tbody>
             <tr>
                 <td>
+                    <MudSelect T="ColormapTypes" Label="Colormap mode" @bind-Value="@_cmd.ColorMap">
+                        @foreach (ColormapTypes colorMap in Enum.GetValues(typeof(ColormapTypes)))
+                        {
+                            <MudSelectItem T="ColormapTypes" Value="colorMap">@Enum.GetName(typeof(ColormapTypes), colorMap).Replace("COLORMAP_","")</MudSelectItem>
+                        }
+                    </MudSelect>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <MudSelect T="HdrModeEnum" Label="HDR mode" @bind-Value="@_cmd.HdrMode">
                         @foreach (HdrModeEnum hdrMode in Enum.GetValues(typeof(HdrModeEnum)))
                         {
