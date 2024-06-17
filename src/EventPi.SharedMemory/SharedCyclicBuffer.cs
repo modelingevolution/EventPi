@@ -15,6 +15,7 @@ namespace EventPi.SharedMemory
         private long _head = 0;
         private readonly int SIZE_T;
         private bool _disposed = false;
+        public ulong Capacity => (ulong)_capacity;
         public SharedCyclicBuffer(long capacity, int size_t, string shmName)
         {
             SIZE_T = size_t;
