@@ -10,25 +10,30 @@ namespace EventPi.SharedMemory
         private readonly long _capacity;
         private readonly MemoryMappedFile _mmf;
         private readonly MemoryMappedViewAccessor _accessor;
+        private readonly string _shmName;
         private readonly ISemaphore _availableItemsSem;
         private long _tail = 0;
         private long _head = 0;
-        private readonly int SIZE_T;
+        private readonly int _frameSize;
         private bool _disposed = false;
         public ulong Capacity => (ulong)_capacity;
-        public SharedCyclicBuffer(long capacity, int size_t, string shmName)
+        public string Name => _shmName;
+        public ulong TotalBufferSize => (ulong)(_capacity * _frameSize);
+        public int FrameSize => _frameSize;
+        public SharedCyclicBuffer(long capacity, int frameSize, string shmName)
         {
-            SIZE_T = size_t;
+            _frameSize = frameSize;
             if (shmName == null)
                 throw new ArgumentNullException(nameof(shmName));
             if (capacity <= 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity));
 
             _capacity = capacity;
+            _shmName = shmName;
             if (!shmName.StartsWith("/dev/shm") && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                shmName = $"/dev/shm/{shmName}";
+                _shmName = shmName = $"/dev/shm/{shmName}";
             // Calculate the size needed for the buffer
-            long shmSize = _capacity * SIZE_T;
+            long shmSize = _capacity * _frameSize;
 
             // Create or open the memory-mapped file
             Debug.WriteLine($"Opening: {shmName}");
@@ -65,12 +70,12 @@ namespace EventPi.SharedMemory
             long nxTail = (_tail + 1) % _capacity;
 
             // Calculate the byte offset in the memory-mapped file
-            long offset = _tail * SIZE_T;
+            long offset = _tail * _frameSize;
 
             byte* b = null;
             _accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref b);
             b += _accessor.PointerOffset + offset;
-            Buffer.MemoryCopy(value,b,SIZE_T, SIZE_T);
+            Buffer.MemoryCopy(value,b,_frameSize, _frameSize);
             _accessor.Flush();
             
             _tail = nxTail;
@@ -84,9 +89,9 @@ namespace EventPi.SharedMemory
             long nxTail = (_tail + 1) % _capacity;
 
             // Calculate the byte offset in the memory-mapped file
-            long offset = _tail * SIZE_T;
+            long offset = _tail * _frameSize;
 
-            _accessor.WriteArray(offset, value, 0, SIZE_T);
+            _accessor.WriteArray(offset, value, 0, _frameSize);
             _tail = nxTail;
 
             // Release the semaphore
@@ -98,7 +103,7 @@ namespace EventPi.SharedMemory
             long nxTail = (_tail + 1) % _capacity;
 
             // Calculate the byte offset in the memory-mapped file
-            long offset = _tail * SIZE_T;
+            long offset = _tail * _frameSize;
             _accessor.Write(offset, ref value);
             _tail = nxTail;
 
@@ -111,7 +116,7 @@ namespace EventPi.SharedMemory
         {
             _availableItemsSem.Wait();
 
-            long offset = _head * SIZE_T;
+            long offset = _head * _frameSize;
             _head = (_head + 1) % _capacity;
 
             byte* ptr = null;
@@ -123,7 +128,7 @@ namespace EventPi.SharedMemory
         {
             _availableItemsSem.Wait();
 
-            long offset = _head * SIZE_T;
+            long offset = _head * _frameSize;
             _head = (_head + 1) % _capacity;
 
             byte* ptr = null;
@@ -137,7 +142,7 @@ namespace EventPi.SharedMemory
             _availableItemsSem.Wait();
 
             // Calculate the byte offset in the memory-mapped file
-            long offset = _head * SIZE_T;
+            long offset = _head * _frameSize;
 
             _accessor.Read<T>(offset, out value);
             _head = (_head + 1) % _capacity;

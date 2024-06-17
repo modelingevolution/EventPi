@@ -68,7 +68,7 @@ namespace EventPi.Threading
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 throw new PlatformNotSupportedException("This class is only supported on Unix-based systems.");
             string currentDllPath = Assembly.GetExecutingAssembly().Location;
-            string currentDllDirectory = Path.GetDirectoryName(currentDllPath) ?? Directory.GetCurrentDirectory();
+            string currentDllDirectory = Path.GetDirectoryName(currentDllPath) ?? AppContext.BaseDirectory;
             var outputPath = Path.Combine(currentDllDirectory, "sem.so");
             switch (RuntimeInformation.OSArchitecture)
             {
