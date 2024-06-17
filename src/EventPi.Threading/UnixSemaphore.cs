@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace EventPi.Threading
@@ -57,6 +58,8 @@ namespace EventPi.Threading
     sealed class UnixSemaphore : ISemaphore
     {
         private static bool _isChecked = false;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Check()
         {
             if(_isChecked) return;
@@ -65,7 +68,7 @@ namespace EventPi.Threading
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 throw new PlatformNotSupportedException("This class is only supported on Unix-based systems.");
             string currentDllPath = Assembly.GetExecutingAssembly().Location;
-            string currentDllDirectory = Path.GetDirectoryName(currentDllPath);
+            string currentDllDirectory = Path.GetDirectoryName(currentDllPath) ?? Directory.GetCurrentDirectory();
             var outputPath = Path.Combine(currentDllDirectory, "sem.so");
             switch (RuntimeInformation.OSArchitecture)
             {

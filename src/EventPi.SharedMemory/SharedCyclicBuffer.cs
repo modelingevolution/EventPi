@@ -56,6 +56,43 @@ namespace EventPi.SharedMemory
             Dispose(false);
         }
 
+        public unsafe bool PushBytes(IntPtr value)
+        {
+            return PushBytes((byte*)value);
+        }
+        public unsafe bool PushBytes(byte* value)
+        {
+            long nxTail = (_tail + 1) % _capacity;
+
+            // Calculate the byte offset in the memory-mapped file
+            long offset = _tail * SIZE_T;
+
+            byte* b = null;
+            _accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref b);
+            b += _accessor.PointerOffset + offset;
+            Buffer.MemoryCopy(value,b,SIZE_T, SIZE_T);
+            _accessor.Flush();
+            
+            _tail = nxTail;
+
+            // Release the semaphore
+            _availableItemsSem.Post();
+            return true;
+        }
+        public bool PushBytes(byte[] value)
+        {
+            long nxTail = (_tail + 1) % _capacity;
+
+            // Calculate the byte offset in the memory-mapped file
+            long offset = _tail * SIZE_T;
+
+            _accessor.WriteArray(offset, value, 0, SIZE_T);
+            _tail = nxTail;
+
+            // Release the semaphore
+            _availableItemsSem.Post();
+            return true;
+        }
         public bool Push<T>(T value) where T:struct
         {
             long nxTail = (_tail + 1) % _capacity;
