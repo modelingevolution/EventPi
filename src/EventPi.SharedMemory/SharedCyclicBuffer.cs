@@ -18,10 +18,14 @@ namespace EventPi.SharedMemory
         private bool _disposed = false;
         public ulong Capacity => (ulong)_capacity;
         public string Name => _shmName;
-        public ulong TotalBufferSize => (ulong)(_capacity * _frameSize);
+        public long _totalBufferSize;
         public int FrameSize => _frameSize;
+        public long TotalBufferSize => _totalBufferSize;
+
+        private ulong _frameCounter;
         public SharedCyclicBuffer(long capacity, int frameSize, string shmName)
         {
+            _frameCounter = 0;
             _frameSize = frameSize;
             if (shmName == null)
                 throw new ArgumentNullException(nameof(shmName));
@@ -33,20 +37,20 @@ namespace EventPi.SharedMemory
             if (!shmName.StartsWith("/dev/shm") && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 _shmName = shmName = $"/dev/shm/{shmName}";
             // Calculate the size needed for the buffer
-            long shmSize = _capacity * _frameSize;
+            _totalBufferSize = _capacity * _frameSize + _capacity*sizeof(ulong);
 
             // Create or open the memory-mapped file
             Debug.WriteLine($"Opening: {shmName}");
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                _mmf = MemoryMappedFile.CreateOrOpen(shmName, shmSize,
-                    MemoryMappedFileAccess.Read,
+                _mmf = MemoryMappedFile.CreateOrOpen(shmName, _totalBufferSize,
+                    MemoryMappedFileAccess.ReadWrite,
                     MemoryMappedFileOptions.None,
                     HandleInheritability.Inheritable);
             else
                 _mmf = MemoryMappedFile.CreateFromFile(shmName,
                     FileMode.OpenOrCreate, null,
-                    shmSize);
+                    _totalBufferSize);
 
             // Create a view accessor for the memory-mapped file
             _accessor = _mmf.CreateViewAccessor();
@@ -61,6 +65,14 @@ namespace EventPi.SharedMemory
             Dispose(false);
         }
 
+        public unsafe void Clear()
+        {
+            byte* dst = null;
+            _accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref dst);
+            Span<byte> b = new Span<byte>(dst, (int)TotalBufferSize);
+            b.Clear();
+            _accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+        }
         public unsafe bool PushBytes(IntPtr value)
         {
             return PushBytes((byte*)value);
@@ -70,12 +82,18 @@ namespace EventPi.SharedMemory
             long nxTail = (_tail + 1) % _capacity;
 
             // Calculate the byte offset in the memory-mapped file
-            long offset = _tail * _frameSize;
+            long offset = _tail * (_frameSize + sizeof(ulong));
 
-            byte* b = null;
-            _accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref b);
-            b += _accessor.PointerOffset + offset;
-            Buffer.MemoryCopy(value,b,_frameSize, _frameSize);
+            byte* dst = null;
+            _accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref dst);
+            dst += offset;
+            
+            Buffer.MemoryCopy(value,dst,_frameSize, _frameSize);
+            
+            var controlPtr = (ulong*)(dst + _frameSize);
+            *controlPtr = _frameCounter++;
+
+            _accessor.SafeMemoryMappedViewHandle.ReleasePointer();
             _accessor.Flush();
             
             _tail = nxTail;
@@ -98,7 +116,7 @@ namespace EventPi.SharedMemory
             _availableItemsSem.Post();
             return true;
         }
-        public bool Push<T>(T value) where T:struct
+        public bool Push<T>(ref T value) where T:struct
         {
             long nxTail = (_tail + 1) % _capacity;
 
@@ -116,13 +134,26 @@ namespace EventPi.SharedMemory
         {
             _availableItemsSem.Wait();
 
-            long offset = _head * _frameSize;
+            long offset = _head * (_frameSize + sizeof(ulong));
             _head = (_head + 1) % _capacity;
 
             byte* ptr = null;
             _accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
             ptr += offset;
+
+            ulong* controlPtr = (ulong*)(ptr + _frameSize);
+            var control = *controlPtr;
+            if (_frameCounter == 0) _frameCounter = control;
+            if (_frameCounter++ != control)
+                throw new InvalidOperationException("Unordered memory");
+
+            
             return (IntPtr)ptr;
+        }
+
+        public void ReleaseFrame()
+        {
+            _accessor.SafeMemoryMappedViewHandle.ReleasePointer();
         }
         public unsafe ref T Pop<T>(T value) where T : struct
         {
