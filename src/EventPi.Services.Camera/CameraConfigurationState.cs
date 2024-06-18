@@ -20,6 +20,7 @@ public record CameraConfigurationProfile : ICameraParametersReadOnly
         Sharpness = ev.Sharpness;
         CameraId = ev.CameraId;
         HdrMode = ev.HdrMode;
+        ColorMap = ev.ColorMap;
         ExposureLevel = ev.ExposureLevel;
         BlueGain = ev.BlueGain;
         RedGain = ev.RedGain;
@@ -29,6 +30,7 @@ public record CameraConfigurationProfile : ICameraParametersReadOnly
     }
 
     public HdrModeEnum HdrMode { get; set; }
+    public ColormapTypes ColorMap { get; set; }
     public bool AutoHistogramEnabled { get; set; }
     public int Shutter { get; set; }
     public float ExposureLevel { get; set; }

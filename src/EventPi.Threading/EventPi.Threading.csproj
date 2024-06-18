@@ -5,11 +5,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="MicroPlumberd" Version="1.0.72.122" />
-    <PackageReference Include="ModelingEvolution.Drawing" Version="1.0.25.22" />
+    <None Remove="sem_arm64.so" />
+    <None Remove="sem_x64.so" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
+    <EmbeddedResource Include="sem_arm64.so" />
+    <EmbeddedResource Include="sem_x64.so" />
   </ItemGroup>
+
 </Project>

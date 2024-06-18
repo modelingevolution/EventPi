@@ -11,6 +11,7 @@ public record CameraParametersState : ICameraParametersReadOnly
     public float ExposureLevel { get; init; }
     public float AnalogueGain { get; init; }
     public float DigitalGain { get; init; }
+    public ColormapTypes ColorMap { get; init; }
     public float Contrast { get; init; }
     public float Sharpness { get; init; }
     public float Brightness { get; init; }

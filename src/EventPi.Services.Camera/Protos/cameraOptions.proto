@@ -20,5 +20,7 @@ message CameraOptionsRequest
     float BlueGain = 6;
     float RedGain = 7;
     int32 HdrMode = 8;
+    int32 ColorMap = 9;
+
 
 }

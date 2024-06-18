@@ -15,6 +15,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     }
     private int _shutter;
     private HdrModeEnum _hdrMode;
+    private ColormapTypes _colorMap;
     private float _analogueGain;
     private float _exposureLevel;
     private float _digitalGain;
@@ -26,6 +27,11 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     private bool _autoHistogramEnabled;
     public Guid Id { get; init; } = Guid.NewGuid();
 
+    public ColormapTypes ColorMap
+    {
+        get => _colorMap;
+        set => SetField(ref _colorMap, value);
+    }
     public HdrModeEnum HdrMode
     {
         get => _hdrMode;

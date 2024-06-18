@@ -105,6 +105,7 @@ namespace EventPi.Services.Camera
                     BlueGain = ev.BlueGain,
                     RedGain = ev.RedGain,
                     Brightness = ev.Brightness,
+                    ColorMap = (int)ev.ColorMap,
                     Contrast = ev.Contrast,
                     DigitalGain = ev.DigitalGain,
                     Sharpness = ev.Sharpness,

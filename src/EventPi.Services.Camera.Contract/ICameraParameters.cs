@@ -12,13 +12,15 @@ public interface ICameraParametersReadOnly
      float BlueGain { get;  }
      float RedGain { get;  }
      HdrModeEnum HdrMode { get;  }
-     bool AutoHistogramEnabled { get;  }
+     ColormapTypes ColorMap { get; }
+    bool AutoHistogramEnabled { get;  }
 }
 public interface ICameraParameters
 {
      int Shutter { get; set; }
 
     HdrModeEnum HdrMode{ get; set; }
+    ColormapTypes ColorMap{ get; set; }
     float ExposureLevel { get; set; }
     float DigitalGain { get; set; }
      float Contrast { get; set; }
