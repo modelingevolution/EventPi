@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EventPi.Threading\EventPi.Threading.csproj" />
   </ItemGroup>
 

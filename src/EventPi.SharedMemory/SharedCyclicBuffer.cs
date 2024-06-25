@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks.Dataflow;
 using EventPi.Threading;
 
 namespace EventPi.SharedMemory
 {
+    
     public class SharedCyclicBuffer : IDisposable
     {
         private readonly long _capacity;
