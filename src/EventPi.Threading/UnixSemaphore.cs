@@ -17,18 +17,29 @@ namespace EventPi.Threading
         public static ISemaphore Create(string name, int initialCount)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return new WindowsSemaphore(name, initialCount, int.MaxValue);
-            return new UnixSemaphore(name, (uint)initialCount);
+                return new WindowsSemaphore(name, initialCount, int.MaxValue,true);
+            return new UnixSemaphore(name, (uint)initialCount, true);
+        }
+        public static ISemaphore Open(string name)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return new WindowsSemaphore(name, 0, int.MaxValue, false);
+            return new UnixSemaphore(name, 0, false);
         }
     }
 
     sealed class WindowsSemaphore : ISemaphore
     {
         private readonly Semaphore _semaphore;
-        public WindowsSemaphore(string name, int initialCount, int maximumCount)
+        public WindowsSemaphore(string name, int initialCount, int maximumCount, bool create)
         {
             bool createdNew;
             _semaphore = new Semaphore(initialCount, maximumCount, name, out createdNew);
+            if (!createdNew & createdNew)
+            {
+                _semaphore.Dispose();
+                throw new InvalidOperationException("Semaphore already created!");
+            }
         }
         public void Wait()
         {
@@ -107,29 +118,46 @@ namespace EventPi.Threading
 
         // Oflag and mode constants (for demonstration, adjust as needed)
         private const int O_CREAT = 0x100;
+        private const int O_EXCL = 0x80;
         private const uint MODE = 438; // Equivalent to 0666
 
         private readonly IntPtr _semaphore;
         private readonly string _name;
         private bool _disposed = false;
-        public UnixSemaphore(string name, uint initialValue)
+        public UnixSemaphore(string name, uint initialValue, bool exclusive)
         {
             UnixSemaphore.Check();
             if (!name.StartsWith('/'))
                 name = $"/{name}";
             _name = name;
-            _semaphore = Interop.sem_open(name, O_CREAT, MODE, initialValue);
+            var flags = exclusive ? (O_EXCL | O_CREAT): O_CREAT;
+            _semaphore = Interop.sem_open(name, flags, MODE, initialValue);
             if (_semaphore == (IntPtr)(-1))
             {
-                int error = Interop.errno();
-                Console.WriteLine($"Failed to open semaphore. Error code: {error}");
+                
+                //int error = Interop.errno();
+                Console.WriteLine($"Failed to open semaphore. Error code: {-1}");
                 throw new InvalidOperationException("Failed to open semaphore.");
             }
             else if (_semaphore == IntPtr.Zero)
             {
-                int error = Interop.errno();
-                Console.WriteLine($"Failed to open semaphore. Error code: {error}");
-                throw new InvalidOperationException("Semaphore opened but returned a null pointer.");
+                if (exclusive)
+                {
+                    int c = Interop.sem_unlink(name);
+                    Console.WriteLine($"Unlinking semaphore: {c}");
+                    _semaphore = Interop.sem_open(name, flags, MODE, initialValue);
+                }
+
+                if (_semaphore == IntPtr.Zero)
+                {
+                    //int error = Interop.errno();
+                    Console.WriteLine($"Failed to open semaphore. Error code: {0}");
+                    throw new InvalidOperationException("Semaphore opened but returned a null pointer.");
+                }
+                else
+                {
+                    Console.WriteLine("Semaphore successfully created/opened.");
+                }
             }
         }
 

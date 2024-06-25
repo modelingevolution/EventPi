@@ -147,7 +147,7 @@ namespace EventPi.SharedMemory
             var control = *controlPtr;
             if (_frameCounter == 0) _frameCounter = control;
             if (_frameCounter++ != control)
-                throw new InvalidOperationException("Unordered memory");
+                throw new InvalidOperationException($"Unordered memory, expecting: {_frameCounter-1} but received: {control}");
 
             
             return (IntPtr)ptr;
@@ -200,6 +200,11 @@ namespace EventPi.SharedMemory
             GC.SuppressFinalize(this);
         }
     }
+
+    public enum OpenMode
+    {
+        Read, Write
+    }
     public class SharedCyclicBuffer<T>  : IDisposable
         where T : struct
     {
@@ -211,7 +216,7 @@ namespace EventPi.SharedMemory
         private long _head = 0;
         private static readonly int SIZE_T = Marshal.SizeOf(typeof(T));
         private bool _disposed = false;
-        public SharedCyclicBuffer(long capacity, string shmName)
+        public SharedCyclicBuffer(long capacity, string shmName, OpenMode mode)
         {
             if (shmName == null)
                 throw new ArgumentNullException(nameof(shmName));
@@ -241,7 +246,9 @@ namespace EventPi.SharedMemory
             _accessor = _mmf.CreateViewAccessor();
 
             // Open or create a semaphore for synchronization
-            _availableItemsSem = SemaphoreFactory.Create($"sem_{Path.GetFileName(shmName)}", 0);
+            _availableItemsSem = mode == OpenMode.Read ? 
+                SemaphoreFactory.Create($"sem_{Path.GetFileName(shmName)}", 0) :
+                SemaphoreFactory.Open($"sem_{Path.GetFileName(shmName)}");
         }
 
         
