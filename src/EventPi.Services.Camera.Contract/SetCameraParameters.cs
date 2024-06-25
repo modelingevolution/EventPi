@@ -11,6 +11,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     public SetCameraParameters()
     {
         _shutter = 1;
+        _colorMap = ColormapTypes.COLORMAP_NONE;
     }
     private int _shutter;
     private HdrModeEnum _hdrMode;
