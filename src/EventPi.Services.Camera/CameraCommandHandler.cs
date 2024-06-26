@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Net;
 using System.Text;
-using System.Text.Json.Serialization;
 using CliWrap;
 using EventPi.Abstractions;
 using EventPi.Services.Camera.Contract;
@@ -18,62 +17,13 @@ using Microsoft.Extensions.Logging;
 
 namespace EventPi.Services.Camera;
 
-[JsonConverter(typeof(JsonParsableConverter<CameraResolution>))]
-public readonly record struct CameraResolution(int Width, int Height) : IParsable<CameraResolution>
-{
-    public static readonly CameraResolution FullHd = new CameraResolution(1920, 1080);
-    public override string ToString()
-    {
-        return $"{Width}x{Height}";
-    }
 
-    public static CameraResolution Parse(string s, IFormatProvider? provider)
-    {
-        var segments = s.Split('x');
-        return new CameraResolution(int.Parse(segments[0]), int.Parse(segments[1]));
-    }
-
-    public static bool TryParse(string? s, out CameraResolution result) =>
-        CameraResolution.TryParse(s, null, out result);
-
-    public static bool TryParse(string? s, IFormatProvider? provider, out CameraResolution result)
-    {
-        if(s == null)         {
-            result = default;
-            return false;
-        }
-        var segments = s.Split('x');
-        if(segments.Length != 2)
-        {
-            result = default;
-            return false;
-        }
-        if(int.TryParse(segments[0], out var w) && int.TryParse(segments[1], out var h))
-        {
-            result = new CameraResolution(w, h);
-            return true;
-        }
-        result = default;
-        return false;
-    }
-}
-
-public static class RpiCameraResolutions
-{
-    public static readonly CameraResolution V2FullHD = CameraResolution.FullHd;
-    public static readonly CameraResolution RpiGlobalShutter = new CameraResolution(1456, 1088);
-}
-
-public enum Codec
-{
-    mjpeg
-}
 
 public static class ConfigurationExtensions
 {
-    public static CameraResolution GetCameraResolution(this IConfiguration configuration) => CameraResolution.TryParse(configuration.GetValue<string>("CameraResolution"), out var r) ? r : CameraResolution.FullHd;
+    public static Resolution GetCameraResolution(this IConfiguration configuration) => Resolution.TryParse(configuration.GetValue<string>("CameraResolution"), out var r) ? r : Resolution.FullHd;
 
-    public static bool GetCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>("CameraAutostart");
+    public static bool IsCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>("CameraAutostart");
     public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraPath") ?? LibCameraVid.DefaultPath;
     public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort()}";
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
@@ -112,7 +62,9 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
         }
         return killed;
     }
-    public async Task<int> Start(CameraResolution resolution, Codec codec, string tuningFilePath, IPAddress? listenAddress = null, int listenPort = 6000, string grpcListenAddress = "127.0.0.1:6500", string grpcClientAddress = "127.0.0.1:8080")
+    public async Task<int> Start(Resolution resolution, VideoCodec codec, string tuningFilePath,
+        VideoTransport transport, IPAddress? listenAddress = null, int listenPort = 6000,
+        string grpcListenAddress = "127.0.0.1:6500", string shmName = "default")
     {
         if (_runningApp != null) throw new InvalidOperationException();
         if(!File.Exists(tuningFilePath)) throw new FileNotFoundException($"Tuning file not found at {tuningFilePath} !");
@@ -120,28 +72,27 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
         _cstForce = new CancellationTokenSource();
         _cstGrace = new CancellationTokenSource();
 
-        var name = Path.GetFileName(_appName);
-        foreach(var i in  Process.GetProcessesByName(name))
-            i.Kill();
-
+        
         var address = listenAddress ?? IPAddress.Loopback;
-        var args = new[]
+        List<string> args = new List<string>
         {
             "-t", "0", 
             "--width", resolution.Width.ToString(), 
-            "--height", resolution.Height.ToString(), 
-            "--codec", codec.ToString(), 
-            "--inline", "--listen",
+            "--height", resolution.Height.ToString(),
+            "--codec", codec == VideoCodec.Mjpeg ? "yuv420" : "h264",
+            "--inline", 
             "--awbgains","-1,-1",
             "--info-text","\"\"",
             "--bind-listen-port",grpcListenAddress,
             "--metering","spot",
-            "--frame-counter","1",
             "--tuning-file",tuningFilePath,
             "--saturation","0.0",
-            "--grpc-client-address", grpcClientAddress,
-            "-o", $"tcp://{address}:{listenPort}"
         };
+        if (transport == VideoTransport.Shm)
+            args.AddRange(["--shm", shmName]);
+        else
+            args.AddRange(["--listen", "-o", $"tcp://{address}:{listenPort}" ]);
+        
         var cmd=  CliWrap.Cli.Wrap(_appName)
             .WithArguments(args);
        

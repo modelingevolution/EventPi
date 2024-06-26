@@ -136,7 +136,7 @@ namespace EventPi.Threading
             {
                 
                 //int error = Interop.errno();
-                Console.WriteLine($"Failed to open semaphore. Error code: {-1}");
+                //Console.Error.WriteLine($"Failed to open semaphore. Error code: {-1}");
                 throw new InvalidOperationException("Failed to open semaphore.");
             }
             else if (_semaphore == IntPtr.Zero)
@@ -144,19 +144,19 @@ namespace EventPi.Threading
                 if (exclusive)
                 {
                     int c = Interop.sem_unlink(name);
-                    Console.WriteLine($"Unlinking semaphore: {c}");
+                    //Console.WriteLine($"Unlinking semaphore: {c}");
                     _semaphore = Interop.sem_open(name, flags, MODE, initialValue);
                 }
 
                 if (_semaphore == IntPtr.Zero)
                 {
                     //int error = Interop.errno();
-                    Console.WriteLine($"Failed to open semaphore. Error code: {0}");
+                    //Console.WriteLine($"Failed to open semaphore. Error code: {0}");
                     throw new InvalidOperationException("Semaphore opened but returned a null pointer.");
                 }
                 else
                 {
-                    Console.WriteLine("Semaphore successfully created/opened.");
+                    //Console.WriteLine("Semaphore successfully created/opened.");
                 }
             }
         }

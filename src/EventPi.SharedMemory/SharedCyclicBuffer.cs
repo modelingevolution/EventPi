@@ -50,9 +50,22 @@ namespace EventPi.SharedMemory
                     MemoryMappedFileOptions.None,
                     HandleInheritability.Inheritable);
             else
-                _mmf = MemoryMappedFile.CreateFromFile(shmName,
-                    FileMode.OpenOrCreate, null,
-                    _totalBufferSize);
+            {
+                try
+                {
+                    _mmf = MemoryMappedFile.CreateFromFile(shmName,
+                        FileMode.OpenOrCreate, null,
+                        _totalBufferSize);
+                }
+                catch (System.ArgumentOutOfRangeException)
+                {
+                    //The capacity may not be smaller than the file size. (Parameter 'capacity')
+                    File.Delete(shmName);
+                    _mmf = MemoryMappedFile.CreateFromFile(shmName,
+                        FileMode.OpenOrCreate, null,
+                        _totalBufferSize);
+                }
+            }
 
             // Create a view accessor for the memory-mapped file
             _accessor = _mmf.CreateViewAccessor();
