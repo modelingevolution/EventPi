@@ -37,6 +37,7 @@ public static class ContainerExtensions
         services.AddStateEventHandler<WeldingRecognitionModel>();
         if(!disableAutostart)
             services.WhenUnix(services => services.AddHostedService<LibCameraStarter>());
+        services.AddSingleton<CameraSimulatorProcess>();
         services.AddSingleton<LibCameraProcess>(sp => new LibCameraProcess(sp.GetRequiredService<IConfiguration>(), sp,
             sp.GetRequiredService<ILogger<LibCameraProcess>>()));
 

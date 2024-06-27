@@ -25,6 +25,9 @@ public static class ConfigurationExtensions
 
     public static bool IsCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>("CameraAutostart");
     public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraPath") ?? LibCameraVid.DefaultPath;
+
+    public static string GetCameraSimulatorPath(this IConfiguration configuration) =>
+        configuration.GetValue<string>("CameraSimulatorPath") ?? "cam-simulator";
     public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort()}";
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
         IPAddress.TryParse(configuration.GetValue<string>("LibCameraListenIp"), out var p) ? p : IPAddress.Loopback;
