@@ -8,8 +8,8 @@ namespace EventPi.SharedMemory.Tests
         [Fact]
         public void Counter()
         {
-            SharedCyclicBuffer write = new SharedCyclicBuffer(120, sizeof(int), "test");
-            SharedCyclicBuffer read = new SharedCyclicBuffer(120, sizeof(int), "test");
+            SharedCyclicBuffer write = new SharedCyclicBuffer(120, sizeof(int), "test", OpenMode.OpenExistingForWriting);
+            SharedCyclicBuffer read = new SharedCyclicBuffer(120, sizeof(int), "test", OpenMode.CreateNewForReading);
 
             Thread reader = new Thread(OnRead);
             reader.Start(read);

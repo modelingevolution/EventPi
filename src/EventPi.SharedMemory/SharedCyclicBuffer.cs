@@ -6,7 +6,11 @@ using EventPi.Threading;
 
 namespace EventPi.SharedMemory
 {
-    
+    public enum OpenMode
+    {
+        OpenExistingForWriting,
+        CreateNewForReading
+    }
     public class SharedCyclicBuffer : IDisposable
     {
         private readonly long _capacity;
@@ -25,7 +29,7 @@ namespace EventPi.SharedMemory
         public long TotalBufferSize => _totalBufferSize;
 
         private ulong _frameCounter;
-        public SharedCyclicBuffer(long capacity, int frameSize, string shmName)
+        public SharedCyclicBuffer(long capacity, int frameSize, string shmName, OpenMode mode)
         {
             _frameCounter = 0;
             _frameSize = frameSize;
@@ -71,7 +75,9 @@ namespace EventPi.SharedMemory
             _accessor = _mmf.CreateViewAccessor();
 
             // Open or create a semaphore for synchronization
-            _availableItemsSem = SemaphoreFactory.Create($"sem_{Path.GetFileName(shmName)}", 0);
+            string semName = $"sem_{Path.GetFileName(shmName)}";
+            _availableItemsSem = mode == OpenMode.CreateNewForReading ? SemaphoreFactory.Create(semName, 0)
+                : SemaphoreFactory.Open(semName);
         }
 
 
@@ -214,10 +220,7 @@ namespace EventPi.SharedMemory
         }
     }
 
-    public enum OpenMode
-    {
-        Read, Write
-    }
+   
     public class SharedCyclicBuffer<T>  : IDisposable
         where T : struct
     {
@@ -259,7 +262,7 @@ namespace EventPi.SharedMemory
             _accessor = _mmf.CreateViewAccessor();
 
             // Open or create a semaphore for synchronization
-            _availableItemsSem = mode == OpenMode.Read ? 
+            _availableItemsSem = mode == OpenMode.CreateNewForReading ? 
                 SemaphoreFactory.Create($"sem_{Path.GetFileName(shmName)}", 0) :
                 SemaphoreFactory.Open($"sem_{Path.GetFileName(shmName)}");
         }

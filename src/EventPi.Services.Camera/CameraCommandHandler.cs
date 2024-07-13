@@ -19,22 +19,31 @@ namespace EventPi.Services.Camera;
 
 
 
-public static class ConfigurationExtensions
+public static class CameraConfiguration
 {
-    public static Resolution GetCameraResolution(this IConfiguration configuration) => Resolution.TryParse(configuration.GetValue<string>("CameraResolution"), out var r) ? r : Resolution.FullHd;
 
-    public static bool IsCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>("CameraAutostart");
-    public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraPath") ?? LibCameraVid.DefaultPath;
+    public static Resolution GetCameraResolution(this IConfiguration configuration) => Resolution.TryParse(configuration.GetValue<string>(CameraResolutionKey), out var r) ? r : Resolution.FullHd;
+
+    public static bool IsCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>(CameraAutostartKey);
+    public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>(LibCameraPathKey) ?? LibCameraVid.DefaultPath;
 
     public static string GetCameraSimulatorPath(this IConfiguration configuration) =>
-        configuration.GetValue<string>("CameraSimulatorPath") ?? "cam-simulator";
+        configuration.GetValue<string>(CameraSimulatorPathKey) ?? "cam-simulator";
     public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort()}";
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
-        IPAddress.TryParse(configuration.GetValue<string>("LibCameraListenIp"), out var p) ? p : IPAddress.Loopback;
-    public static int GetLibCameraVideoListenPort(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraVideoListenPort") ?? 6000;
-    public static int GetLibCameraGrpcListenPort(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraGrpcListenPort") ?? 6500;
+        IPAddress.TryParse(configuration.GetValue<string>(LibCameraListenIpKey), out var p) ? p : IPAddress.Loopback;
+    public static int GetLibCameraVideoListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LibCameraVideoListenPortKey) ?? 6000;
+    public static int GetLibCameraGrpcListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LibCameraGrpcListenPortKey) ?? 6500;
+    public const string CameraResolutionKey = "CameraResolution";
 
-    public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>("LibCameraTuningFilePath") ?? LibCameraVid.DefaultTuningFilePath;
+    public const string CameraSimulatorPathKey = "CameraSimulatorPath";
+    public const string CameraAutostartKey = "CameraAutostart";
+    public const string LibCameraPathKey = "LibCameraPath";
+    public const string LibCameraListenIpKey = "LibCameraListenIp";
+    public const string LibCameraVideoListenPortKey = "LibCameraVideoListenPort";
+    public const string LibCameraGrpcListenPortKey = "LibCameraGrpcListenPort";
+    public const string LibCameraTuningFilePathKey = "LibCameraTuningFilePath";
+    public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>(LibCameraTuningFilePathKey) ?? LibCameraVid.DefaultTuningFilePath;
 }
 
 public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
