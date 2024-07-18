@@ -93,7 +93,7 @@ public class LibCameraProcess(IConfiguration configuration,
         var transport = vt ?? VideoTransport.Shm;
         var resolution = res ?? configuration.GetCameraResolution();
         var libCameraPath = configuration.GetLibCameraPath();
-        var videoCodec = codec ?? VideoCodec.Mjpeg;
+        var videoCodec = codec ?? VideoCodec.YUV420;
 
         var vid = new LibCameraVid(sp.GetRequiredService<ILogger<LibCameraVid>>(), libCameraPath);
         if (killAll && vid.KillAll()) 
