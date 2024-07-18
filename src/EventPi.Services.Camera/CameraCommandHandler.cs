@@ -99,8 +99,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
             "--metering","spot",
             "--tuning-file",tuningFilePath,
             "--saturation","0.0",
-            "-g", "25",
-            "--shm", "default"
+            "-g", "25"
         };
         if (transport == VideoTransport.Shm)
             args.AddRange(["--shm", shmName]);

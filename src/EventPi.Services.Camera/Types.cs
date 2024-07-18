@@ -15,7 +15,7 @@ public enum VideoTransport : int
 
 public enum VideoCodec : int
 {
-    Mjpeg, H264, YUV420
+    Mjpeg, H264
 }
 
 public enum VideoResolution : int
