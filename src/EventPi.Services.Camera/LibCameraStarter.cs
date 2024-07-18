@@ -46,6 +46,9 @@ public class CameraSimulatorProcess : IDisposable
         var cstGrace =  new CancellationTokenSource();
         _tokenCancellationSources.Add(cstForce);
 
+        if (!File.Exists(_appName))
+            throw new FileNotFoundException("cam-simulator not found");
+
         IEnumerable<string> args = [file, streamName];
         var cmd = CliWrap.Cli.Wrap(_appName)
             .WithArguments(args);
