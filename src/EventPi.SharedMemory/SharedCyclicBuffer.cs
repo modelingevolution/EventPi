@@ -208,9 +208,9 @@ namespace EventPi.SharedMemory
         {
             if (_disposed) return;
             _disposed = true;
-            _accessor.Dispose();
-            _mmf.Dispose();
-            _availableItemsSem.Dispose();
+            _accessor?.Dispose();
+            _mmf?.Dispose();
+            _availableItemsSem?.Dispose();
         }
 
         public void Dispose()
