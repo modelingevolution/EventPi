@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
@@ -10,12 +11,13 @@ namespace EventPi.Services.Camera;
 
 public class CameraSimulatorProcess : IDisposable
 {
-    
+    record RunningProc(CliWrap.CommandTask<BufferedCommandResult> Command, CancellationTokenSource ForceCts, CancellationTokenSource GraceCts);
     private readonly List<CancellationTokenSource> _tokenCancellationSources = new();
     private readonly string? _appName;
     private readonly IConfiguration _configuration;
     private readonly ILogger<CameraSimulatorProcess> _logger;
 
+    private readonly ConcurrentDictionary<string, RunningProc> _running = new();
     public CameraSimulatorProcess(IConfiguration configuration, ILogger<CameraSimulatorProcess> logger)
     {
         _configuration = configuration;
@@ -34,6 +36,13 @@ public class CameraSimulatorProcess : IDisposable
             killed = true;
         }
         return killed;
+    }
+    public void Stop(string file)
+    {
+        if(_running.TryGetValue(file, out var r)){
+            r.GraceCts.Cancel();
+            r.ForceCts.Cancel();
+        }
     }
     public async Task Start(string file, string? streamName = null)
     {
@@ -59,11 +68,13 @@ public class CameraSimulatorProcess : IDisposable
                 Encoding.UTF8,
                 cstForce.Token,
                 cstGrace.Token);
+        _running.TryAdd(file, new RunningProc(ret, cstForce, cstGrace));
         _ = Task.Run(async () =>
         {
             try
             {
                 var x = await ret;
+                _running.TryRemove(file, out var _);
                 _logger.LogInformation($"{_appName} exited with code: {x.ExitCode}");
                 if (!string.IsNullOrWhiteSpace(x.StandardError))
                     _logger.LogError(x.StandardError);

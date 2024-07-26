@@ -7,7 +7,11 @@ public static class ContainerExtensions
 {
     public static IServiceCollection WhenUnix(this IServiceCollection services, Func<IServiceCollection, IServiceCollection> configure)
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        return services.When(() => RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX), configure);
+    }
+    public static IServiceCollection When(this IServiceCollection services, Func<bool> predicate,  Func<IServiceCollection, IServiceCollection> configure)
+    {
+        if (predicate())
             return configure(services);
         return services;
     }
