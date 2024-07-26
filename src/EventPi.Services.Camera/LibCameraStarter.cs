@@ -82,6 +82,10 @@ public class CameraSimulatorProcess : IDisposable
                     _logger.LogInformation(x.StandardOutput);
                 _tokenCancellationSources.Remove(cstForce);
             }
+            catch(OperationCanceledException ex)
+            {
+                _logger.LogInformation("Camera simulation canceled." + _appName);
+            }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error at capturing results about " + _appName);
