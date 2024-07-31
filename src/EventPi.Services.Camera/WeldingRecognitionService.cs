@@ -4,13 +4,14 @@ using EventPi.Services.Camera.Contract;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
 using Microsoft.Extensions.Hosting;
+using ModelingEvolution.VideoStreaming;
 
 namespace EventPi.Services.Camera;
 
 public class WeldingRecognitionService : BackgroundService
 {
     private readonly ILogger<WeldingRecognitionService> _logger;
-    private readonly GrpcFrameFeaturesService _grpcService;
+ 
     private readonly GrpcCppCameraProxy _proxy;
     private readonly Channel<SetCameraParameters> _channel;
     private readonly CircularBuffer<int> _bufferBrightPixels;
@@ -26,12 +27,12 @@ public class WeldingRecognitionService : BackgroundService
     public ICameraParametersReadOnly NonWeldingProfile { get; set; }
     private CancellationToken token = new CancellationToken();
 
-public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy, GrpcFrameFeaturesService gprc, WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
+public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy,  WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
     {
         CurrentAppliedProfile = new CameraProfile();
         _logger = logger;
-        _grpcService = gprc;
-        _grpcService.OnFrameFeaturesAppeared += OnDetectWelding;
+       // _grpcService = gprc;
+       FrameProcessingHandlers.OnFrameMerged += OnDetectWelding;
         _proxy = proxy;
      
         _bufferBrightPixels = new CircularBuffer<int>(3);
@@ -53,10 +54,23 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
         catch (OperationCanceledException) { }
     }
 
-    private void OnDetectWelding(object? sender, FrameFeaturesRecord e)
+    private void OnDetectWelding(object? sender, byte[] e)
     {
-        _bufferBrightPixels.AddLast(e.TotalBrightPixels);
-        _bufferDarkPixels.AddLast(e.TotalDarkPixels);
+        var totalBrightPixels = 0;
+        var totalDarkPixels = 0;
+        foreach (var value in e)
+        {
+            if(value >200)
+            {
+                totalBrightPixels++;
+            }
+            if(value< 20)
+            {
+                totalDarkPixels++;
+            }
+        }
+        _bufferBrightPixels.AddLast(totalBrightPixels);
+        _bufferDarkPixels.AddLast(totalDarkPixels);
         if (!DetectionEnabled) return;
 
         if (_bufferBrightPixels.Average() > WeldingBound && !IsWelding)
@@ -70,6 +84,7 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
             _channel.Writer.WriteAsync(camParams);
             CurrentAppliedProfile = camParams;
         }
+
         else
         {
             if (_bufferDarkPixels.Average() > NonWeldingBound && IsWelding)

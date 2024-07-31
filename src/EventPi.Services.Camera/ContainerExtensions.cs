@@ -16,7 +16,7 @@ public static class ContainerExtensions
 {
     public static IEndpointRouteBuilder MapCamera(this IEndpointRouteBuilder builder)
     {
-        builder.MapGrpcService<GrpcFrameFeaturesService>();
+       // builder.MapGrpcService<GrpcFrameFeaturesService>();
         return builder;
     }
     public static IServiceCollection AddCameraConfiguration(this IServiceCollection services, bool disableAutostart = false)
@@ -27,7 +27,7 @@ public static class ContainerExtensions
         services.AddSingleton<FrameFeatureAccessor>();
         services.AddSingleton<FeaturePerformanceInfo>();
         services.AddSingleton<CameraProfileConfigurationModel>( );
-        services.AddSingleton<GrpcFrameFeaturesService>();
+       // services.AddSingleton<GrpcFrameFeaturesService>();
         services.AddSingleton<WeldingRecognitionCommandHandler>();
         services.AddSingleton<WeldingRecognitionModel>();
         services.AddSingleton<CameraCommandHandler>();

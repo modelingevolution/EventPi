@@ -4,7 +4,6 @@
 @inject GrpcCppCameraProxy _proxy
 @inject CameraControlVmRegister _profileRegister
 @inject WeldingRecognitionService _recognitionService
-@inject GrpcFrameFeaturesService _grpcFrameService
 @inject WeldingRecognitionVmRegister _vmRegister
 <MudStack>
     <Observable Source="@_vm.SetWeldingRecognitionConfiguration">
@@ -97,7 +96,7 @@
     protected override async Task OnInitializedAsync()
     {
         _isConnectedViaGrpcToRpiCam = await _proxy.GreetWithRpiCam();
-        _grpcFrameService.OnFrameFeaturesAppeared += OnChangeFrameParams;
+     //   _grpcFrameService.OnFrameFeaturesAppeared += OnChangeFrameParams;
 
         _profileWeldingVm = _profileRegister.Get($"{HostName}/welding");
         _profileNonWeldingVm = _profileRegister.Get($"{HostName}/default");
