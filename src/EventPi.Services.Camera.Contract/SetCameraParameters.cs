@@ -122,6 +122,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
     }
     public SetCameraParameters CopyFrom(ICameraParametersReadOnly src, bool raiseChange = false)
     {
+        if(src==null) return this;
         _analogueGain = src.AnalogueGain;
         _hdrMode = src.HdrMode;
         _digitalGain = src.DigitalGain;

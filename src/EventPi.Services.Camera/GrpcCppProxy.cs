@@ -29,24 +29,7 @@ namespace EventPi.Services.Camera
         }
 
       
-        public async Task<Empty> SetRecognitionBorders(int brightPixelsBorder, int darkPixelsBorder)
-        {
-            var request = new CameraFrameFeaturesConfiguratorRequest()
-            {
-                BrightPixelsBorder = brightPixelsBorder,
-                DarkPixelsBorder = darkPixelsBorder
-            };
-            var client = new CameraFrameFeaturesConfigurator.CameraFrameFeaturesConfigurator.CameraFrameFeaturesConfiguratorClient(_toCppChannel);
-            try
-            {
-                await client.ProcessAsync(request);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Couldn't set CameraFrameFeaturesConfiguratorRequest via gRPC!");
-            }
-            return new Empty();
-        }
+       
         public async Task<Empty> ProcessAsync(SetCameraHistogramFilter ev)
         {
             var client = new CameraConfigurator.CameraConfigurator.CameraConfiguratorClient(_toCppChannel);
