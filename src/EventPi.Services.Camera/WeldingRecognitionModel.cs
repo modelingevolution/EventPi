@@ -21,4 +21,12 @@ public partial class WeldingRecognitionModel
         DarkPixelsBorder = ev.DarkPixelsBorder;
         BrightPixelsBorder = ev.BrightPixelsBorder;
     }
+    private async Task Given(Metadata m, WeldingRecognitionConfigurationState ev)
+    {
+        WeldingBound = ev.WeldingValue;
+        NonWeldingBound = ev.NonWeldingValue;
+        DetectionEnabled = ev.DetectionEnabled;
+        DarkPixelsBorder = ev.DarkPixelsBorder;
+        BrightPixelsBorder = ev.BrightPixelsBorder;
+    }
 }
