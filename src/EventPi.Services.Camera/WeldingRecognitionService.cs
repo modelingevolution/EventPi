@@ -5,13 +5,15 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
 using Microsoft.Extensions.Hosting;
 using ModelingEvolution.VideoStreaming;
+using System.Drawing;
+using System.Diagnostics;
 
 namespace EventPi.Services.Camera;
 
-public class WeldingRecognitionService : BackgroundService
+public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 {
     private readonly ILogger<WeldingRecognitionService> _logger;
- 
+    private readonly CancellationTokenSource _cts;
     private readonly GrpcCppCameraProxy _proxy;
     private readonly Channel<SetCameraParameters> _channel;
     private readonly CircularBuffer<int> _bufferBrightPixels;
@@ -25,19 +27,25 @@ public class WeldingRecognitionService : BackgroundService
 
     public ICameraParametersReadOnly WeldingProfile { get; set; }
     public ICameraParametersReadOnly NonWeldingProfile { get; set; }
-    private CancellationToken token = new CancellationToken();
+
+    public int Every => 1;
+
+    
 
 public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy,  WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
     {
         CurrentAppliedProfile = new CameraProfile();
+        _cts = new CancellationTokenSource();
         _logger = logger;
        // _grpcService = gprc;
-       FrameProcessingHandlers.OnFrameMerged += OnDetectWelding;
+       
         _proxy = proxy;
-     
+        
+
         _bufferBrightPixels = new CircularBuffer<int>(3);
         _bufferDarkPixels = new CircularBuffer<int>(3);
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
+        _ = Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
        
     }
 
@@ -45,67 +53,136 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
     {
         try
         {
-            while (!token.IsCancellationRequested)
+            while (!_cts.IsCancellationRequested)
             {
-                var cmd = await _channel.Reader.ReadAsync(token);
-               // await _proxy.ProcessAsync(cmd);
+                var cmd = await _channel.Reader.ReadAsync(_cts.Token);
+                await _proxy.ProcessAsync(cmd);
             }
         }
         catch (OperationCanceledException) { }
     }
 
-    private void OnDetectWelding(object? sender, byte[] e)
+   
+    private DarkBrightPixels _count0;
+    private DarkBrightPixels _count1;
+    private readonly Rectangle _area;
+    private volatile int isRunning = 0;
+
+    public void Handle(YuvFrame frame, YuvFrame? prv, ulong seq, CancellationToken token, object st)
     {
-        var totalBrightPixels = 0;
-        var totalDarkPixels = 0;
-        foreach (var value in e)
+        
+        // Making sure we are not processing in parallel.
+        if(Interlocked.Increment(ref isRunning) > 1)
         {
-            if(value >200)
-            {
-                totalBrightPixels++;
-            }
-            if(value< 20)
-            {
-                totalDarkPixels++;
-            }
-        }
-        _bufferBrightPixels.AddLast(totalBrightPixels);
-        _bufferDarkPixels.AddLast(totalDarkPixels);
-        if (!DetectionEnabled) return;
-
-        if (_bufferBrightPixels.Average() > WeldingBound && !IsWelding)
-        {
-            IsWelding = true;
-            _logger.LogInformation("Welding detected");
-            var camParams = new SetCameraParameters();
-           // camParams.CopyFrom(_cameraModel.WeldingProfile);
-            camParams.CopyFrom(WeldingProfile);
-             _proxy.ProcessAsync(camParams);
-            _channel.Writer.WriteAsync(camParams);
-            CurrentAppliedProfile = camParams;
+            Interlocked.Decrement(ref isRunning);
+            Debug.WriteLine("Skipping welding profile detection");
+            return;
         }
 
+        Rectangle area = new Rectangle(0, 0, frame.Info.Width, frame.Info.Height);
+        area.Inflate(-400, -400);
+
+        var count = frame.CountPixelsOutsideRange(20, 200, area);
+
+        if(prv == null)
+        {
+            _count0 = count;
+            Interlocked.Decrement(ref isRunning);
+            return;
+        }
+        
+        if ((frame.Metadata.FrameNumber & 0x1UL) == 1UL)
+            _count1 = count; // it this is frame nr. 1,3,5,7 ...
+        else _count0 = count; // for frame nr. 2,4,6, ...
+
+        var px = DarkBrightPixels.Min(_count0, _count1);
+        //Debug.WriteLine(px);
+
+        _bufferBrightPixels.AddLast(px.BrightPixels);
+        _bufferDarkPixels.AddLast(px.DarkPixels);
+        if (!DetectionEnabled)
+        {
+            Interlocked.Decrement(ref isRunning);
+            return;
+        }
+
+        if (!IsWelding)
+        {
+            if (_bufferBrightPixels.Average() > WeldingBound)
+            {
+                _logger.LogInformation("Welding detected");
+                IsWelding = true;
+
+                var camParams = new SetCameraParameters();
+                camParams.CopyFrom(WeldingProfile);
+                CurrentAppliedProfile = camParams;
+                _channel.Writer.TryWrite(camParams);
+            }
+        }
         else
         {
-            if (_bufferDarkPixels.Average() > NonWeldingBound && IsWelding)
+            // It must be welding
+            if (_bufferDarkPixels.Average() > NonWeldingBound)
             {
                 _logger.LogInformation("Welding not detected");
                 IsWelding = false;
+
                 var camParams = new SetCameraParameters();
-                // camParams.CopyFrom(_cameraModel.DefaultProfile);
-                camParams.CopyFrom(NonWeldingProfile); 
-                _proxy.ProcessAsync(camParams);
-                _channel.Writer.WriteAsync(camParams);
+                camParams.CopyFrom(NonWeldingProfile);
                 CurrentAppliedProfile = camParams;
+                _channel.Writer.TryWrite(camParams);
             }
         }
-      
+        Interlocked.Decrement(ref isRunning);
     }
 
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public void Dispose()
     {
-        await Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
-      
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+}
+public static class YuvFrameWeldingRecognitionUtils
+{
+    public static unsafe DarkBrightPixels CountPixelsOutsideRange(this YuvFrame frame, int low, int high)
+    {
+        int darkPixels = 0;
+        int brightPixels = 0;
+        var end = frame.Data + frame.Info.Width*frame.Info.Height;
+        for (byte* p = frame.Data; p != end; p += 1)
+        {
+            var value = *p;
+            if (value > high)
+                brightPixels++;
+            
+            if (value < low)
+                darkPixels++;
+        }
+        return new DarkBrightPixels(darkPixels, brightPixels);
+    }
+    public static unsafe DarkBrightPixels CountPixelsOutsideRange(this YuvFrame frame, int low, int high, Rectangle r)
+    {
+        int darkPixels = 0;
+        int brightPixels = 0;
+
+        for (int ix = 0; ix < r.Width; ix++)
+            for (int iy = 0; iy < r.Height; iy++)
+            {
+                var value = frame.Y(ix + r.X, iy + r.Y);
+
+                if (value > high)
+                    brightPixels++;
+
+                if (value < low)
+                    darkPixels++;
+            }
+        return new DarkBrightPixels(darkPixels, brightPixels);
+    }
+}
+public readonly record struct DarkBrightPixels(int DarkPixels, int BrightPixels)
+{
+    public static DarkBrightPixels Min(DarkBrightPixels a, DarkBrightPixels b)
+    {
+        return new DarkBrightPixels(Math.Min(a.DarkPixels, b.DarkPixels), Math.Min(a.BrightPixels, b.BrightPixels));
     }
 }
