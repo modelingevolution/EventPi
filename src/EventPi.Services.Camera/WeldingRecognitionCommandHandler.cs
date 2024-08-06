@@ -6,11 +6,11 @@ using MicroPlumberd.Services;
 namespace EventPi.Services.Camera;
 
 [CommandHandler]
-public partial class WeldingRecognitionCommandHandler(IPlumber plumber, GrpcCppCameraProxy proxy)
+public partial class WeldingRecognitionCommandHandler(IPlumber plumber)
 {
     public async Task Handle(HostName hostName, SetWeldingRecognitionConfiguration cmd)
     {
-        await proxy.SetRecognitionBorders(cmd.BrightPixelsBorder, cmd.DarkPixelsBorder);
+       
         var state = new WeldingRecognitionConfigurationState()
         {
             WeldingValue = cmd.WeldingValue,
@@ -24,7 +24,7 @@ public partial class WeldingRecognitionCommandHandler(IPlumber plumber, GrpcCppC
     }
     public async Task Handle(HostName hostName, DefineWeldingRecognitionConfiguration cmd)
     {
-        await proxy.SetRecognitionBorders(cmd.BrightPixelsBorder, cmd.DarkPixelsBorder);
+     
         var ev = new WeldingRecognitionConfiguration()
         {
             WeldingValue = cmd.WeldingValue,

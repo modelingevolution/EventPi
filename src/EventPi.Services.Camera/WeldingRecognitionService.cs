@@ -18,11 +18,11 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     private readonly Channel<SetCameraParameters> _channel;
     private readonly CircularBuffer<int> _bufferBrightPixels;
     private readonly CircularBuffer<int> _bufferDarkPixels;
-
+    WeldingRecognitionVm _model;
     public bool IsWelding { get; private set; }
-    public bool DetectionEnabled { get;  set; }
-    public int WeldingBound { get;  set; }
-    public int NonWeldingBound { get;  set; }
+
+    public int BrightOffset { get; set; }
+    public int DarkOffset { get;  set; }
     public ICameraParametersReadOnly CurrentAppliedProfile { get; private set; }
 
     public ICameraParametersReadOnly WeldingProfile { get; set; }
@@ -125,6 +125,7 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
             if (_bufferDarkPixels.Average() > NonWeldingBound)
             {
                 _logger.LogInformation("Welding not detected");
+                _logger.LogInformation($"OnDetectWelding: BrightPixels:{totalBrightPixels}, DarkPixels:{totalDarkPixels}");
                 IsWelding = false;
 
                 var camParams = new SetCameraParameters();

@@ -29,12 +29,12 @@
                             <td><MudSlider @bind-Value="_cmd.DarkPixelsBorder" Min="0" Max="255" Step="1" Color="Color.Info"></MudSlider></td>
                 </tr>
                 <tr>
-                            <td><MudNumericField Label="Bright Pixels amount to switch:" @bind-Value="@_cmd.WeldingValue" For="() => _cmd.WeldingValue"></MudNumericField></td>
-                            <td><MudSlider @bind-Value="_cmd.WeldingValue" Min="1" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
+                            <td><MudNumericField Label="Bright Pixels amount to switch:" @bind-Value="@_recognitionService.BrightOffset" For="() => _recognitionService.BrightOffset"></MudNumericField></td>
+                            <td><MudSlider @bind-Value="_recognitionService.BrightOffset" Min="0" Max="100" Step="1" Color="Color.Info"></MudSlider></td>
                 </tr>
                 <tr>
-                            <td><MudNumericField Label="Dark Pixels amount to switch:" @bind-Value="@_cmd.NonWeldingValue" For="() => _cmd.NonWeldingValue"></MudNumericField></td>
-                            <td><MudSlider @bind-Value="_cmd.NonWeldingValue" Min="0" Max="160000" Step="1" Color="Color.Info"></MudSlider></td>
+                            <td><MudNumericField Label="Dark Pixels amount to switch:" @bind-Value="@_recognitionService.DarkOffset" For="() => _recognitionService.DarkOffset"></MudNumericField></td>
+                            <td><MudSlider @bind-Value="_recognitionService.DarkOffset" Min="0" Max="100" Step="1" Color="Color.Info"></MudSlider></td>
                 </tr>
               
                 <tr>
@@ -118,22 +118,7 @@
         camParams.CopyFrom(_profileNonWeldingVm.SetCameraParameters);
         await _proxy.ProcessAsync(camParams);
     }
-    private void OnChangeFrameParams(object? sender, FrameFeaturesRecord e)
-    {
-        _brightPixels = e.TotalBrightPixels;
-        _darkPixels = e.TotalDarkPixels;
-        _isWelding = _recognitionService.IsWelding;
-        if (_cmd != null)
-        {
-            _recognitionService.DetectionEnabled = _cmd.DetectionEnabled;
-            _recognitionService.NonWeldingProfile = _profileNonWeldingVm.SetCameraParameters;
-            _recognitionService.WeldingProfile = _profileWeldingVm.SetCameraParameters;
-            _recognitionService.WeldingBound = _cmd.WeldingValue;
-            _recognitionService.NonWeldingBound = _cmd.NonWeldingValue;
-        }
-
-        InvokeAsync(StateHasChanged);
-    }
+   
    
 
 }
