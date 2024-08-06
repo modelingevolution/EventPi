@@ -18,7 +18,8 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     private readonly Channel<SetCameraParameters> _channel;
     private readonly CircularBuffer<int> _bufferBrightPixels;
     private readonly CircularBuffer<int> _bufferDarkPixels;
-    WeldingRecognitionVm _model;
+    
+    private readonly WeldingRecognitionModel _model;
     public bool IsWelding { get; private set; }
 
     public int BrightOffset { get; set; }
@@ -37,8 +38,9 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
         CurrentAppliedProfile = new CameraProfile();
         _cts = new CancellationTokenSource();
         _logger = logger;
-       // _grpcService = gprc;
-       
+        _model = model;
+        // _grpcService = gprc;
+
         _proxy = proxy;
         
 
@@ -100,7 +102,8 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
 
         _bufferBrightPixels.AddLast(px.BrightPixels);
         _bufferDarkPixels.AddLast(px.DarkPixels);
-        if (!DetectionEnabled)
+
+        if (!_model.DetectionEnabled)
         {
             Interlocked.Decrement(ref isRunning);
             return;
@@ -108,7 +111,7 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
 
         if (!IsWelding)
         {
-            if (_bufferBrightPixels.Average() > WeldingBound)
+            if (_bufferBrightPixels.Average() > _model.WeldingBound)
             {
                 _logger.LogInformation("Welding detected");
                 IsWelding = true;
@@ -122,10 +125,10 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
         else
         {
             // It must be welding
-            if (_bufferDarkPixels.Average() > NonWeldingBound)
+            if (_bufferDarkPixels.Average() > _model.NonWeldingBound)
             {
                 _logger.LogInformation("Welding not detected");
-                _logger.LogInformation($"OnDetectWelding: BrightPixels:{totalBrightPixels}, DarkPixels:{totalDarkPixels}");
+                _logger.LogInformation($"OnDetectWelding: {px}");
                 IsWelding = false;
 
                 var camParams = new SetCameraParameters();
