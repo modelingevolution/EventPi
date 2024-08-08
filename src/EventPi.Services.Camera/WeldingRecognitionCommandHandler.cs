@@ -25,7 +25,7 @@ public partial class WeldingRecognitionCommandHandler(IPlumber plumber)
     public async Task Handle(HostName hostName, DefineWeldingRecognitionConfiguration cmd)
     {
      
-        var ev = new WeldingRecognitionConfiguration()
+        var ev = new WeldingRecognitionConfigurationState()
         {
             WeldingValue = cmd.WeldingValue,
             NonWeldingValue = cmd.NonWeldingValue,

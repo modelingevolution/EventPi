@@ -12,7 +12,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
     private readonly ICommandBus _bus;
     private bool _initialized;
     private string _hostName;
-    private WeldingRecognitionConfiguration? _prv;
+    private WeldingRecognitionConfigurationState? _prv;
     private SetWeldingRecognitionConfiguration _setWeldingRecognitionConfiguration = new SetWeldingRecognitionConfiguration();
     private DefineWeldingRecognitionConfiguration _defineWeldingRecognitionConfiguration = new DefineWeldingRecognitionConfiguration();
     public SetWeldingRecognitionConfiguration SetWeldingRecognitionConfiguration => _setWeldingRecognitionConfiguration;
@@ -28,7 +28,6 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
         _plumber = plumber;
         _channel = Channel.CreateBounded<SetWeldingRecognitionConfiguration>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
         Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
-        _setWeldingRecognitionConfiguration.PropertyChanged += OnSetWeldingRecognitionConfigurationPropertyChanged;
     }
 
     private async Task OnSendCommand()
@@ -45,10 +44,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
         }
         catch (OperationCanceledException) { }
     }
-    private void OnSetWeldingRecognitionConfigurationPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        SetWeldingRecognitionConfig();
-    }
+
     private void SetWeldingRecognitionConfig()
     {
         var dto = _setWeldingRecognitionConfiguration with { Id = Guid.NewGuid() };
@@ -66,7 +62,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
         SetWeldingRecognitionConfig();
     }
 
-    private async Task Given(Metadata m, WeldingRecognitionConfiguration ev)
+    private async Task Given(Metadata m, WeldingRecognitionConfigurationState ev)
     {
         _prv = ev;
         this.SetWeldingRecognitionConfiguration.CopyFrom(ev, true);
@@ -84,7 +80,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
         _hostName = hostName;
         _initialized = true;
 
-        await(_weldingRecognitionConfigSub = _plumber.Subscribe(WeldingRecognitionConfiguration.FullStreamName(HostName.From(_hostName)), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
+        await(_weldingRecognitionConfigSub = _plumber.Subscribe(WeldingRecognitionConfigurationState.FullStreamName(HostName.From(_hostName)), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
             .WithSnapshotHandler(this);
     }
 

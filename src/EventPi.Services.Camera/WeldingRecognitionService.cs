@@ -20,26 +20,28 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     private readonly CircularBuffer<int> _bufferDarkPixels;
     
     private readonly WeldingRecognitionModel _model;
+    private readonly WeldingRecognitionProvider _profileProvider;
+
     public bool IsWelding { get; private set; }
 
     public int BrightOffset { get; set; }
     public int DarkOffset { get;  set; }
+
+
     public ICameraParametersReadOnly CurrentAppliedProfile { get; private set; }
 
-    public ICameraParametersReadOnly WeldingProfile { get; set; }
-    public ICameraParametersReadOnly NonWeldingProfile { get; set; }
 
     public int Every => 1;
 
-    
 
-public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy,  WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
+
+    public WeldingRecognitionService(WeldingRecognitionProvider profileProvider,  ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy,  WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
     {
         CurrentAppliedProfile = new CameraProfile();
         _cts = new CancellationTokenSource();
         _logger = logger;
         _model = model;
-        // _grpcService = gprc;
+        _profileProvider = profileProvider;
 
         _proxy = proxy;
         
@@ -84,6 +86,8 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
         Rectangle area = new Rectangle(0, 0, frame.Info.Width, frame.Info.Height);
         area.Inflate(-400, -400);
 
+        var areaSizeInPixels = area.Size.Width * area.Size.Height;
+         
         var count = frame.CountPixelsOutsideRange(20, 200, area);
 
         if(prv == null)
@@ -111,13 +115,13 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
 
         if (!IsWelding)
         {
-            if (_bufferBrightPixels.Average() > _model.WeldingBound)
+            if (_bufferBrightPixels.Average() > _model.WeldingBound*0.01*areaSizeInPixels)
             {
                 _logger.LogInformation("Welding detected");
                 IsWelding = true;
 
                 var camParams = new SetCameraParameters();
-                camParams.CopyFrom(WeldingProfile);
+                camParams.CopyFrom(_profileProvider.Welding.Profile);
                 CurrentAppliedProfile = camParams;
                 _channel.Writer.TryWrite(camParams);
             }
@@ -125,14 +129,14 @@ public WeldingRecognitionService(ILogger<WeldingRecognitionService> logger,GrpcC
         else
         {
             // It must be welding
-            if (_bufferDarkPixels.Average() > _model.NonWeldingBound)
+            if (_bufferDarkPixels.Average() > _model.NonWeldingBound*0.01*areaSizeInPixels)
             {
                 _logger.LogInformation("Welding not detected");
                 _logger.LogInformation($"OnDetectWelding: {px}");
                 IsWelding = false;
 
                 var camParams = new SetCameraParameters();
-                camParams.CopyFrom(NonWeldingProfile);
+                camParams.CopyFrom(_profileProvider.Default.Profile);
                 CurrentAppliedProfile = camParams;
                 _channel.Writer.TryWrite(camParams);
             }
