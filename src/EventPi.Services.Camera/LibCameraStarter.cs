@@ -25,7 +25,17 @@ public class CameraSimulatorProcess : IDisposable
         this._appName = _configuration.GetCameraSimulatorPath();
 
     }
-
+    public static bool KillAll(IConfiguration config)
+    {
+        var name = Path.GetFileNameWithoutExtension(config.GetCameraSimulatorPath());
+        bool killed = false;
+        foreach (var i in Process.GetProcessesByName(name))
+        {
+            i.Kill(true);
+            killed = true;
+        }
+        return killed;
+    }
     public bool KillAll()
     {
         var name = Path.GetFileName(_appName);
@@ -100,6 +110,7 @@ public class CameraSimulatorProcess : IDisposable
         _tokenCancellationSources.Clear();
     }
 }
+
 public class LibCameraProcess(IConfiguration configuration, 
     IServiceProvider sp, ILogger<LibCameraProcess> log)
 {

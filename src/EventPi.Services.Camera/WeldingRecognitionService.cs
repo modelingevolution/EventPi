@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using ModelingEvolution.VideoStreaming;
 using System.Drawing;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace EventPi.Services.Camera;
 
@@ -152,6 +153,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 }
 public static class YuvFrameWeldingRecognitionUtils
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe DarkBrightPixels CountPixelsOutsideRange(this YuvFrame frame, int low, int high)
     {
         int darkPixels = 0;
@@ -168,6 +170,7 @@ public static class YuvFrameWeldingRecognitionUtils
         }
         return new DarkBrightPixels(darkPixels, brightPixels);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe DarkBrightPixels CountPixelsOutsideRange(this YuvFrame frame, int low, int high, Rectangle r)
     {
         int darkPixels = 0;
@@ -189,6 +192,7 @@ public static class YuvFrameWeldingRecognitionUtils
 }
 public readonly record struct DarkBrightPixels(int DarkPixels, int BrightPixels)
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DarkBrightPixels Min(DarkBrightPixels a, DarkBrightPixels b)
     {
         return new DarkBrightPixels(Math.Min(a.DarkPixels, b.DarkPixels), Math.Min(a.BrightPixels, b.BrightPixels));

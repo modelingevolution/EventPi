@@ -19,7 +19,7 @@ public static class ContainerExtensions
        // builder.MapGrpcService<GrpcFrameFeaturesService>();
         return builder;
     }
-    public static IServiceCollection AddCameraConfiguration(this IServiceCollection services, bool disableAutostart = false)
+    public static IServiceCollection AddCameraConfiguration(this IServiceCollection services, IConfiguration config, bool disableAutostart = false)
     {
         services.AddSingleton<GrpcCppCameraProxy>();
         services.AddSingleton<WeldingRecognitionService>();
@@ -38,9 +38,10 @@ public static class ContainerExtensions
         if(!disableAutostart)
             services.WhenUnix(services => services.AddHostedService<LibCameraStarter>());
         services.AddSingleton<CameraSimulatorProcess>();
-        services.AddSingleton<LibCameraProcess>(sp => new LibCameraProcess(sp.GetRequiredService<IConfiguration>(), sp,
-            sp.GetRequiredService<ILogger<LibCameraProcess>>()));
 
+        services.AddSingleton<LibCameraProcess>(sp => new LibCameraProcess(sp.GetRequiredService<IConfiguration>(), sp, sp.GetRequiredService<ILogger<LibCameraProcess>>()));
+
+        CameraSimulatorProcess.KillAll(config);
         return services;
     }
 }

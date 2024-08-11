@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using System.Xml.Linq;
 using CliWrap.Buffered;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Builder;
 
 namespace EventPi.Services.Camera;
 
@@ -51,7 +52,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
     public const string DefaultPath = "/usr/local/bin/rocketwelder-vid";
     public const string DefaultTuningFilePath = "/app/imx296.json";
     private readonly string _appName = appName ?? DefaultPath;
-    private CommandTask<CommandResult>? _runningApp;
+    private CommandTask<BufferedCommandResult>? _runningApp;
     private CancellationTokenSource? _cstForce;
     private CancellationTokenSource? _cstGrace;
     public bool IsRunning => _runningApp != null;
@@ -110,7 +111,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
             .WithArguments(args);
        
         logger.LogInformation(string.Join(' ', args.Prepend(_appName)));
-        var ret = cmd
+        _runningApp = cmd
             .ExecuteBufferedAsync(Encoding.UTF8, 
                 Encoding.UTF8,
                 _cstForce.Token, 
@@ -119,7 +120,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
         {
             try
             {
-                var x = await ret;
+                var x = await _runningApp;
                 logger.LogInformation($"{_appName} exited with code: {x.ExitCode}");
                 if (!string.IsNullOrWhiteSpace(x.StandardError))
                     logger.LogError(x.StandardError);
@@ -133,7 +134,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
         });
         
         
-        return ret.ProcessId;
+        return _runningApp.ProcessId;
     }
 }
 
