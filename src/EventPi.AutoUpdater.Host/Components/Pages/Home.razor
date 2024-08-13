@@ -1,0 +1,29 @@
+﻿@page "/"
+@using EventPi.AutoUpdate
+@inject UpdateProcessManager mgm
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>AutoUpdater</h1>
+
+@foreach (var i in mgm.GetPackages())
+{
+    <p>Name: @i.FriendlyName</p>
+    <p>Name: @i.CurrentVersion</p>
+    @foreach(var v in i.Versions()){
+        <p>@v</p>
+    }
+}
+
+
+
+<button @onclick="@OnClick">Check</button>
+
+@code {
+    private bool _isUpdateAvailable;
+    private async Task OnClick(MouseEventArgs e)
+    {
+        await mgm.UpdateAll();
+    }
+}

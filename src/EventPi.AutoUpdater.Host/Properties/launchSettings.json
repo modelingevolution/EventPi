@@ -1,0 +1,44 @@
+{
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5018"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "Packages__0__RepositoryUrl": "https://github.com/modelingevolution/rocket-welder-releases.git",
+        "Packages__0__RepositoryLocation": "/var/docker/production/rocket-welder-autoupdate",
+        "SshUser": "pi",
+        "SshPwd": "pi"
+      },
+      "publishAllPorts": true,
+      "useSSL": false,
+      "DockerfileRunArguments": "-v C:\\Users\\rafal\\Sources\\ME:/var/docker/production -v /var/run/docker.sock:/var/run/docker.sock"
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:11244",
+      "sslPort": 0
+    }
+  }
+}
