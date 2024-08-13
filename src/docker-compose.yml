@@ -1,0 +1,14 @@
+services:
+  autoupdater:
+    image: modelingevolution/autoupdater:latest
+    build:
+      context: .
+      dockerfile: EventPi.AutoUpdater.Host/Dockerfile
+    environment:
+      Packages__0__RepositoryUrl: https://github.com/modelingevolution/rocket-welder-releases.git
+      Packages__0__RepositoryLocation: /var/docker/production/rocket-welder-autoupdate
+      SshUser: pi
+      SshPwd: pi
+    volumes:
+      - /var/docker/production:/var/docker/production
+      - /var/run/docker.sock:/var/run/docker.sock 

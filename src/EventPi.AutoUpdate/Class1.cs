@@ -94,17 +94,23 @@ namespace EventPi.AutoUpdate
         {
             return Task.CompletedTask;
         }
-        const string HostAddress = "host.docker.internal";
-
+        //const string HostAddress = "host.docker.internal";
+        const string HostAddress = "172.17.0.1";
 
         //const string HostAddress = "pi-200";
         internal async Task InvokeSsh(string command, string dockerComposeFolder, Action? onConnected = null)
         {
-            using (var client = new SshClient(HostAddress,
-                config.GetValue<string>("SshUser") ?? throw new ArgumentException("Ssh user cannot be null",
-                config.GetValue<string>("SshPwd") ?? throw new ArgumentException("Ssh password cannot be null"))))
+            var usr = config.GetValue<string>("SshUser") ?? throw new ArgumentException("Ssh user cannot be null");
+            var pwd = config.GetValue<string>("SshPwd") ?? throw new ArgumentException("Ssh password cannot be null");
+            using (var client = new SshClient(HostAddress, usr, pwd))
             {
-                await client.ConnectAsync(CancellationToken.None);
+                client.ServerIdentificationReceived += (s, e) => e.ToSuccess();
+                client.HostKeyReceived += (sender, e) =>
+                {
+                    e.CanTrust = true;
+                    log.LogInformation("SSH.HOST TRUSTED.");
+                };
+                client.Connect();
                 onConnected?.Invoke();
                 using SshCommand cmd = client.RunCommand(command);
                 log.LogInformation($"Ssh: {command}, results: {cmd.Result}");
@@ -203,7 +209,6 @@ namespace EventPi.AutoUpdate
             if (!IsGitVersioned)
             {
                 this.CloneRepository();
-                return true;
             }
             using var repo = new Repository(RepositoryLocation);
             Tag tag = repo.Tags[version];
