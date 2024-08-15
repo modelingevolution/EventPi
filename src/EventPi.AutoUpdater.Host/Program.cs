@@ -1,5 +1,6 @@
 using EventPi.AutoUpdate;
 using EventPi.AutoUpdater.Host.Components;
+using MudBlazor.Services;
 
 namespace EventPi.AutoUpdater.Host
 {
@@ -11,6 +12,7 @@ namespace EventPi.AutoUpdater.Host
 
             // Add services to the container.
             builder.Services
+                .AddMudServices()
                 .AddAutoUpdater()
                 .AddRazorComponents()
                 .AddInteractiveServerComponents();

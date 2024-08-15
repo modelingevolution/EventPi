@@ -3,7 +3,9 @@ using Docker.DotNet.Models;
 using Ductus.FluentDocker.Builders;
 using Ductus.FluentDocker.Commands;
 using Ductus.FluentDocker.Common;
+using Ductus.FluentDocker.Extensions;
 using Ductus.FluentDocker.Services;
+using Ductus.FluentDocker.Services.Extensions;
 using LibGit2Sharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,11 +24,13 @@ namespace EventPi.AutoUpdate
         {
             container.AddSingleton<UpdateProcessManager>();
             container.AddSingleton<UpdateHost>();
+            container.AddSingleton<DockerComposeConfigurationRepository>();
             container.AddHostedService(sp => sp.GetRequiredService<UpdateHost>());
             return container;
         }
 
     }
+    public readonly record struct ContainerLogs(string Output, string Err);
     public class UpdateHost(IConfiguration config, ILogger<UpdateHost> log) : IHostedService
     {
         public IDictionary<string, string> Volumes { get; private set; }
@@ -42,7 +46,25 @@ namespace EventPi.AutoUpdate
             ContainerListResponse? c = containers.FirstOrDefault(c => c.Image.Contains(imageName));
             return c;
         }
+        private static async Task<ContainerLogs> GetContainerLogs(string containerId)
+        {
+            using var config = new DockerClientConfiguration();
+            using var client = config.CreateClient();
 
+            var parameters = new ContainerLogsParameters
+            {
+                ShowStdout = true,
+                ShowStderr = true,
+                Follow = false,
+                Tail = "all"
+            };
+
+            using (var stream = await client.Containers.GetContainerLogsAsync(containerId,true, parameters, CancellationToken.None))
+            {
+                var (o,e) = await stream.ReadOutputToEndAsync(CancellationToken.None);
+                return new ContainerLogs(o, e);
+            }
+        }
         public static async Task<IDictionary<string, string>> GetVolumeMappings(string containerId)
         {
 
@@ -50,7 +72,7 @@ namespace EventPi.AutoUpdate
             using var client = config.CreateClient();
             var container = await client.Containers.InspectContainerAsync(containerId);
             var volumeMappings = new Dictionary<string, string>();
-
+            
             if (container.HostConfig.Binds != null)
             {
                 foreach (var bind in container.HostConfig.Binds)
@@ -133,6 +155,24 @@ namespace EventPi.AutoUpdate
             return FriendlyName;
         }
     }
+    public class ContainerInfo
+    {
+        private readonly IContainerService _container;
+        public DockerComposeConfiguration Parent { get; }
+        public string Name { get; }
+
+        public ContainerInfo(DockerComposeConfiguration Configuration, string Name, IContainerService i)
+        {
+            this._container = i;
+            this.Parent = Configuration;
+            this.Name = Name;
+        }
+
+        public IList<string> Logs()
+        {
+            return _container.Logs().ReadToEnd();
+        }
+    }
     public record DeploymentState(string Version, DateTime Updated) { }
     public record DockerComposeConfiguration(string RepositoryLocation, string RepositoryUrl, string DockerComposeDirectory = "./")
     {
@@ -140,6 +180,7 @@ namespace EventPi.AutoUpdate
         public string MergerName { get; init; } = "pi-admin";
         public string MergerEmail { get; init; } = "admin@eventpi.com";
         public string FriendlyName => Path.GetFileName(RepositoryLocation);
+        
         public string? CurrentVersion
         {
             get
@@ -164,6 +205,38 @@ namespace EventPi.AutoUpdate
             return false;
         }
 
+        private ICompositeService _svc;
+        internal ICompositeService Service
+        {
+            get
+            {
+                if (_svc != null) return _svc;
+                string? composeDir = ComposeFolderPath;
+                if (Directory.Exists(composeDir))
+                {
+                    var file = Directory.GetFiles(composeDir, "*.yml");
+
+                    _svc ??= new Builder()
+                        .UseContainer()
+                        .UseCompose()
+                        .FromFile(file)
+                        .RemoveOrphans()
+                        .Build();
+                }
+                return _svc;
+            }
+        }
+        public IEnumerable<ContainerInfo> Containers()
+        {
+            if (Service != null)
+            {
+               foreach(var i in _svc.Containers)
+               {
+                    yield return new ContainerInfo(this, i.Name, i);
+               }
+            }
+        }
+       
         public IEnumerable<GitTagVersion> Versions()
         {
             if (!IsGitVersioned)
@@ -203,7 +276,7 @@ namespace EventPi.AutoUpdate
             if (!IsGitVersioned)
             {
                 this.CloneRepository();
-                return true;
+                
             }
             using var repo = new Repository(RepositoryLocation);
             Tag tag = repo.Tags[version];
@@ -285,14 +358,25 @@ namespace EventPi.AutoUpdate
 
         }
     }
-
-    public class UpdateProcessManager(IConfiguration configuration, UpdateHost host, ILogger<UpdateProcessManager> logger)
+    public class DockerComposeConfigurationRepository
     {
+        readonly DockerComposeConfiguration[] _items;
+        private readonly IConfiguration configuration;
 
-        public IEnumerable<DockerComposeConfiguration> GetPackages() => configuration.GetSection("Packages").Get<DockerComposeConfiguration[]>() ?? Array.Empty<DockerComposeConfiguration>();
+        public DockerComposeConfigurationRepository(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+            _items = configuration.GetSection("Packages").Get<DockerComposeConfiguration[]>() ?? Array.Empty<DockerComposeConfiguration>();
+        }
+
+        public IEnumerable<DockerComposeConfiguration> GetPackages() => _items;
+
+    }
+    public class UpdateProcessManager(DockerComposeConfigurationRepository repo, UpdateHost host, ILogger<UpdateProcessManager> logger)
+    {        
         public async Task UpdateAll()
         {
-            foreach(var i in GetPackages())
+            foreach(var i in repo.GetPackages())
             {
                 await i.Update(host);
             }
