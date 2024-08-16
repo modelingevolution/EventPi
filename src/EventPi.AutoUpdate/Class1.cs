@@ -109,7 +109,15 @@ namespace EventPi.AutoUpdate
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            this.Volumes = await GetVolumeMappings((await GetContainer()).ID);
+            try
+            {
+                this.Volumes = await GetVolumeMappings((await GetContainer()).ID);
+                log.LogInformation($"Docker volume mapping configured [{this.Volumes.Count}].");
+                await InvokeSsh("echo \"Hello\";");
+            }
+            catch (Exception ex) {
+                log.LogError(ex, $"Cannot start {nameof(UpdateHost)}.");
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -120,22 +128,28 @@ namespace EventPi.AutoUpdate
         const string HostAddress = "172.17.0.1";
 
         //const string HostAddress = "pi-200";
-        internal async Task InvokeSsh(string command, string dockerComposeFolder, Action? onConnected = null)
+        internal async Task<String> InvokeSsh(string command, string? dockerComposeFolder = null, Action? onConnected = null)
         {
             var usr = config.GetValue<string>("SshUser") ?? throw new ArgumentException("Ssh user cannot be null");
             var pwd = config.GetValue<string>("SshPwd") ?? throw new ArgumentException("Ssh password cannot be null");
             using (var client = new SshClient(HostAddress, usr, pwd))
             {
+                
                 client.ServerIdentificationReceived += (s, e) => e.ToSuccess();
-                client.HostKeyReceived += (sender, e) =>
-                {
+                client.HostKeyReceived += (sender, e) => {
                     e.CanTrust = true;
                     log.LogInformation("SSH.HOST TRUSTED.");
                 };
                 client.Connect();
+                
                 onConnected?.Invoke();
+
+                if (dockerComposeFolder != null)
+                    command = $"cd {dockerComposeFolder}; " + command;
                 using SshCommand cmd = client.RunCommand(command);
+                
                 log.LogInformation($"Ssh: {command}, results: {cmd.Result}");
+                return cmd.Result;
 
             }
         }
