@@ -1,12 +1,10 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
-using Ductus.FluentDocker.Builders;
 using Ductus.FluentDocker.Commands;
 using Ductus.FluentDocker.Common;
 using Ductus.FluentDocker.Extensions;
 using Ductus.FluentDocker.Services;
 using Ductus.FluentDocker.Services.Extensions;
-using LibGit2Sharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Renci.SshNet;
 using System;
 using System.Diagnostics.Metrics;
-using System.Text.Json;
 
 namespace EventPi.AutoUpdate
 {
@@ -31,6 +28,7 @@ namespace EventPi.AutoUpdate
 
     }
     public readonly record struct ContainerLogs(string Output, string Err);
+    public record DockerRegistryPat(string Registry, string Base64);
     public class UpdateHost(IConfiguration config, ILogger<UpdateHost> log) : IHostedService
     {
         public IDictionary<string, string> Volumes { get; private set; }
@@ -111,8 +109,14 @@ namespace EventPi.AutoUpdate
         {
             try
             {
-                this.Volumes = await GetVolumeMappings((await GetContainer()).ID);
-                log.LogInformation($"Docker volume mapping configured [{this.Volumes.Count}].");
+                var cid = (await GetContainer())?.ID;
+                if (cid != null)
+                {
+                    this.Volumes = await GetVolumeMappings(cid);
+                    log.LogInformation($"Docker volume mapping configured [{this.Volumes.Count}].");
+                }
+                else
+                    log.LogInformation("Docker volume mapping is disabled.");
                 await InvokeSsh("echo \"Hello\";");
             }
             catch (Exception ex) {
@@ -154,14 +158,15 @@ namespace EventPi.AutoUpdate
             }
         }
     }
-    public readonly record struct GitTagVersion(string FriendlyName, System.Version Version) : IComparable<GitTagVersion> 
+    public record GitTagVersion(string FriendlyName, System.Version Version) : IComparable<GitTagVersion> 
     {
         public static implicit operator string(GitTagVersion v)
         {
             return v.ToString();
         }
-        public static GitTagVersion Parse(string text)
+        public static GitTagVersion? Parse(string? text)
         {
+            if (text == null) return null;
             var v =  System.Version.Parse(text.Replace("ver","").Replace("v",""));
             return new GitTagVersion(text, v);
         }
@@ -175,7 +180,26 @@ namespace EventPi.AutoUpdate
             return FriendlyName;
         }
     }
-    public class ContainerInfo
+    public class ContainerInfo2 : IContainerInfo
+    {
+        private DockerComposeConfiguration dockerComposeConfiguration;
+
+        private string _id;
+        public ContainerInfo2(DockerComposeConfiguration dockerComposeConfiguration, string v, string iD)
+        {
+            this.dockerComposeConfiguration = dockerComposeConfiguration;
+            this.Name = v;
+            this._id = iD;
+        }
+
+        public string Name { get; }
+
+        public IList<string> Logs()
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class ContainerInfo : IContainerInfo
     {
         private readonly IContainerService _container;
         public DockerComposeConfiguration Parent { get; }
@@ -194,190 +218,6 @@ namespace EventPi.AutoUpdate
         }
     }
     public record DeploymentState(string Version, DateTime Updated) { }
-    public record DockerComposeConfiguration(string RepositoryLocation, string RepositoryUrl, string DockerComposeDirectory = "./")
-    {
-        public string ComposeFolderPath => Path.Combine(RepositoryLocation, DockerComposeDirectory);
-        public string MergerName { get; init; } = "pi-admin";
-        public string MergerEmail { get; init; } = "admin@eventpi.com";
-        public string FriendlyName => Path.GetFileName(RepositoryLocation);
-        
-        public string? CurrentVersion
-        {
-            get
-            {
-                string stateFile = Path.Combine(ComposeFolderPath, "deployment.state.json");
-                if (File.Exists(stateFile))
-                    return JsonSerializer.Deserialize<DeploymentState>(File.ReadAllText(stateFile))?.Version;
-                return null;
-            }
-        }
-        public bool IsGitVersioned => Directory.Exists(RepositoryLocation) && Directory.Exists(Path.Combine(this.RepositoryLocation, ".git"));
-        public bool CloneRepository()
-        {
-            if (!IsGitVersioned)
-            {
-                if (!Directory.Exists(RepositoryLocation))
-                    Directory.CreateDirectory(RepositoryLocation);
-
-                Repository.Clone(RepositoryUrl, RepositoryLocation);
-                return true;
-            }
-            return false;
-        }
-
-        private ICompositeService _svc;
-        internal ICompositeService Service
-        {
-            get
-            {
-                if (_svc != null) return _svc;
-                string? composeDir = ComposeFolderPath;
-                if (Directory.Exists(composeDir))
-                {
-                    var file = Directory.GetFiles(composeDir, "*.yml");
-
-                    _svc ??= new Builder()
-                        .UseContainer()
-                        .UseCompose()
-                        .FromFile(file)
-                        .RemoveOrphans()
-                        .Build();
-                }
-                return _svc;
-            }
-        }
-        public IEnumerable<ContainerInfo> Containers()
-        {
-            if (Service != null)
-            {
-               foreach(var i in _svc.Containers)
-               {
-                    yield return new ContainerInfo(this, i.Name, i);
-               }
-            }
-        }
-       
-        public IEnumerable<GitTagVersion> Versions()
-        {
-            if (!IsGitVersioned)
-                CloneRepository();
-
-            using var repo = new Repository(RepositoryLocation);
-            var refSpecs = repo.Network.Remotes["origin"].FetchRefSpecs.Select(spec => spec.Specification);
-
-            // Set up the fetch options
-            var fetchOptions = new FetchOptions{};
-
-            Commands.Fetch(repo, "origin", refSpecs, fetchOptions,null);
-            foreach (var i in repo.Tags)
-                yield return GitTagVersion.Parse(i.FriendlyName);
-        }
-        public bool Pull()
-        {
-            if (!IsGitVersioned)
-            {
-                this.CloneRepository();
-                return true;
-            }
-            using var repo = new Repository(RepositoryLocation);
-            var signature = new Signature(MergerName, MergerEmail, DateTimeOffset.Now);
-
-            var pullOptions = new PullOptions()
-            {
-                FetchOptions = new FetchOptions() { },
-                MergeOptions = new MergeOptions() { }
-            };
-            var result = Commands.Pull(repo, signature, pullOptions);
-            return result.Status != MergeStatus.UpToDate;
-        }
-
-        public void Checkout(GitTagVersion version)
-        {
-            if (!IsGitVersioned)
-            {
-                this.CloneRepository();
-                
-            }
-            using var repo = new Repository(RepositoryLocation);
-            Tag tag = repo.Tags[version];
-
-            if (tag == null)
-                throw new Exception($"Tag {version} was not found.");
-            
-
-            // Checkout the tag
-            CheckoutOptions options = new CheckoutOptions
-            {
-                CheckoutModifiers = CheckoutModifiers.None,
-                CheckoutNotifyFlags = CheckoutNotifyFlags.None,
-            };
-
-            Commands.Checkout(repo, tag.Target.Sha, options);
-        }
-
-
-        private string? GetHostDockerComposeFolder(string pathInContainer, IDictionary<string, string> volumeMapping)
-        {
-            foreach(var v in volumeMapping)
-            {
-                if(pathInContainer.StartsWith(v.Value))
-                    return pathInContainer.Replace(v.Value, v.Key);
-            }
-            return null;
-        }
-        public async Task Update(UpdateHost host)
-        {
-            var latest = this.Versions().OrderByDescending(x=>x.Version).FirstOrDefault();
-            if (CurrentVersion != null && CurrentVersion == latest)
-                return;
-
-            Checkout(latest);
-            
-            // we need to find update container in docker and examine volume mappings.
-            string dockerComposeFolder = GetHostDockerComposeFolder(ComposeFolderPath, host.Volumes) ?? throw new Exception("Cannot find path");
-
-            DateTime n = DateTime.Now;
-            string logFile = $"docker_compose_up_d_{n.Year}{n.Month}{n.Day}_{n.Hour}{n.Minute}{n.Second}.{n.Millisecond}.log";
-
-            
-            await host.InvokeSsh($"nohup docker compose up -d > {logFile} 2>&1 &", dockerComposeFolder, () =>
-            {
-                DeploymentState st = new DeploymentState(latest, n);
-                string stateFile = Path.Combine(ComposeFolderPath, "deployment.state.json");
-                File.WriteAllText(stateFile, JsonSerializer.Serialize(st));
-
-            });
-        }
-        /// <summary>
-        /// Performs update using direct to docker communication.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<bool> InlineUpdate()
-        {
-            string? composeDir = ComposeFolderPath;
-            if (Directory.Exists(composeDir))
-            {
-                var file = Directory.GetFiles(composeDir, "*.yml");
-                
-                using var svc = new Builder()
-                    .UseContainer()
-                    .UseCompose()
-                    .FromFile(file)
-                    .RemoveOrphans()
-                    .Build();
-                
-                svc.Start();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
-
-
-        }
-    }
     public class DockerComposeConfigurationRepository
     {
         readonly DockerComposeConfiguration[] _items;

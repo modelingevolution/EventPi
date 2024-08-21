@@ -2,7 +2,7 @@
 @using EventPi.AutoUpdate
 @inject DockerComposeConfigurationRepository repo
 @inject UpdateProcessManager mgm
-
+@inject UpdateHost host
 <PageTitle>Home</PageTitle>
 
 
@@ -12,15 +12,16 @@
         <MudPaper Class="pa-4" Elevation="2">
             <MudField Label="Name">@i.FriendlyName</MudField>
             <MudField Label="Current version">@i.CurrentVersion</MudField>
-            <MudSelect Label="Available versions:" T="GitTagVersion">
-                @foreach (var v in i.Versions())
-                {
-                    <MudSelectItem Value="@v" T="GitTagVersion" />
-                }
+            @if (i.IsUpgradeAvailable())
+            {
+                <MudField Label="Available upgrade:">@i.AvailableUpgrade()</MudField>
+            } else
+            {
+                <MudText Color="Color.Info">You have the latest version.</MudText>
+            }
 
-           </MudSelect>
 
-            @foreach (var x in i.Containers())
+            @* @foreach (var x in i.Containers(host))
             {
                 <MudField Label="App">@x.Name</MudField>
                 <MudSimpleTable Hover="true" Dense="true" FixedHeader="true" Style="height:300px">
@@ -38,7 +39,7 @@
                     }
                 </tbody>
                 </MudSimpleTable>
-            }
+            } *@
 
         </MudPaper>
     }
@@ -46,7 +47,7 @@
 
 
 
-<MudButton @OnClick="@OnClick">Update all</MudButton>
+<MudButton OnClick="@OnClick">Update all</MudButton>
 
 @code {
     private bool _isUpdateAvailable;
