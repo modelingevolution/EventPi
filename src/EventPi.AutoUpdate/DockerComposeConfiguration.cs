@@ -221,9 +221,9 @@ namespace EventPi.AutoUpdate
             string logFile = $"docker_compose_up_d_{n.Year}{n.Month}{n.Day}_{n.Hour}{n.Minute}{n.Second}.{n.Millisecond}.log";
 
             string[] dockerComposeFiles = Directory.GetFiles(dockerComposeFolder, "docker-compose*.yml").OrderBy(x=>x.Length).ToArray();
-            string arg = string.Join(' ', dockerComposeFiles.Select(x => $"-f {x}"));
+            string arg = string.Join(' ', dockerComposeFiles.Select(x => $"-f {Path.GetFileName(x)}"));
 
-            string cmd = $"nohup docker compose {arg} up -d > {logFile} 2>&1 &";
+            string cmd = $"nohup docker compose {arg} up -d > {logFile} 2>&1 &; echo \"OK\"";
             //if(DockerAuths.Count > 0)
             //{
             //    var sb = new StringBuilder();
