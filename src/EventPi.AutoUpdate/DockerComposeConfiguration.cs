@@ -143,11 +143,14 @@ namespace EventPi.AutoUpdate
             var refSpecs = repo.Network.Remotes["origin"].FetchRefSpecs.Select(spec => spec.Specification);
 
             // Set up the fetch options
-            var fetchOptions = new FetchOptions{};
+            var fetchOptions = new FetchOptions{
+                TagFetchMode = TagFetchMode.All
+            };
 
             Commands.Fetch(repo, "origin", refSpecs, fetchOptions,null);
             foreach (var i in repo.Tags)
-                yield return GitTagVersion.Parse(i.FriendlyName);
+                if (GitTagVersion.TryParse(i.FriendlyName, out var v))
+                    yield return v;
         }
         public bool Pull()
         {

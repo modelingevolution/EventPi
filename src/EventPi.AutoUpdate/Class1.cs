@@ -164,11 +164,15 @@ namespace EventPi.AutoUpdate
         {
             return v.ToString();
         }
-        public static GitTagVersion? Parse(string? text)
+        public static bool TryParse(string? text, out GitTagVersion? p)
         {
-            if (text == null) return null;
-            var v =  System.Version.Parse(text.Replace("ver","").Replace("v",""));
-            return new GitTagVersion(text, v);
+            if (text != null && System.Version.TryParse(text.Replace("ver", "").Replace("v", ""), out var v))
+            { 
+                p = new GitTagVersion(text, v);  
+                return true; 
+            }
+            p = null;
+            return false;
         }
 
         public int CompareTo(GitTagVersion other)
