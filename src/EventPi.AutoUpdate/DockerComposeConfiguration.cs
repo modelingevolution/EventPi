@@ -217,8 +217,11 @@ namespace EventPi.AutoUpdate
             // we need to find update container in docker and examine volume mappings.
             string dockerComposeFolder = GetHostDockerComposeFolder(ComposeFolderPath, host.Volumes) ?? throw new Exception("Cannot find path");
 
+            string repName = Path.GetFileName(this.RepositoryLocation);
             DateTime n = DateTime.Now;
-            string logFile = $"docker_compose_up_d_{n.Year}{n.Month}{n.Day}_{n.Hour}{n.Minute}{n.Second}.{n.Millisecond}.log";
+            string logFile = $"~/{repName}/docker_compose_up_d_{n.Year}{n.Month}{n.Day}_{n.Hour}{n.Minute}{n.Second}.{n.Millisecond}.log";
+            if(!Directory.Exists(Path.GetDirectoryName(logFile)))
+                Directory.CreateDirectory(Path.GetDirectoryName(logFile));
 
             string[] dockerComposeFiles = Directory.GetFiles(dockerComposeFolder, "docker-compose*.yml").OrderBy(x=>x.Length).ToArray();
             string arg = string.Join(' ', dockerComposeFiles.Select(x => $"-f {Path.GetFileName(x)}"));
