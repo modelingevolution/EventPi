@@ -8,6 +8,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3748D905-FFA5-4AD8-9BC5-A00AE48355D6}"
 	ProjectSection(SolutionItems) = preProject
 		..\cake.ps1 = ..\cake.ps1
+		docker-compose.override.yml = docker-compose.override.yml
+		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Events.MachineWork", "EventPi.Events.MachineWork\EventPi.Events.MachineWork.csproj", "{7948B2D8-A312-4B38-AC24-EF10E2E70B3C}"
