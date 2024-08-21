@@ -132,7 +132,7 @@ namespace EventPi.AutoUpdate
         const string HostAddress = "172.17.0.1";
 
         //const string HostAddress = "pi-200";
-        internal async Task<String> InvokeSsh(string command, string? dockerComposeFolder = null, Action? onConnected = null)
+        internal async Task<String> InvokeSsh(string command, string? dockerComposeFolder = null, Action? onExecuted = null)
         {
             var usr = config.GetValue<string>("SshUser") ?? throw new ArgumentException("Ssh user cannot be null");
             var pwd = config.GetValue<string>("SshPwd") ?? throw new ArgumentException("Ssh password cannot be null");
@@ -142,16 +142,14 @@ namespace EventPi.AutoUpdate
                 client.ServerIdentificationReceived += (s, e) => e.ToSuccess();
                 client.HostKeyReceived += (sender, e) => {
                     e.CanTrust = true;
-                    log.LogInformation("SSH.HOST TRUSTED.");
                 };
                 client.Connect();
-                
-                onConnected?.Invoke();
 
                 if (dockerComposeFolder != null)
                     command = $"cd {dockerComposeFolder}; " + command;
                 using SshCommand cmd = client.RunCommand(command);
-                
+
+                onExecuted?.Invoke();
                 log.LogInformation($"Ssh: {command}, results: {cmd.Result}");
                 return cmd.Result;
 

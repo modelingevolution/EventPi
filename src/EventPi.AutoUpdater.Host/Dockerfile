@@ -3,7 +3,7 @@
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 RUN apt-get update
-RUN apt-get install -y ssh-client wget curl 
+RUN apt-get install -y ssh-client wget curl git
 
 ENV DOCKER_VERSION=20.10.24
 ENV DOCKER_COMPOSE_VERSION=2.29.1

@@ -220,7 +220,10 @@ namespace EventPi.AutoUpdate
             DateTime n = DateTime.Now;
             string logFile = $"docker_compose_up_d_{n.Year}{n.Month}{n.Day}_{n.Hour}{n.Minute}{n.Second}.{n.Millisecond}.log";
 
-            string cmd = $"nohup docker compose up -d > {logFile} 2>&1 &";
+            string[] dockerComposeFiles = Directory.GetFiles(dockerComposeFolder, "docker-compose*.yml").OrderBy(x=>x.Length).ToArray();
+            string arg = string.Join(' ', dockerComposeFiles.Select(x => $"-f {x}"));
+
+            string cmd = $"nohup docker compose {arg} up -d > {logFile} 2>&1 &";
             //if(DockerAuths.Count > 0)
             //{
             //    var sb = new StringBuilder();
