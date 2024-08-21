@@ -126,11 +126,9 @@ namespace EventPi.AutoUpdate
         }
         public IEnumerable<GitTagVersion> AvailableVersions()
         {
-
-            var current = CurrentVersion != null ? GitTagVersion.Parse(this.CurrentVersion) : null;
-            if(current != null)
+            if(GitTagVersion.TryParse(this.CurrentVersion, out var c))
             {
-                return Versions().Where(x=>x.Version > current.Version);
+                return Versions().Where(x=>x.Version > c.Version);
             }
             return Versions();
         }
