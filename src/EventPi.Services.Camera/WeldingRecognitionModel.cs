@@ -15,13 +15,16 @@ public partial class CameraProfileModel
         Profile = ev;
     }
 }
-public class WeldingRecognitionProvider(IPlumber plumber, IEnvironment env) : BackgroundService
+[EventHandler]
+public partial class WeldingRecognitionProvider(IPlumber plumber, IEnvironment env, ICommandBus bus) : BackgroundService
 {
     private ISubscriptionRunner _camProfileDefaultSub;
     private ISubscriptionRunner _camProfileWeldingtSub;
+    private ISubscriptionRunner _camProfileDefaultSubOnStart;
+    private bool _isInitializedDefaultProfile;
     public CameraProfileModel Default { get; } = new();
     public CameraProfileModel Welding { get; } = new();
-
+    
     private async Task Initialize(CancellationToken cts)
     {
         var defaultStreamId = HostProfilePath.Create(env.HostName!, "default");
@@ -31,6 +34,22 @@ public class WeldingRecognitionProvider(IPlumber plumber, IEnvironment env) : Ba
 
         await (_camProfileWeldingtSub = plumber.Subscribe(CameraProfile.FullStreamName(weldingStreamId), FromRelativeStreamPosition.End - 1, cancellationToken: cts))
       .WithSnapshotHandler(Welding);
+
+        await (_camProfileDefaultSubOnStart = plumber.Subscribe(CameraProfile.FullStreamName(defaultStreamId), FromRelativeStreamPosition.End - 1, cancellationToken: cts))
+     .WithSnapshotHandler(this);
+
+
+    }
+    private async Task Given(Metadata m, CameraProfile ev)
+    {
+        if(!_isInitializedDefaultProfile)
+        {
+            await Task.Delay(5000);
+            _isInitializedDefaultProfile= true;
+            var camParams = new SetCameraParameters();
+            await bus.SendAsync(CameraParametersState.StreamId(env.HostName), camParams.CopyFrom(ev));
+        }
+       
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
