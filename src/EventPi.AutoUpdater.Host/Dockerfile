@@ -62,4 +62,6 @@ RUN dotnet publish "./EventPi.AutoUpdater.Host.csproj" -c $BUILD_CONFIGURATION -
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+VOLUME /data
 ENTRYPOINT ["dotnet", "EventPi.AutoUpdater.Host.dll"]

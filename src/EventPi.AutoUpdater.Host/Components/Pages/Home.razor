@@ -5,16 +5,14 @@
 @inject UpdateHost host
 <PageTitle>Home</PageTitle>
 
-
-<MudStack >
-    @foreach (var i in repo.GetPackages())
-    {
+<MudStack>
+    <ObservableForEach ItemSource="repo.GetPackages()">
         <MudPaper Class="pa-4" Elevation="2">
-            <MudField Label="Name">@i.FriendlyName</MudField>
-            <MudField Label="Current version">@i.CurrentVersion</MudField>
-            @if (i.IsUpgradeAvailable())
+            <MudField Label="Name">@context.FriendlyName</MudField>
+            <MudField Label="Current version">@context.CurrentVersion</MudField>
+            @if (@context.IsUpgradeAvailable())
             {
-                <MudField Label="Available upgrade:">@i.AvailableUpgrade()</MudField>
+                <MudField Label="Available upgrade:">@context.AvailableUpgrade()</MudField>
             } else
             {
                 <MudText Color="Color.Info">You have the latest version.</MudText>
@@ -42,7 +40,7 @@
             } *@
 
         </MudPaper>
-    }
+    </ObservableForEach>
 </MudStack>
 
 

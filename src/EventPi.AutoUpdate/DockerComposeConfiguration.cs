@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace EventPi.AutoUpdate
 {
-    public record DockerComposeConfiguration
+    public record DockerComposeConfiguration : IDisposable
     {
         public string RepositoryLocation { get; init; } 
         public string RepositoryUrl { get; init; }
@@ -132,10 +132,17 @@ namespace EventPi.AutoUpdate
             }
             return Versions();
         }
+        private readonly ObservableCollection<GitTagVersion> _versions = new();
+        private DateTime _versionChecked = DateTime.MinValue;
         public IEnumerable<GitTagVersion> Versions()
         {
             if (!IsGitVersioned)
                 CloneRepository();
+
+            if (DateTime.Now.Subtract(_versionChecked).TotalSeconds < 10)
+                return _versions;
+
+            _versionChecked = DateTime.Now;
 
             using var repo = new Repository(RepositoryLocation);
             var refSpecs = repo.Network.Remotes["origin"].FetchRefSpecs.Select(spec => spec.Specification);
@@ -146,9 +153,13 @@ namespace EventPi.AutoUpdate
             };
 
             Commands.Fetch(repo, "origin", refSpecs, fetchOptions,null);
+            _versions.Clear();
+
             foreach (var i in repo.Tags)
                 if (GitTagVersion.TryParse(i.FriendlyName, out var v))
-                    yield return v;
+                    _versions.Add(v);
+
+            return _versions;
         }
         public bool Pull()
         {
@@ -277,6 +288,11 @@ namespace EventPi.AutoUpdate
 
 
 
+        }
+
+        public void Dispose()
+        {
+            
         }
     }
 }
