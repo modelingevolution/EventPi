@@ -25,7 +25,77 @@ namespace EventPi.NetworkMonitor
             await client.Initialize();
             return client;
         }
-        
+        public async Task<bool> IsConnectionActive(string name)
+        {
+            var connections = await NetworkManager.GetActiveConnectionsAsync();
+            ObjectPath device = "/";
+            try
+            {
+                device = await NetworkManager.GetDeviceByIpIfaceAsync(name);
+            }
+            catch { return false; }
+            foreach (var connectionPath in connections)
+            {
+                var connectionProxy = Service.CreateActive(connectionPath);
+                var devices = await connectionProxy.GetDevicesAsync();
+                foreach (var i in devices)
+                {
+                    if (i.Equals(device))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        public async Task<bool> ActivateConnection(string name)
+        {
+
+            var connections = await Settings.GetConnectionsAsync();
+
+            // Find the connection with id "wg0"
+            foreach (var connectionPath in connections)
+            {
+                var connectionProxy = Service.CreateConnection(connectionPath);
+                var settings = await connectionProxy.GetSettingsAsync();
+                if (settings.ContainsKey("connection") &&
+                    settings["connection"].ContainsKey("interface-name") &&
+                    settings["connection"]["interface-name"] == name)
+                {
+
+                    // Activate the connection
+                    Console.WriteLine($"{connectionPath}");
+                    await NetworkManager.ActivateConnectionAsync(connectionPath, "/", "/");
+                    Console.WriteLine("wg0 connection activated.");
+                    return true;
+                }
+            }
+            return false;
+        }
+        public async Task<bool> DisableConnection(string name)
+        {
+            var connections = await NetworkManager.GetActiveConnectionsAsync();
+
+            var device = await NetworkManager.GetDeviceByIpIfaceAsync(name);
+
+            // Find the connection with id "wg0"
+            
+            foreach (var connectionPath in connections)
+            {
+                var connectionProxy = Service.CreateActive(connectionPath);
+                var devices = await connectionProxy.GetDevicesAsync();
+                foreach(var i in devices)
+                {
+                    if (i.Equals(device))
+                    {
+                        await NetworkManager.DeactivateConnectionAsync(connectionPath);
+
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
         internal async Task<NetworkManagerClient> Clone()
         {
             var clone = new NetworkManagerClient();
@@ -45,6 +115,7 @@ namespace EventPi.NetworkMonitor
         public async Task<HashSet<PathId>> GetActiveConnections()
         {
             HashSet<PathId> result = new HashSet<PathId>();
+            
             var activeConnections = await this.NetworkManager.GetActiveConnectionsAsync();
             foreach (var i in activeConnections)
             {

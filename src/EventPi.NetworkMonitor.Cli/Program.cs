@@ -91,8 +91,33 @@ namespace EventPi.NetworkMonitor.Cli
                 }
                 else Console.WriteLine($"Wifi network '{ssid}' found.");
 
-                var r = await network.Setup(pwd, ssid + "-connection");
-                Console.WriteLine($"Connection: {r.FileName} created.");
+                //var r = await network.Setup(pwd, ssid + "-connection");
+                //Console.WriteLine($"Connection: {r.FileName} created.");
+            } 
+            else if(args.Length == 3 && args[0] == "connection" && args[1] == "up")
+            {
+                var connection = args[2];
+                await using var client = await NetworkManagerClient.Create();
+                await client.ActivateConnection(connection);
+                Console.WriteLine($"Connection is up: {connection}");
+            }
+            else if (args.Length == 3 && args[0] == "connection" && args[1] == "down")
+            {
+                var connection = args[2];
+
+                await using var client = await NetworkManagerClient.Create();
+                await client.DisableConnection(connection);
+
+                Console.WriteLine($"Connection is down: {connection}");
+            }
+            else if (args.Length == 3 && args[0] == "connection" && args[1] == "check")
+            {
+                var connection = args[2];
+
+                await using var client = await NetworkManagerClient.Create();
+                var st = (await client.IsConnectionActive(connection)) ? "up" : "down";
+
+                Console.WriteLine($"Connection: {connection} is {st}");
             }
         }
     }
