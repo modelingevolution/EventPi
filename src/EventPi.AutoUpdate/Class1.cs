@@ -9,10 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using Renci.SshNet;
 using System;
-using System.Collections.ObjectModel;
 using System.Diagnostics.Metrics;
 
 namespace EventPi.AutoUpdate
@@ -222,30 +220,6 @@ namespace EventPi.AutoUpdate
         }
     }
     public record DeploymentState(string Version, DateTime Updated) { }
-    public class DockerComposeConfigurationRepository
-    {
-        private readonly ObservableCollection<DockerComposeConfiguration> _items = new();
-        private readonly IConfiguration configuration;
-
-        public DockerComposeConfigurationRepository(IConfiguration configuration)
-        {
-            this.configuration = configuration;
-            ChangeToken.OnChange(() => this.configuration.GetReloadToken(), this.OnConfigurationReloaded);
-            var tmp = configuration.GetSection("Packages").Get<DockerComposeConfiguration[]>() ?? Array.Empty<DockerComposeConfiguration>();
-            foreach (var i in tmp) _items.Add(i);
-        }
-
-        private void OnConfigurationReloaded()
-        {
-            var items = configuration.GetSection("Packages").Get<DockerComposeConfiguration[]>();
-            foreach (var i in _items) i.Dispose();
-            _items.Clear();
-            foreach (var i in items) _items.Add(i);
-        }
-
-        public IReadOnlyList<DockerComposeConfiguration> GetPackages() => _items;
-
-    }
     public class UpdateProcessManager(DockerComposeConfigurationRepository repo, UpdateHost host, ILogger<UpdateProcessManager> logger)
     {        
         public async Task UpdateAll()
