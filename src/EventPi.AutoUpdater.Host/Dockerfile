@@ -39,8 +39,8 @@ RUN set -eux; \
     chmod +x /usr/local/bin/docker-compose
 
 WORKDIR /app
-EXPOSE 8080
-
+EXPOSE 5000
+VOLUME /data
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
@@ -62,6 +62,4 @@ RUN dotnet publish "./EventPi.AutoUpdater.Host.csproj" -c $BUILD_CONFIGURATION -
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-
-VOLUME /data
 ENTRYPOINT ["dotnet", "EventPi.AutoUpdater.Host.dll"]
