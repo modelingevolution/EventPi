@@ -21,7 +21,6 @@ public partial class WeldingRecognitionProvider(IPlumber plumber, IEnvironment e
     private ISubscriptionRunner _camProfileDefaultSub;
     private ISubscriptionRunner _camProfileWeldingtSub;
     private ISubscriptionRunner _camProfileDefaultSubOnStart;
-    private bool _isInitializedDefaultProfile;
     public CameraProfileModel Default { get; } = new();
     public CameraProfileModel Welding { get; } = new();
     
@@ -42,14 +41,11 @@ public partial class WeldingRecognitionProvider(IPlumber plumber, IEnvironment e
     }
     private async Task Given(Metadata m, CameraProfile ev)
     {
-        if(!_isInitializedDefaultProfile)
-        {
-            await Task.Delay(5000);
-            _isInitializedDefaultProfile= true;
-            var camParams = new SetCameraParameters();
-            await bus.SendAsync(CameraParametersState.StreamId(env.HostName), camParams.CopyFrom(ev));
-        }
+       await Task.Delay(5000);
+       var camParams = new SetCameraParameters();
+       await bus.SendAsync(CameraParametersState.StreamId(env.HostName), camParams.CopyFrom(ev));
        
+       await _camProfileDefaultSubOnStart.DisposeAsync();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
