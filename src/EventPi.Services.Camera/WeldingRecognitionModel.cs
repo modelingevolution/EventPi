@@ -41,11 +41,15 @@ public partial class WeldingRecognitionProvider(IPlumber plumber, IEnvironment e
     }
     private async Task Given(Metadata m, CameraProfile ev)
     {
-       await Task.Delay(5000);
-       var camParams = new SetCameraParameters();
-       await bus.SendAsync(CameraParametersState.StreamId(env.HostName), camParams.CopyFrom(ev));
-       
-       await _camProfileDefaultSubOnStart.DisposeAsync();
+        await _camProfileDefaultSubOnStart.DisposeAsync();
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(5000);
+            var camParams = new SetCameraParameters();
+            await bus.SendAsync(CameraParametersState.StreamId(env.HostName), camParams.CopyFrom(ev));
+        });
+      
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
