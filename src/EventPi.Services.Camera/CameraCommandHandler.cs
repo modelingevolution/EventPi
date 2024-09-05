@@ -25,11 +25,11 @@ public static class CameraConfiguration
 
     public static string GetCameraSimulatorPath(this IConfiguration configuration) =>
         configuration.GetValue<string>(CameraSimulatorPathKey) ?? "cam-simulator";
-    public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort()}";
+    public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration, int nr = 0) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort(nr)}";
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
         IPAddress.TryParse(configuration.GetValue<string>(LibCameraListenIpKey), out var p) ? p : IPAddress.Loopback;
     public static int GetLibCameraVideoListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LibCameraVideoListenPortKey) ?? 6000;
-    public static int GetLibCameraGrpcListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LibCameraGrpcListenPortKey) ?? 6500;
+    public static int GetLibCameraGrpcListenPort(this IConfiguration configuration, int nr=0) => (configuration.GetValue<int?>(LibCameraGrpcListenPortKey) ?? 6500) + nr;
     public const string CameraResolutionKey = "CameraResolution";
 
     public const string CameraSimulatorPathKey = "CameraSimulatorPath";

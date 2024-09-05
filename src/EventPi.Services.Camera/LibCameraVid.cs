@@ -7,6 +7,43 @@ using Microsoft.Extensions.Logging;
 
 namespace EventPi.Services.Camera;
 
+interface IProcessUtils
+{
+    int GetParentProcessId(int pid);
+}
+static class ProcessUtils
+{
+    public static IProcessUtils Utils { get; private set; }
+    static ProcessUtils()
+    {
+#if WINDOWS
+        Utils = new WinProcessUtils();
+#else
+        Utils = new LinuxProcessUtils();
+#endif
+
+    }
+}
+class LinuxProcessUtils : IProcessUtils
+{
+    public int GetParentProcessId(int pid)
+    {
+
+        string statFilePath = $"/proc/{pid}/stat";
+
+        if (!File.Exists(statFilePath))
+        {
+            throw new FileNotFoundException($"Stat file for process {pid} does not exist.");
+        }
+
+        string statFileContent = File.ReadAllText(statFilePath);
+        string[] statFileParts = statFileContent.Split(' ');
+
+        // The 4th field is the parent process ID (PPID)
+        int parentProcessId = int.Parse(statFileParts[3]);
+        return parentProcessId;
+    }
+}
 public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
 {
     public const string DefaultPath = "/usr/local/bin/rocketwelder-vid";
@@ -24,20 +61,26 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
         _runningApp = null;
     }
 
-    public bool KillAll()
+    public bool KillAlients()
     {
         var name = Path.GetFileName(_appName);
         bool killed = false;
+        var cPid = Process.GetCurrentProcess().Id;
         foreach (var i in Process.GetProcessesByName(name))
         {
-            i.Kill();
+            if(ProcessUtils.Utils.GetParentProcessId(i.Id) != cPid)
+                i.Kill();
             killed = true;
         }
         return killed;
     }
     public async Task<int> Start(Resolution resolution, VideoCodec codec, string tuningFilePath,
-        VideoTransport transport, IPAddress? listenAddress = null, int listenPort = 6000,
-        string grpcListenAddress = "127.0.0.1:6500", string shmName = "default", int? cameraNr = null)
+        VideoTransport transport, 
+        IPAddress? listenAddress = null, 
+        int listenPort = 6000,
+        string grpcListenAddress = "127.0.0.1:6500", 
+        string shmName = "default", 
+        int? cameraNr = null)
     {
         if (_runningApp != null) throw new InvalidOperationException();
         if(!File.Exists(tuningFilePath)) throw new FileNotFoundException($"Tuning file not found at {tuningFilePath} !");

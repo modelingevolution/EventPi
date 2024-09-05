@@ -114,7 +114,12 @@ public class CameraSimulatorProcess : IDisposable
 public class LibCameraProcess(IConfiguration configuration, 
     IServiceProvider sp, ILogger<LibCameraProcess> log)
 {
-    public async Task Start(VideoCodec? codec = null, VideoTransport? vt = null, Resolution? res = null, bool killAll = true, string? shmName = null)
+    public async Task Start(VideoCodec? codec = null, 
+        VideoTransport? vt = null, 
+        Resolution? res = null, 
+        bool killAll = true, 
+        string? shmName = null, 
+        int nr = 0)
     {
         var transport = vt ?? VideoTransport.Shm;
         var resolution = res ?? configuration.GetCameraResolution();
@@ -122,15 +127,19 @@ public class LibCameraProcess(IConfiguration configuration,
         var videoCodec = codec ?? VideoCodec.Mjpeg;
 
         var vid = new LibCameraVid(sp.GetRequiredService<ILogger<LibCameraVid>>(), libCameraPath);
-        if (killAll && vid.KillAll()) 
+        if (killAll && vid.KillAlients()) 
             await Task.Delay(1000);
-        
+
+        if (shmName == null)
+            shmName = nr == 0 ? "default" : "default_" + nr;
+
         var p = await vid.Start(resolution, videoCodec, 
             configuration.GetLibCameraTuningPath(), 
             transport,
             configuration.GetLibCameraListenIp(),
             configuration.GetLibCameraVideoListenPort(),
-            configuration.GetLibcameraGrpcFullListenAddress(), shmName ?? "default");
+            configuration.GetLibcameraGrpcFullListenAddress(nr), shmName);
+
         log.LogInformation($"libcamera-vid started, pid: {p}");
     }
 }

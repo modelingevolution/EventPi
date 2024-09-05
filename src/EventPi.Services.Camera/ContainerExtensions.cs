@@ -22,17 +22,17 @@ public static class ContainerExtensions
     public static IServiceCollection AddCameraConfiguration(this IServiceCollection services, IConfiguration config, bool disableAutostart = false)
     {
         services.AddSingleton<GrpcCppCameraProxy>();
-        services.AddSingleton<WeldingRecognitionService>();
+        services.AddTransient<WeldingRecognitionService>();
         services.AddSingleton<FrameFeatureAccessor>();
         services.AddSingleton<FeaturePerformanceInfo>();
-        services.AddSingleton<CameraProfileConfigurationModel>( );
+        //services.AddSingleton<CameraProfileConfigurationModel>( );
        // services.AddSingleton<GrpcFrameFeaturesService>();
         services.AddSingleton<WeldingRecognitionCommandHandler>();
         services.AddSingleton<WeldingRecognitionModel>();
         services.AddSingleton<CameraCommandHandler>();
         services.AddCommandHandler<CameraCommandHandler>();
         services.AddCommandHandler<WeldingRecognitionCommandHandler>();
-        services.AddStateEventHandler<CameraProfileConfigurationModel>();
+        //services.AddStateEventHandler<CameraProfileConfigurationModel>();
         services.AddStateEventHandler<WeldingRecognitionModel>();
         if(!disableAutostart)
             services.WhenUnix(services => services.AddHostedService<LibCameraStarter>());

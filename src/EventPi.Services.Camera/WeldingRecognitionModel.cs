@@ -5,18 +5,10 @@ using MicroPlumberd;
 using Microsoft.Extensions.Hosting;
 
 namespace EventPi.Services.Camera;
-
 [EventHandler]
-public partial class CameraProfileModel
-{
-    public CameraProfile Profile { get; private set; }
-    private async Task Given(Metadata m, CameraProfile ev)
-    {
-        Profile = ev;
-    }
-}
-[EventHandler]
-public partial class WeldingRecognitionProvider(IPlumber plumber, IEnvironment env, ICommandBus bus) : BackgroundService
+public partial class WeldingRecognitionProvider(IPlumber plumber, 
+    IEnvironment env, 
+    ICommandBus bus) : BackgroundService
 {
     private ISubscriptionRunner _camProfileDefaultSub;
     private ISubscriptionRunner _camProfileWeldingtSub;

@@ -9,36 +9,36 @@ namespace EventPi.Services.Camera;
 
 
 
-[EventHandler]
-public partial class CameraProfileConfigurationModel
-{
-    private ICameraParametersReadOnly _weldingProfile;
-    private ICameraParametersReadOnly _defaultProfile;
+//[EventHandler]
+//public partial class CameraProfileConfigurationModel
+//{
+//    private ICameraParametersReadOnly _weldingProfile;
+//    private ICameraParametersReadOnly _defaultProfile;
 
-    public ICameraParametersReadOnly WeldingProfile => _weldingProfile;
+//    public ICameraParametersReadOnly WeldingProfile => _weldingProfile;
 
-    public ICameraParametersReadOnly DefaultProfile => _defaultProfile;
+//    public ICameraParametersReadOnly DefaultProfile => _defaultProfile;
  
-    public CameraProfileConfigurationModel()
-    {
-        _weldingProfile = new SetCameraParameters();
-        _defaultProfile = new SetCameraParameters();
-    }
+//    public CameraProfileConfigurationModel()
+//    {
+//        _weldingProfile = new SetCameraParameters();
+//        _defaultProfile = new SetCameraParameters();
+//    }
 
-    private async Task Given(Metadata m, CameraProfile ev)
-    {
-        var id = m.StreamId<HostProfilePath>();
-        var profile = new CameraConfigurationProfile(ev);
+//    private async Task Given(Metadata m, CameraProfile ev)
+//    {
+//        var id = m.StreamId<HostProfilePath>();
+//        var profile = new CameraConfigurationProfile(ev);
 
-        if (id.ProfileName.Equals("welding", StringComparison.InvariantCultureIgnoreCase))
-        {
-            _weldingProfile = profile;
-        }
-        else
-        {
-            _defaultProfile = profile;
-        }
+//        if (id.ProfileName.Equals("welding", StringComparison.InvariantCultureIgnoreCase))
+//        {
+//            _weldingProfile = profile;
+//        }
+//        else
+//        {
+//            _defaultProfile = profile;
+//        }
         
-    }
+//    }
 
-}
+//}

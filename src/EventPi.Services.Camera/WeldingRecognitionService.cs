@@ -28,15 +28,14 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     public int BrightOffset { get; set; }
     public int DarkOffset { get;  set; }
 
-
     public ICameraParametersReadOnly CurrentAppliedProfile { get; private set; }
-
 
     public int Every => 1;
 
-
-
-    public WeldingRecognitionService(WeldingRecognitionProvider profileProvider,  ILogger<WeldingRecognitionService> logger,GrpcCppCameraProxy proxy,  WeldingRecognitionModel model, CameraProfileConfigurationModel cameraModel)
+    public WeldingRecognitionService(WeldingRecognitionProvider profileProvider, 
+        ILogger<WeldingRecognitionService> logger,
+        GrpcCppCameraProxy proxy, 
+        WeldingRecognitionModel model)
     {
         CurrentAppliedProfile = new CameraProfile();
         _cts = new CancellationTokenSource();
@@ -45,15 +44,18 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         _profileProvider = profileProvider;
 
         _proxy = proxy;
-        
 
         _bufferBrightPixels = new CircularBuffer<int>(3);
         _bufferDarkPixels = new CircularBuffer<int>(3);
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
-        _ = Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
+        
        
     }
-
+    public void Init()
+    {
+        _logger.LogInformation("Welding recognition service initialzied.");
+        _ = Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
+    }
     private async Task OnSendCommand()
     {
         try
@@ -80,7 +82,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         if(Interlocked.Increment(ref isRunning) > 1)
         {
             Interlocked.Decrement(ref isRunning);
-            Debug.WriteLine("Skipping welding profile detection");
+            //Debug.WriteLine("Skipping welding profile detection");
             return;
         }
 
