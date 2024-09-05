@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 using static System.Net.WebRequestMethods;
+using Emgu.CV.Ocl;
 
 //TODO: refactor explicit metody
 
@@ -19,20 +20,27 @@ namespace EventPi.Services.Camera
 {
     public class GrpcCppCameraProxy : IDisposable
     {
-        private readonly GrpcChannel _toCppChannel;
+
+        private readonly Dictionary<int, GrpcChannel> _channels = new();
         private readonly ILogger<GrpcCppCameraProxy> _logger;
-        
+        private readonly IConfiguration _config;
         public GrpcCppCameraProxy(ILogger<GrpcCppCameraProxy> logger, IConfiguration config)
         {
+            this._config = config;
             _logger = logger;
-            _toCppChannel = GrpcChannel.ForAddress("http://"+config.GetLibcameraGrpcFullListenAddress());
+        }
+        private GrpcChannel GetClient(int cameraNr = 0)
+        {
+            if(_channels.TryGetValue(cameraNr, out GrpcChannel channel)) return channel;
+            var ch = GrpcChannel.ForAddress($"http://{_config.GetLibcameraGrpcFullListenAddress(cameraNr)}");
+            _channels.Add(cameraNr, ch);
+            return ch;
         }
 
-      
-       
-        public async Task<Empty> ProcessAsync(SetCameraHistogramFilter ev)
+
+        public async Task<Empty> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0)
         {
-            var client = new CameraConfigurator.CameraConfigurator.CameraConfiguratorClient(_toCppChannel);
+            var client = new CameraConfigurator.CameraConfigurator.CameraConfiguratorClient(GetClient(cameraNr));
 
             try
             {
@@ -51,11 +59,11 @@ namespace EventPi.Services.Camera
         return new Empty();
 
         }
-        public async Task<bool> GreetWithRpiCam()
+        public async Task<bool> GreetWithRpiCam(int camNr = 0)
         {
             try
             {
-                var clientOptions = new CameraGreeter.CameraGreeter.CameraGreeterClient(_toCppChannel);
+                var clientOptions = new CameraGreeter.CameraGreeter.CameraGreeterClient(GetClient(camNr));
                 var result = clientOptions.ProcessAsync(new Empty()).GetAwaiter().GetResult();
 
                 if (result.Config == "Hello!")
@@ -70,18 +78,14 @@ namespace EventPi.Services.Camera
             return false;
 
         }
-        public async Task<Empty> ProcessAsync(CameraConfigurationProfile ev)
-        {
-            
-            return new Empty();
-        }
-        public async Task<Empty> ProcessAsync(ICameraParameters ev)
+   
+        public async Task<Empty> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
         {
             _logger.LogInformation("Trying to set parameters to camera...");
 
             try
             {
-                var clientOptions = new CameraOptions.CameraOptions.CameraOptionsClient(_toCppChannel);
+                var clientOptions = new CameraOptions.CameraOptions.CameraOptionsClient(GetClient(cameraNr));
                 await clientOptions.ProcessAsync(new CameraOptionsRequest()
                 {
                     AnologueGain = ev.AnalogueGain,
@@ -102,7 +106,7 @@ namespace EventPi.Services.Camera
 
             try
             {
-                var clientShutter = new CameraShutter.CameraShutter.CameraShutterClient(_toCppChannel);
+                var clientShutter = new CameraShutter.CameraShutter.CameraShutterClient(GetClient(cameraNr));
                 await clientShutter.ProcessAsync(new ConfigureShutterRequest()
                 {
                     Shutter = ev.Shutter,
@@ -118,7 +122,7 @@ namespace EventPi.Services.Camera
             try
             {
                 var clientAutoHistogram =
-                    new CameraAutoHistogram.CameraAutoHistogram.CameraAutoHistogramClient(_toCppChannel);
+                    new CameraAutoHistogram.CameraAutoHistogram.CameraAutoHistogramClient(GetClient(cameraNr));
                 await clientAutoHistogram.ProcessAsync(new CameraAutoHistogramRequest()
                 {
                     EnableAutoHistogram = ev.AutoHistogramEnabled
@@ -135,7 +139,8 @@ namespace EventPi.Services.Camera
 
         public void Dispose()
         {
-            _toCppChannel.Dispose();
+            foreach(var v in _channels.Values)
+                v.Dispose();
         }
     }
 }

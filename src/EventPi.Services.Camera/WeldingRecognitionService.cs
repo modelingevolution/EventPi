@@ -8,6 +8,7 @@ using ModelingEvolution.VideoStreaming;
 using System.Drawing;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Net;
 
 namespace EventPi.Services.Camera;
 
@@ -51,8 +52,10 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         
        
     }
-    public void Init()
+    private VideoAddress _address;
+    public void Init(VideoAddress va)
     {
+        _address = va;
         _logger.LogInformation("Welding recognition service initialzied.");
         _ = Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
     }
@@ -63,7 +66,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
             while (!_cts.IsCancellationRequested)
             {
                 var cmd = await _channel.Reader.ReadAsync(_cts.Token);
-                await _proxy.ProcessAsync(cmd);
+                await _proxy.ProcessAsync(cmd, _address.CameraNumber ?? 0);
             }
         }
         catch (OperationCanceledException) { }
