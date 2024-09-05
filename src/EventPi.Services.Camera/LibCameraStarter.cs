@@ -138,7 +138,7 @@ public class LibCameraProcess(IConfiguration configuration,
             transport,
             configuration.GetLibCameraListenIp(),
             configuration.GetLibCameraVideoListenPort(),
-            configuration.GetLibcameraGrpcFullListenAddress(nr), shmName);
+            configuration.GetLibcameraGrpcFullListenAddress(nr), shmName, nr);
 
         log.LogInformation($"libcamera-vid started, pid: {p}");
     }
