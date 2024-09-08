@@ -18,7 +18,7 @@ public interface ICameraParametersReadOnly
 public interface ICameraParameters
 {
      int Shutter { get; set; }
-
+   
     HdrModeEnum HdrMode{ get; set; }
     ColormapTypes ColorMap{ get; set; }
     float ExposureLevel { get; set; }

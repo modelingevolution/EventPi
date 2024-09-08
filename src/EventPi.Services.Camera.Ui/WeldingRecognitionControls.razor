@@ -52,6 +52,9 @@
     [Parameter]
     public string HostName { get; set; }
 
+    [Parameter]
+    public int CameraNr { get; set; }
+
     private bool _isConnectedViaGrpcToRpiCam = false;
 
     private int _brightPixels;
@@ -69,14 +72,18 @@
     protected override async Task OnInitializedAsync()
     {
         _isConnectedViaGrpcToRpiCam = await _proxy.GreetWithRpiCam();
-     //   _grpcFrameService.OnFrameFeaturesAppeared += OnChangeFrameParams;
+        //   _grpcFrameService.OnFrameFeaturesAppeared += OnChangeFrameParams;
 
         _profileWeldingVm = _profileRegister.Get($"{HostName}/welding");
         _profileNonWeldingVm = _profileRegister.Get($"{HostName}/default");
-        _vm = _vmRegister.Get($"{HostName}");
+        
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        _vm = _vmRegister.Get($"{HostName}/{CameraNr}");
         _cmd = _vm.SetWeldingRecognitionConfiguration;
-  
-        await _vm.Initialize(HostName);
+
+        await _vm.Initialize(HostName, CameraNr);
     }
 
     private async Task OnSwitchToWeldingProfile()

@@ -82,9 +82,9 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
         await plumber.AppendState(ev, hostProfilePath);
     }
 
-    public async Task Handle(HostName hostName, SetCameraParameters cmd)
+    public async Task Handle(CameraAddress addr, SetCameraParameters cmd)
     {
-        await proxy.ProcessAsync(cmd);
+        await proxy.ProcessAsync(cmd, addr.CameraNumber);
         var ev = new CameraParametersState()
         {
             Brightness = cmd.Brightness,
@@ -99,7 +99,7 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
             HdrMode = cmd.HdrMode,
             AutoHistogramEnabled = cmd.AutoHistogramEnabled
         };
-        await plumber.AppendState(ev, hostName);
+        await plumber.AppendState(ev, addr);
     }
 
 

@@ -6,7 +6,8 @@ using MicroPlumberd;
 namespace EventPi.Services.Camera.Contract;
 
 [OutputStream("Camera")]
-public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, ICameraParametersReadOnly
+public record SetCameraParameters
+    : ICameraParameters, INotifyPropertyChanged, ICameraParametersReadOnly
 {
     public SetCameraParameters()
     {
@@ -37,7 +38,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
         get => _hdrMode;
         set => SetField(ref _hdrMode, value);
     }
-
+    
     [Range(1, 40000)]
     public int Shutter
     {
@@ -134,6 +135,7 @@ public record SetCameraParameters : ICameraParameters, INotifyPropertyChanged, I
         _redGain = src.RedGain;
         _shutter = src.Shutter;
         _autoHistogramEnabled = src.AutoHistogramEnabled;
+        
         if(raiseChange)
             this.OnPropertyChanged();
         return this;

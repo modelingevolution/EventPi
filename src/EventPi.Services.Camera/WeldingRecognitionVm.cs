@@ -6,12 +6,14 @@ using System.Threading.Channels;
 using EventPi.Abstractions;
 
 namespace EventPi.Services.Camera;
+
 [EventHandler]
 public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDisposable
 {
     private readonly ICommandBus _bus;
     private bool _initialized;
     private string _hostName;
+    private int _cameraNr;
     private WeldingRecognitionConfigurationState? _prv;
     private SetWeldingRecognitionConfiguration _setWeldingRecognitionConfiguration = new SetWeldingRecognitionConfiguration();
     private DefineWeldingRecognitionConfiguration _defineWeldingRecognitionConfiguration = new DefineWeldingRecognitionConfiguration();
@@ -39,7 +41,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
             {
                 var cmd = await _channel.Reader.ReadAsync(_cts.Token);
                 if (_hostName != null)
-                    await _bus.SendAsync(WeldingRecognitionConfigurationState.StreamId(_hostName), cmd);
+                    await _bus.SendAsync(WeldingRecognitionConfigurationState.StreamId(_hostName, _cameraNr), cmd);
             }
         }
         catch (OperationCanceledException) { }
@@ -69,18 +71,19 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
         OnPropertyChanged("Command");
     }
 
-    public async Task Initialize(string hostName)
+    public async Task Initialize(string hostName, int cameraNr)
     {
         if (_initialized)
         {
-            if (_hostName != hostName)
+            if (_hostName != hostName && _cameraNr != cameraNr)
                 throw new InvalidOperationException();
             return;
         }
         _hostName = hostName;
+        _cameraNr = cameraNr;
         _initialized = true;
 
-        await(_weldingRecognitionConfigSub = _plumber.Subscribe(WeldingRecognitionConfigurationState.FullStreamName(HostName.From(_hostName)), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
+        await(_weldingRecognitionConfigSub = _plumber.Subscribe(WeldingRecognitionConfigurationState.FullStreamName(HostName.From(_hostName), _cameraNr), FromRelativeStreamPosition.End - 1, cancellationToken: _cts.Token))
             .WithSnapshotHandler(this);
     }
 

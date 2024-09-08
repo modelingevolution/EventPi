@@ -3,7 +3,8 @@ using System.Text.Json.Serialization;
 namespace EventPi.Abstractions;
 
 [JsonConverter(typeof(JsonParsableConverter<HostName>))]
-public readonly struct HostName : IEquatable<HostName>, IComparable<HostName>, IComparable, IParsable<HostName>
+public readonly struct HostName : IEquatable<HostName>, IComparable<HostName>, 
+    IComparable, IParsable<HostName>
 {
     public static readonly HostName Empty = new HostName(string.Empty);
     public static readonly HostName Localhost = new HostName("localhost");
@@ -42,7 +43,7 @@ public readonly struct HostName : IEquatable<HostName>, IComparable<HostName>, I
         return obj is HostName other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(HostName)}");
     }
 
-    public static HostName Parse(string s, IFormatProvider? provider)
+    public static HostName Parse(string s, IFormatProvider? provider = null)
     {
         return HostName.From(s);
     }
