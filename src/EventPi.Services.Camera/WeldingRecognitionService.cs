@@ -92,7 +92,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 
     public void Handle(YuvFrame frame, YuvFrame? prv, ulong seq, CancellationToken token, object st)
     {
-        Console.Write("0");
+        //Console.Write("0");
         // Making sure we are not processing in parallel.
         if(Interlocked.Increment(ref isRunning) > 1)
         {
@@ -112,7 +112,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         {
             _count0 = count;
             Interlocked.Decrement(ref isRunning);
-            Console.Write("Exit prv");
+            //Console.Write("Exit prv");
             return;
         }
         
@@ -129,7 +129,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         if (!_model.DetectionEnabled)
         {
             Interlocked.Decrement(ref isRunning);
-            Console.WriteLine("D");
+            //Console.WriteLine("D");
             return;
         }
 
@@ -146,11 +146,11 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
                 CurrentAppliedProfile = camParams;
                 _channel.Writer.TryWrite(camParams);
 
-                Console.WriteLine("Welding detected");
+                //Console.WriteLine("Welding detected");
             } 
             else
             {
-                Console.WriteLine($"avg ({avg}) < _model.WeldingBound*0.01*areaSizeInPixels");
+                //Console.WriteLine($"avg ({avg}) < _model.WeldingBound*0.01*areaSizeInPixels");
             }
         }
         else
@@ -167,14 +167,14 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
                 camParams.CopyFrom(_profileProvider.Default.Profile);
                 CurrentAppliedProfile = camParams;
                 _channel.Writer.TryWrite(camParams);
-                Console.WriteLine("Welding not detected");
+                //Console.WriteLine("Welding not detected");
             } else
             {
-                Console.WriteLine($"avg ({avg}) > _model.NonWeldingBound*0.01*areaSizeInPixels");
+                //Console.WriteLine($"avg ({avg}) > _model.NonWeldingBound*0.01*areaSizeInPixels");
             }
         }
         Interlocked.Decrement(ref isRunning);
-        Console.WriteLine("Done");
+        //Console.WriteLine("Done");
     }
 
     public void Dispose()
