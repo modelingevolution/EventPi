@@ -85,11 +85,18 @@ namespace EventPi.Services.Camera
             if(cameraNr == -1)
             {
                 for (int i = 0; i < CameraCount; i++)
-                    await ProcessAsync(ev, i);
+                    try
+                    {
+                        await ProcessAsync(ev, i);
+                    }
+                    catch(Exception ex)
+                    {
+                        _logger.LogError(ex,$"Couldn't process camera at: {i}");
+                    }
                 return new Empty();
             }
 
-            _logger.LogInformation("Trying to set parameters to camera...");
+            _logger.LogInformation($"Trying to set parameters to camera {cameraNr}.");
 
             try
             {
