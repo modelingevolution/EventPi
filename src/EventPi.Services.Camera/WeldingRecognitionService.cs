@@ -9,13 +9,16 @@ using System.Drawing;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Net;
+using MicroPlumberd;
 
 namespace EventPi.Services.Camera;
 
 public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 {
     private readonly ILogger<WeldingRecognitionService> _logger;
+    private readonly IEnvironment _env;
     private readonly CancellationTokenSource _cts;
+    private readonly IPlumber _plumber;
     private readonly GrpcCppCameraProxy _proxy;
     private readonly Channel<SetCameraParameters> _channel;
     private readonly CircularBuffer<int> _bufferBrightPixels;
@@ -33,23 +36,25 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 
     public int Every => 1;
 
-    public WeldingRecognitionService(WeldingRecognitionProvider profileProvider, 
+    public WeldingRecognitionService(
+        WeldingRecognitionProvider profileProvider, 
+        IPlumber plumber,
+        IEnvironment env,
         ILogger<WeldingRecognitionService> logger,
-        GrpcCppCameraProxy proxy, 
-        WeldingRecognitionModel model)
+        GrpcCppCameraProxy proxy)
     {
         CurrentAppliedProfile = new CameraProfile();
         _cts = new CancellationTokenSource();
+        _plumber = plumber;
         _logger = logger;
-        _model = model;
+        _env = env;
         _profileProvider = profileProvider;
-
+        _model = new WeldingRecognitionModel();
         _proxy = proxy;
 
         _bufferBrightPixels = new CircularBuffer<int>(3);
         _bufferDarkPixels = new CircularBuffer<int>(3);
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
-        
        
     }
     private VideoAddress _address;
@@ -57,6 +62,12 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     {
         _address = va;
         _logger.LogInformation("Welding recognition service initialzied.");
+        
+        _plumber.SubscribeStateEventHandler(this._model, 
+            $"WeldingRecognition-{_env.HostName}/{va.CameraNumber}",
+            FromRelativeStreamPosition.End - 1,
+            false);
+
         _ = Task.Factory.StartNew(OnSendCommand, TaskCreationOptions.LongRunning);
     }
     private async Task OnSendCommand()

@@ -28,12 +28,12 @@ public static class ContainerExtensions
         //services.AddSingleton<CameraProfileConfigurationModel>( );
        // services.AddSingleton<GrpcFrameFeaturesService>();
         services.AddSingleton<WeldingRecognitionCommandHandler>();
-        services.AddSingleton<WeldingRecognitionModel>();
+        services.AddTransient<WeldingRecognitionModel>();
         services.AddSingleton<CameraCommandHandler>();
         services.AddCommandHandler<CameraCommandHandler>();
         services.AddCommandHandler<WeldingRecognitionCommandHandler>();
         //services.AddStateEventHandler<CameraProfileConfigurationModel>();
-        services.AddStateEventHandler<WeldingRecognitionModel>();
+        //services.AddStateEventHandler<WeldingRecognitionModel>();
         if(!disableAutostart)
             services.WhenUnix(services => services.AddHostedService<LibCameraStarter>());
         services.AddSingleton<CameraSimulatorProcess>();
