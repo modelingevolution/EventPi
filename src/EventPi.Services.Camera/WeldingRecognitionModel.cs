@@ -66,11 +66,13 @@ public partial class WeldingRecognitionModel
   
      private async Task Given(Metadata m, WeldingRecognitionConfigurationState ev)
     {
-        Console.WriteLine($"==> Welding recognition model state: {ev.DetectionEnabled}");
+        
         WeldingBound = ev.WeldingValue;
         NonWeldingBound = ev.NonWeldingValue;
         DetectionEnabled = ev.DetectionEnabled;
         DarkPixelsBorder = ev.DarkPixelsBorder;
         BrightPixelsBorder = ev.BrightPixelsBorder;
+        Console.WriteLine($"==> Welding recognition model: WeldingBound: {WeldingBound}, " +
+            $"Non: {NonWeldingBound}, Dark: {DarkBrightPixels}, Bright: {BrightPixelsBorder}, Enabled: {this.DetectionEnabled}");
     }
 }

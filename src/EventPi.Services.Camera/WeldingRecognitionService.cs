@@ -112,7 +112,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         {
             _count0 = count;
             Interlocked.Decrement(ref isRunning);
-            Console.Write("1 ");
+            Console.Write("Exit prv");
             return;
         }
         
@@ -135,7 +135,8 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 
         if (!IsWelding)
         {
-            if (_bufferBrightPixels.Average() > _model.WeldingBound*0.01*areaSizeInPixels)
+            var avg = _bufferBrightPixels.Average();
+            if (avg > _model.WeldingBound*0.01*areaSizeInPixels)
             {
                 _logger.LogInformation("Welding detected");
                 IsWelding = true;
@@ -144,12 +145,19 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
                 camParams.CopyFrom(_profileProvider.Welding.Profile);
                 CurrentAppliedProfile = camParams;
                 _channel.Writer.TryWrite(camParams);
+
+                Console.WriteLine("Welding detected");
+            } 
+            else
+            {
+                Console.WriteLine($"avg ({avg}) < _model.WeldingBound*0.01*areaSizeInPixels")
             }
         }
         else
         {
             // It must be welding
-            if (_bufferDarkPixels.Average() > _model.NonWeldingBound*0.01*areaSizeInPixels)
+            var avg = _bufferDarkPixels.Average()
+            if (avg > _model.NonWeldingBound*0.01*areaSizeInPixels)
             {
                 _logger.LogInformation("Welding not detected");
                 _logger.LogInformation($"OnDetectWelding: {px}");
@@ -159,9 +167,14 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
                 camParams.CopyFrom(_profileProvider.Default.Profile);
                 CurrentAppliedProfile = camParams;
                 _channel.Writer.TryWrite(camParams);
+                Console.WriteLine("Welding not detected");
+            } else
+            {
+                Console.WriteLine($"avg ({avg}) > _model.NonWeldingBound*0.01*areaSizeInPixels")
             }
         }
         Interlocked.Decrement(ref isRunning);
+        Console.WriteLine("Done");
     }
 
     public void Dispose()
