@@ -33,6 +33,7 @@ namespace EventPi.Services.Camera
         private GrpcChannel GetClient(int cameraNr = 0)
         {
             if(_channels.TryGetValue(cameraNr, out GrpcChannel channel)) return channel;
+            
             var ch = GrpcChannel.ForAddress($"http://{_config.GetLibcameraGrpcFullListenAddress(cameraNr)}");
             _channels.Add(cameraNr, ch);
             return ch;

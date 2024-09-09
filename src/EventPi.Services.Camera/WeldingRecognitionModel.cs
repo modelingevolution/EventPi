@@ -66,7 +66,7 @@ public partial class WeldingRecognitionModel
   
      private async Task Given(Metadata m, WeldingRecognitionConfigurationState ev)
     {
-        Console.WriteLine("==> Welding recognition model state");
+        Console.WriteLine($"==> Welding recognition model state: {ev.DetectionEnabled}");
         WeldingBound = ev.WeldingValue;
         NonWeldingBound = ev.NonWeldingValue;
         DetectionEnabled = ev.DetectionEnabled;

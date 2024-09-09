@@ -92,7 +92,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 
     public void Handle(YuvFrame frame, YuvFrame? prv, ulong seq, CancellationToken token, object st)
     {
-        
+        Console.Write("0");
         // Making sure we are not processing in parallel.
         if(Interlocked.Increment(ref isRunning) > 1)
         {
@@ -112,6 +112,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         {
             _count0 = count;
             Interlocked.Decrement(ref isRunning);
+            Console.Write("1 ");
             return;
         }
         
@@ -128,6 +129,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         if (!_model.DetectionEnabled)
         {
             Interlocked.Decrement(ref isRunning);
+            Console.WriteLine("D");
             return;
         }
 
