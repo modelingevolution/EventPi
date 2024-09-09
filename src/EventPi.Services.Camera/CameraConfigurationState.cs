@@ -18,7 +18,6 @@ public record CameraConfigurationProfile : ICameraParametersReadOnly
         Brightness = ev.Brightness;
         Contrast = ev.Contrast;
         Sharpness = ev.Sharpness;
-        CameraId = ev.CameraId;
         HdrMode = ev.HdrMode;
         ColorMap = ev.ColorMap;
         ExposureLevel = ev.ExposureLevel;
@@ -38,7 +37,7 @@ public record CameraConfigurationProfile : ICameraParametersReadOnly
     public float Brightness { get; set; }
     public float Contrast { get; set; }
     public float Sharpness { get; set; }
-    public int CameraId { get; set; }
+    
     public float BlueGain { get; set; }
     public float RedGain { get; set; }
     public float AnalogueGain { get; set; }

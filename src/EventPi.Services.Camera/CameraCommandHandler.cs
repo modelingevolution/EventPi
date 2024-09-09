@@ -26,6 +26,8 @@ public static class CameraConfiguration
     public static string GetCameraSimulatorPath(this IConfiguration configuration) =>
         configuration.GetValue<string>(CameraSimulatorPathKey) ?? "cam-simulator";
     public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration, int nr = 0) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort(nr)}";
+
+    public static int GetLibCameraCameraCount(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraCount") ?? 1;
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
         IPAddress.TryParse(configuration.GetValue<string>(LibCameraListenIpKey), out var p) ? p : IPAddress.Loopback;
     public static int GetLibCameraVideoListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LibCameraVideoListenPortKey) ?? 6000;
@@ -84,7 +86,10 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
 
     public async Task Handle(CameraAddress addr, SetCameraParameters cmd)
     {
-        await proxy.ProcessAsync(cmd, addr.CameraNumber);
+        if(addr.CameraNumber.HasValue) 
+            await proxy.ProcessAsync(cmd, addr.CameraNumber.Value);
+        else
+            await proxy.ProcessAsync(cmd, -1);
         var ev = new CameraParametersState()
         {
             Brightness = cmd.Brightness,

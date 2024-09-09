@@ -37,7 +37,6 @@ public record CameraProfile : ICameraParametersReadOnly, IStatefulStream<HostPro
     public float Brightness { get; set; }
     public float Contrast { get; set; }
     public float Sharpness { get; set; }
-    public int CameraId { get; set; }
     public float BlueGain { get; set; }
     public float RedGain { get; set; }
     public float AnalogueGain { get; set; }

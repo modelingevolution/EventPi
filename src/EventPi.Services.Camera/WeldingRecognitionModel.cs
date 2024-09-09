@@ -12,7 +12,7 @@ public partial class WeldingRecognitionProvider(IPlumber plumber,
 {
     private ISubscriptionRunner _camProfileDefaultSub;
     private ISubscriptionRunner _camProfileWeldingtSub;
-    private ISubscriptionRunner _camProfileDefaultSubOnStart;
+    private ISubscriptionRunner? _camProfileDefaultSubOnStart;
     public CameraProfileModel Default { get; } = new();
     public CameraProfileModel Welding { get; } = new();
     
@@ -33,7 +33,9 @@ public partial class WeldingRecognitionProvider(IPlumber plumber,
     }
     private async Task Given(Metadata m, CameraProfile ev)
     {
+        if(_camProfileDefaultSubOnStart != null)
         await _camProfileDefaultSubOnStart.DisposeAsync();
+        _camProfileDefaultSubOnStart = null;
 
         _ = Task.Run(async () =>
         {

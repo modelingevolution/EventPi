@@ -29,6 +29,7 @@ namespace EventPi.Services.Camera
             this._config = config;
             _logger = logger;
         }
+        private int CameraCount { get => _config.GetLibCameraCameraCount(); }
         private GrpcChannel GetClient(int cameraNr = 0)
         {
             if(_channels.TryGetValue(cameraNr, out GrpcChannel channel)) return channel;
@@ -81,6 +82,13 @@ namespace EventPi.Services.Camera
    
         public async Task<Empty> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
         {
+            if(cameraNr == -1)
+            {
+                for (int i = 0; i < CameraCount; i++)
+                    await ProcessAsync(ev, i);
+                return new Empty();
+            }
+
             _logger.LogInformation("Trying to set parameters to camera...");
 
             try

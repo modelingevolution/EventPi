@@ -6,9 +6,14 @@ namespace EventPi.Abstractions;
 public readonly struct CameraAddress : IParsable<CameraAddress>, IEquatable<CameraAddress>
 {
     public HostName HostName { get; init; }
-    public int CameraNumber { get; init;  }
+    public int? CameraNumber { get; init;  }
 
-
+    public override string ToString()
+    {
+        if(CameraNumber != null)
+            return $"{HostName}/{CameraNumber}";
+        return HostName;
+    }
     public static CameraAddress Parse(string s, IFormatProvider? provider)
     {
         int b = s.LastIndexOf('/');
