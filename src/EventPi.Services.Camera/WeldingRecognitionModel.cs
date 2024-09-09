@@ -73,6 +73,6 @@ public partial class WeldingRecognitionModel
         DarkPixelsBorder = ev.DarkPixelsBorder;
         BrightPixelsBorder = ev.BrightPixelsBorder;
         Console.WriteLine($"==> Welding recognition model: WeldingBound: {WeldingBound}, " +
-            $"Non: {NonWeldingBound}, Dark: {DarkBrightPixels}, Bright: {BrightPixelsBorder}, Enabled: {this.DetectionEnabled}");
+            $"Non: {NonWeldingBound}, Dark: {DarkPixelsBorder}, Bright: {BrightPixelsBorder}, Enabled: {this.DetectionEnabled}");
     }
 }
