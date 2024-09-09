@@ -14,7 +14,7 @@ public readonly struct CameraAddress : IParsable<CameraAddress>, IEquatable<Came
             return $"{HostName}/{CameraNumber}";
         return HostName;
     }
-    public static CameraAddress Parse(string s, IFormatProvider? provider)
+    public static CameraAddress Parse(string s, IFormatProvider? provider = null)
     {
         int b = s.LastIndexOf('/');
         if (b == -1)
