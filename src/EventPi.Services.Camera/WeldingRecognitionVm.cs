@@ -55,7 +55,7 @@ public partial class WeldingRecognitionVm : INotifyPropertyChanged, IAsyncDispos
     public async Task Save()
     {
         var dto = _defineWeldingRecognitionConfiguration.CopyFrom(SetWeldingRecognitionConfiguration);
-        await _bus.SendAsync(_hostName, dto);
+        await _bus.SendAsync(new CameraAddress(_hostName, _cameraNr), dto);
     }
     public async Task Cancel()
     {
