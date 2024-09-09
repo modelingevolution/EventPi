@@ -62,7 +62,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     {
         _address = va;
         
-        var stream = $"WeldingRecognition-{_env.HostName}/{va.CameraNumber}";
+        var stream = $"WeldingRecognition-{_env.HostName}/{va.CameraNumber ?? 0}";
         _logger.LogInformation($"Welding recognition service initialzied. Subscrbing to: {stream}");
         _plumber.SubscribeStateEventHandler(this._model,
             stream,
