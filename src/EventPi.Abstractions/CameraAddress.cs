@@ -8,6 +8,16 @@ public readonly struct CameraAddress : IParsable<CameraAddress>, IEquatable<Came
     public HostName HostName { get; init; }
     public int? CameraNumber { get; init;  }
 
+    public CameraAddress()
+    {
+
+    }
+    public CameraAddress(string hostName, int? cameraNr)
+    {
+        this.HostName = HostName.Parse(hostName);
+        this.CameraNumber = cameraNr;
+    }
+
     public override string ToString()
     {
         if(CameraNumber != null)
