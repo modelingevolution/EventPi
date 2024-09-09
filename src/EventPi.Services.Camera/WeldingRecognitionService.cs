@@ -150,13 +150,13 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
             } 
             else
             {
-                Console.WriteLine($"avg ({avg}) < _model.WeldingBound*0.01*areaSizeInPixels")
+                Console.WriteLine($"avg ({avg}) < _model.WeldingBound*0.01*areaSizeInPixels");
             }
         }
         else
         {
             // It must be welding
-            var avg = _bufferDarkPixels.Average()
+            var avg = _bufferDarkPixels.Average();
             if (avg > _model.NonWeldingBound*0.01*areaSizeInPixels)
             {
                 _logger.LogInformation("Welding not detected");
@@ -170,7 +170,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
                 Console.WriteLine("Welding not detected");
             } else
             {
-                Console.WriteLine($"avg ({avg}) > _model.NonWeldingBound*0.01*areaSizeInPixels")
+                Console.WriteLine($"avg ({avg}) > _model.NonWeldingBound*0.01*areaSizeInPixels");
             }
         }
         Interlocked.Decrement(ref isRunning);
