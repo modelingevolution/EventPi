@@ -86,8 +86,6 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
 
     public async Task Handle(CameraAddress addr, SetCameraParameters cmd)
     {
-        return;
-
         if(addr.CameraNumber.HasValue) 
             await proxy.ProcessAsync(cmd, addr.CameraNumber.Value);
         else
