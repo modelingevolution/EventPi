@@ -61,10 +61,11 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     public void Init(VideoAddress va)
     {
         _address = va;
-        _logger.LogInformation("Welding recognition service initialzied.");
         
-        _plumber.SubscribeStateEventHandler(this._model, 
-            $"WeldingRecognition-{_env.HostName}/{va.CameraNumber}",
+        var stream = $"WeldingRecognition-{_env.HostName}/{va.CameraNumber}";
+        _logger.LogInformation($"Welding recognition service initialzied. Subscrbing to: {stream}");
+        _plumber.SubscribeStateEventHandler(this._model,
+            stream,
             FromRelativeStreamPosition.End - 1,
             false);
 
@@ -96,7 +97,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         if(Interlocked.Increment(ref isRunning) > 1)
         {
             Interlocked.Decrement(ref isRunning);
-            //Debug.WriteLine("Skipping welding profile detection");
+            _logger.LogWarning("Skipping welding profile detection");
             return;
         }
 
