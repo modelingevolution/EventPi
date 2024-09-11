@@ -96,10 +96,10 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     private readonly Rectangle _area;
     private volatile int isRunning = 0;
     private long _skippedFrames = 0;
-    private List<DarkBrightPixels> _tmp = new List<DarkBrightPixels>();
+
+    //private List<DarkBrightPixels> _tmp = new List<DarkBrightPixels>();
     public void Handle(YuvFrame frame, YuvFrame? prv, ulong seq, CancellationToken token, object st)
     {
-        //Console.Write("0");
         // Making sure we are not processing in parallel.
         if (Interlocked.Increment(ref isRunning) > 1)
         {
@@ -112,7 +112,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         r.Inflate(-400, -400);
 
         var count = frame.CountPixelsOutsideRange(20, 200, r);
-        _tmp.Add(count);
+        //_tmp.Add(count);
 
         if (prv == null)
         {
@@ -183,18 +183,18 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         }
         Interlocked.Decrement(ref isRunning);
         //Console.WriteLine("Done");
-        if ((seq % 30) == 0)
-        {
-            StringBuilder sb = new StringBuilder($"Camera: {_address.CameraNumber ?? 0}\nSkipped frames: {_skippedFrames}\n");
-            DarkBrightPixels tmp = new DarkBrightPixels();
-            var c = _tmp.Count;
-            for (int i = c - 1; i >= 0; i--)
-                tmp += _tmp[i];
+        //if ((seq % 30) == 0)
+        //{
+        //    StringBuilder sb = new StringBuilder($"Camera: {_address.CameraNumber ?? 0}\nSkipped frames: {_skippedFrames}\n");
+        //    DarkBrightPixels tmp = new DarkBrightPixels();
+        //    var c = _tmp.Count;
+        //    for (int i = c - 1; i >= 0; i--)
+        //        tmp += _tmp[i];
             
-            _tmp.Clear();
-            sb.AppendLine($"[{c}]: {tmp}");
-            Console.WriteLine(sb.ToString());
-        }
+        //    _tmp.Clear();
+        //    sb.AppendLine($"[{c}]: {tmp}");
+        //    Console.WriteLine(sb.ToString());
+        //}
     }
 
     public void Dispose()
