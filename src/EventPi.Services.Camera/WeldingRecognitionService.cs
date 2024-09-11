@@ -185,12 +185,14 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         //Console.WriteLine("Done");
         if ((seq % 30) == 0)
         {
-            StringBuilder sb = new StringBuilder($"Skipped frames: {_skippedFrames}");
-            for (int i = _tmp.Count - 1; i >= 0; i--)
-            {
-                sb.AppendLine($"[{i}]: {_tmp[i]}");
-            }
+            StringBuilder sb = new StringBuilder($"Camera: {_address.CameraNumber}\nSkipped frames: {_skippedFrames}\n");
+            DarkBrightPixels tmp = new DarkBrightPixels();
+            var c = _tmp.Count;
+            for (int i = c - 1; i >= 0; i--)
+                tmp += _tmp[i];
+            
             _tmp.Clear();
+            sb.AppendLine($"[{c}]: {tmp}");
             Console.WriteLine(sb.ToString());
         }
     }
@@ -242,6 +244,17 @@ public static class YuvFrameWeldingRecognitionUtils
 }
 public readonly record struct DarkBrightPixels(int DarkPixels, int BrightPixels)
 {
+
+    public static DarkBrightPixels operator +(DarkBrightPixels a, DarkBrightPixels b)
+    {
+        return new DarkBrightPixels(a.DarkPixels + b.DarkPixels, a.BrightPixels + b.BrightPixels);
+    }
+
+    public static DarkBrightPixels operator -(DarkBrightPixels a, DarkBrightPixels b)
+    {
+        return new DarkBrightPixels(a.DarkPixels - b.DarkPixels, a.BrightPixels - b.BrightPixels);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DarkBrightPixels Min(DarkBrightPixels a, DarkBrightPixels b)
     {
