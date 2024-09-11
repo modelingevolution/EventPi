@@ -185,7 +185,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         //Console.WriteLine("Done");
         if ((seq % 30) == 0)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder($"Skipped frames: {_skippedFrames}");
             for (int i = _tmp.Count - 1; i >= 0; i--)
             {
                 sb.AppendLine($"[{i}]: {_tmp[i]}");
