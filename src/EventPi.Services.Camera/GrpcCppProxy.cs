@@ -21,7 +21,7 @@ namespace EventPi.Services.Camera
     public interface ICameraManager : IDisposable
     {
         Task<Empty> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0);
-        Task<Empty> ProcessAsync(ICameraParameters ev, int cameraNr = 0);
+        Task<bool> ProcessAsync(ICameraParameters ev, int cameraNr = 0);
         Task<bool> GreetWithRpiCam(int camNr = 0);
         
     }
@@ -39,10 +39,10 @@ namespace EventPi.Services.Camera
             return new Empty();
         }
 
-        public async Task<Empty> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
+        public async Task<bool> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
         {
             logger.LogInformation($"Process async [{cameraNr}]: {ev}");
-            return new Empty();
+            return true;
         }
 
         public async Task<bool> GreetWithRpiCam(int camNr = 0)
@@ -116,25 +116,26 @@ namespace EventPi.Services.Camera
 
         }
    
-        public async Task<Empty> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
+        public async Task<bool> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
         {
-            if(cameraNr == -1)
+            if (cameraNr == -1)
             {
                 _logger.LogInformation($"Trying to set parameters to all {CameraCount} cameras.");
+                bool success = true;
                 for (int i = 0; i < CameraCount; i++)
                     try
                     {
-                        await ProcessAsync(ev, i);
+                        success &= await ProcessAsync(ev, i);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                        _logger.LogError(ex,$"Couldn't process camera at: {i}");
+                        _logger.LogError(ex, $"Couldn't process camera at: {i}");
                     }
-                return new Empty();
+
+                return success;
             }
 
-            _logger.LogInformation($"Trying to set parameters to camera {cameraNr}.");
-
+            bool error = false;
             try
             {
                 var clientOptions = new CameraOptions.CameraOptions.CameraOptionsClient(GetClient(cameraNr));
@@ -150,10 +151,12 @@ namespace EventPi.Services.Camera
                     Sharpness = ev.Sharpness,
                     HdrMode = (int)ev.HdrMode
                 });
+                
             }
             catch (Exception e)
             {
-                _logger.LogError("Couldn't send camera options via gRPC!");
+                error = true;
+                _logger.LogError($"Couldn't send camera options via gRPC to camera {cameraNr}.");
             }
 
             try
@@ -165,28 +168,33 @@ namespace EventPi.Services.Camera
                     ExposureLevel = ev.ExposureLevel
 
                 });
+
             }
             catch (Exception e)
             {
-                _logger.LogError("Couldn't send camera shutter via gRPC!");
+                error = true;
+                _logger.LogError($"Couldn't send camera shutter via gRPC to camera {cameraNr}.");
             }
 
-            try
-            {
-                var clientAutoHistogram =
-                    new CameraAutoHistogram.CameraAutoHistogram.CameraAutoHistogramClient(GetClient(cameraNr));
-                await clientAutoHistogram.ProcessAsync(new CameraAutoHistogramRequest()
-                {
-                    EnableAutoHistogram = ev.AutoHistogramEnabled
+            if (!error)
+                _logger.LogInformation($"Set camera {cameraNr} completed with parameters: {ev}");
+            else _logger.LogError($"Set camera (options or shutter) {cameraNr} failed with parameters: {ev}");
+            //try
+            //{
+            //    var clientAutoHistogram =
+            //        new CameraAutoHistogram.CameraAutoHistogram.CameraAutoHistogramClient(GetClient(cameraNr));
+            //    await clientAutoHistogram.ProcessAsync(new CameraAutoHistogramRequest()
+            //    {
+            //        EnableAutoHistogram = ev.AutoHistogramEnabled
 
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Couldn't send camera auto histogram via gRPC!");
-            }
+            //    });
+            //}
+            //catch (Exception e)
+            //{
+            //    _logger.LogError($"Couldn't send camera auto histogram via gRPC to camera {cameraNr}.");
+            //}
 
-            return new Empty();
+            return !error;
         }
 
         public void Dispose()
