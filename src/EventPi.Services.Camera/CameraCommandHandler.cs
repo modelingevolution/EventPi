@@ -10,6 +10,7 @@ using EventPi.Services.Camera.Contract;
 using Microsoft.Extensions.Configuration;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Logging;
 
 namespace EventPi.Services.Camera;
 
@@ -45,7 +46,7 @@ public static class CameraConfiguration
 }
 
 [CommandHandler]
-public partial class CameraCommandHandler(IPlumber plumber, CameraManager manager)
+public partial class CameraCommandHandler(IPlumber plumber, CameraManager manager, ILogger<CameraCommandHandler> logger)
 {
     public async Task Handle(HostName hostName, SetCameraHistogramFilter cmd)
     {
@@ -86,10 +87,17 @@ public partial class CameraCommandHandler(IPlumber plumber, CameraManager manage
 
     public async Task Handle(CameraAddress addr, SetCameraParameters cmd)
     {
-        if(addr.CameraNumber.HasValue) 
+
+        if (addr.CameraNumber.HasValue)
+        {
+            logger.LogInformation($"Setting specific camera parameters: {addr}.");
             await manager.ProcessAsync(cmd, addr.CameraNumber.Value);
+        }
         else
+        {
+            logger.LogInformation($"Setting all cameras parameters: {addr}.");
             await manager.ProcessAsync(cmd, -1);
+        }
         var ev = new CameraParametersState()
         {
             Brightness = cmd.Brightness,

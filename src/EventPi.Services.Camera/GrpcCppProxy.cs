@@ -63,7 +63,8 @@ namespace EventPi.Services.Camera
             this._config = config;
             _logger = logger;
         }
-        private int CameraCount { get => _config.GetLibCameraCameraCount(); }
+        private int CameraCount => _config.GetLibCameraCameraCount();
+
         private GrpcChannel GetClient(int cameraNr = 0)
         {
             if(_channels.TryGetValue(cameraNr, out GrpcChannel channel)) return channel;
@@ -119,6 +120,7 @@ namespace EventPi.Services.Camera
         {
             if(cameraNr == -1)
             {
+                _logger.LogInformation($"Trying to set parameters to all {CameraCount} cameras.");
                 for (int i = 0; i < CameraCount; i++)
                     try
                     {

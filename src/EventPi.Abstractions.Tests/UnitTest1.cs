@@ -3,7 +3,7 @@ using FluentAssertions;
 
 namespace EventPi.Abstractions.Tests
 {
-    public class UnitTest1
+    public class CameraAddressTests
     {
         [Fact]
         public void One()
@@ -11,6 +11,7 @@ namespace EventPi.Abstractions.Tests
             string cameraAddress = "Pi-51";
             var a= CameraAddress.Parse(cameraAddress,null);
             a.ToString().Should().Be(cameraAddress);
+            a.CameraNumber.Should().BeNull();
         }
         [Fact]
         public void Two()
