@@ -45,11 +45,11 @@ public static class CameraConfiguration
 }
 
 [CommandHandler]
-public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy proxy)
+public partial class CameraCommandHandler(IPlumber plumber, CameraManager manager)
 {
     public async Task Handle(HostName hostName, SetCameraHistogramFilter cmd)
     {
-        await proxy.ProcessAsync(cmd);
+        await manager.ProcessAsync(cmd);
         var state = new CameraHistogramFilter()
         {
             Values = cmd.Values
@@ -87,9 +87,9 @@ public partial class CameraCommandHandler(IPlumber plumber, GrpcCppCameraProxy p
     public async Task Handle(CameraAddress addr, SetCameraParameters cmd)
     {
         if(addr.CameraNumber.HasValue) 
-            await proxy.ProcessAsync(cmd, addr.CameraNumber.Value);
+            await manager.ProcessAsync(cmd, addr.CameraNumber.Value);
         else
-            await proxy.ProcessAsync(cmd, -1);
+            await manager.ProcessAsync(cmd, -1);
         var ev = new CameraParametersState()
         {
             Brightness = cmd.Brightness,

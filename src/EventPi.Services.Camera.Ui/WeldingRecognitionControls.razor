@@ -1,7 +1,7 @@
 ﻿@using EventPi.Services.Camera.Contract
 @using Microsoft.AspNetCore.Http
 @using ModelingEvolution.Observable.Blazor
-@inject GrpcCppCameraProxy _proxy
+@inject CameraManager Manager
 @inject CameraControlVmRegister _profileRegister
 @inject WeldingRecognitionVmRegister _vmRegister
 <MudStack>
@@ -71,7 +71,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _isConnectedViaGrpcToRpiCam = await _proxy.GreetWithRpiCam();
+        _isConnectedViaGrpcToRpiCam = await Manager.GreetWithRpiCam();
         //   _grpcFrameService.OnFrameFeaturesAppeared += OnChangeFrameParams;
 
         _profileWeldingVm = _profileRegister.Get($"{HostName}/welding");
@@ -90,13 +90,13 @@
     {
         var camParams = new SetCameraParameters();
         camParams.CopyFrom(_profileWeldingVm.SetCameraParameters);
-        await _proxy.ProcessAsync(camParams);
+        await Manager.ProcessAsync(camParams);
     }
     private async Task OnSwitchToDefaultProfile()
     {
         var camParams = new SetCameraParameters();
         camParams.CopyFrom(_profileNonWeldingVm.SetCameraParameters);
-        await _proxy.ProcessAsync(camParams);
+        await Manager.ProcessAsync(camParams);
     }
    
    

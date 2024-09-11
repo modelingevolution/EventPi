@@ -21,7 +21,7 @@ public static class ContainerExtensions
     }
     public static IServiceCollection AddCameraConfiguration(this IServiceCollection services, IConfiguration config, bool disableAutostart = false)
     {
-        services.AddSingleton<GrpcCppCameraProxy>();
+        services.AddSingleton<CameraManager>();
         services.AddTransient<WeldingRecognitionService>();
         services.AddSingleton<FrameFeatureAccessor>();
         services.AddSingleton<FeaturePerformanceInfo>();

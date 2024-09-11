@@ -18,13 +18,47 @@ using Emgu.CV.Ocl;
 
 namespace EventPi.Services.Camera
 {
-    public class GrpcCppCameraProxy : IDisposable
+    public interface ICameraManager : IDisposable
+    {
+        Task<Empty> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0);
+        Task<Empty> ProcessAsync(ICameraParameters ev, int cameraNr = 0);
+        Task<bool> GreetWithRpiCam(int camNr = 0);
+        
+    }
+
+    public class ConsoleCameraManager(ILogger<ConsoleCameraManager> logger) : ICameraManager
+    {
+        public void Dispose()
+        {
+            
+        }
+
+        public async Task<Empty> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0)
+        {
+            logger.LogInformation($"Process async [{cameraNr}]: {ev}");
+            return new Empty();
+        }
+
+        public async Task<Empty> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
+        {
+            logger.LogInformation($"Process async [{cameraNr}]: {ev}");
+            return new Empty();
+        }
+
+        public async Task<bool> GreetWithRpiCam(int camNr = 0)
+        {
+            logger.LogInformation($"Greet: {camNr}");
+            return true;
+        }
+    }
+
+    public class CameraManager : IDisposable, ICameraManager
     {
 
         private readonly Dictionary<int, GrpcChannel> _channels = new();
-        private readonly ILogger<GrpcCppCameraProxy> _logger;
+        private readonly ILogger<CameraManager> _logger;
         private readonly IConfiguration _config;
-        public GrpcCppCameraProxy(ILogger<GrpcCppCameraProxy> logger, IConfiguration config)
+        public CameraManager(ILogger<CameraManager> logger, IConfiguration config)
         {
             this._config = config;
             _logger = logger;
