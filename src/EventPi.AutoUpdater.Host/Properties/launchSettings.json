@@ -18,18 +18,12 @@
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
-      "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
       "environmentVariables": {
-        "ASPNETCORE_HTTP_PORTS": "8080",
-        "Packages__0__RepositoryUrl": "https://github.com/modelingevolution/rocket-welder-releases.git",
-        "Packages__0__RepositoryLocation": "/var/docker/production/rocket-welder-autoupdate",
-        "SshUser": "pi",
-        "SshPwd": "pi"
+        "ASPNETCORE_HTTP_PORTS": "8080"
       },
       "publishAllPorts": true,
-      "useSSL": false,
-      "DockerfileRunArguments": "-v C:\\Users\\rafal\\Sources\\ME:/var/docker/production -v /var/run/docker.sock:/var/run/docker.sock"
+      "useSSL": false
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",

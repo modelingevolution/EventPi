@@ -1,3 +1,5 @@
+using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -22,7 +24,8 @@ public static class Extensions
             return memory.ToArray();
         }
     }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Area(this Rectangle r) => r.Width * r.Height;
     public static Guid ToGuid(this string t) => new Guid(t.ToHash());
 
 
