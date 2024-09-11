@@ -185,7 +185,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         //Console.WriteLine("Done");
         if ((seq % 30) == 0)
         {
-            StringBuilder sb = new StringBuilder($"Camera: {_address.CameraNumber}\nSkipped frames: {_skippedFrames}\n");
+            StringBuilder sb = new StringBuilder($"Camera: {_address.CameraNumber ?? 0}\nSkipped frames: {_skippedFrames}\n");
             DarkBrightPixels tmp = new DarkBrightPixels();
             var c = _tmp.Count;
             for (int i = c - 1; i >= 0; i--)
