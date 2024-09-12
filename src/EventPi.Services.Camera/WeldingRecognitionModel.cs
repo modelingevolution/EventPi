@@ -3,6 +3,7 @@ using EventPi.Services.Camera.Contract;
 using EventPi.Services.CameraFrameFeaturesConfigurator;
 using MicroPlumberd;
 using Microsoft.Extensions.Hosting;
+using ModelingEvolution.Drawing;
 
 namespace EventPi.Services.Camera;
 [EventHandler]
@@ -59,12 +60,13 @@ public partial class WeldingRecognitionModel
 {
     public int WeldingBound { get; private set; }
     public int NonWeldingBound { get; private set; }
-    public bool DetectionEnabled{ get; private set; }
+    public bool DetectionEnabled { get; private set; }
     public int DarkPixelsBorder { get; private set; }
     public int BrightPixelsBorder { get; private set; }
+    public Rectangle<float>? RegionOfInterest { get; private set; }
 
-  
-     private async Task Given(Metadata m, WeldingRecognitionConfigurationState ev)
+
+private async Task Given(Metadata m, WeldingRecognitionConfigurationState ev)
     {
         
         WeldingBound = ev.WeldingValue;
