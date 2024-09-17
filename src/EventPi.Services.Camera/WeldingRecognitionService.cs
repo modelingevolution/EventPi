@@ -5,12 +5,13 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
 using Microsoft.Extensions.Hosting;
 using ModelingEvolution.VideoStreaming;
-using System.Drawing;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Net;
 using System.Text;
 using MicroPlumberd;
+using ModelingEvolution.VideoStreaming.VectorGraphics;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace EventPi.Services.Camera;
 
@@ -44,6 +45,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         IEnvironment env,
         ILogger<WeldingRecognitionService> logger,
         ILoggerFactory loggerFactory,
+        RemoteCanvasStreamPool pool,
         CameraManager manager)
     {
         CurrentAppliedProfile = new CameraProfile();
@@ -55,7 +57,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         _profileProvider = profileProvider;
         _model = new WeldingRecognitionModel();
         _manager = manager;
-
+        _remoteCanvasPool = pool;
         _bufferBrightPixels = new CircularBuffer<int>(3);
         _bufferDarkPixels = new CircularBuffer<int>(3);
         _channel = Channel.CreateBounded<SetCameraParameters>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
@@ -68,6 +70,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         if (va.VideoSource == VideoSource.File)
             _manager = new ConsoleCameraManager(_loggerFactory.CreateLogger<ConsoleCameraManager>());
 
+        _canvas =  _remoteCanvasPool.GetCanvas(va);
         var stream = $"WeldingRecognition-{_env.HostName}/{va.CameraNumber ?? 0}";
         _logger.LogInformation($"Welding recognition service initialzied. Subscrbing to: {stream}");
         _plumber.SubscribeStateEventHandler(this._model,
@@ -96,6 +99,8 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     private readonly Rectangle _area;
     private volatile int isRunning = 0;
     private long _skippedFrames = 0;
+    private readonly RemoteCanvasStreamPool _remoteCanvasPool;
+    private ICanvas _canvas;
 
     //private List<DarkBrightPixels> _tmp = new List<DarkBrightPixels>();
     public void Handle(YuvFrame frame, YuvFrame? prv, ulong seq, CancellationToken token, object st)
@@ -113,7 +118,11 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 
         var count = frame.CountPixelsOutsideRange(20, 200, r);
         //_tmp.Add(count);
-
+        
+        //_canvas.Begin(frame.Metadata.FrameNumber);
+        //_canvas.DrawText($"{frame.Metadata.FrameNumber}: {count}", 10,20,20,RgbColor.White);
+        //_canvas.End();
+        
         if (prv == null)
         {
             _count0 = count;
