@@ -164,10 +164,6 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 
                 //Console.WriteLine("Welding detected");
             }
-            else
-            {
-                //Console.WriteLine($"avg ({avg}) < _model.WeldingBound*0.01*areaSizeInPixels");
-            }
         }
         else
         {
