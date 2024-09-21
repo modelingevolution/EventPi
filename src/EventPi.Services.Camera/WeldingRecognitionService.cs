@@ -119,9 +119,9 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         var count = frame.CountPixelsOutsideRange(20, 200, r);
         //_tmp.Add(count);
         
-        //_canvas.Begin(frame.Metadata.FrameNumber);
-        //_canvas.DrawText($"{frame.Metadata.FrameNumber}: {count}", 10,20,20,RgbColor.White);
-        //_canvas.End();
+        _canvas.Begin(frame.Metadata.FrameNumber);
+        _canvas.DrawText($"{frame.Metadata.FrameNumber}: {count}", 10,20,20,RgbColor.White);
+        _canvas.End();
         
         if (prv == null)
         {
