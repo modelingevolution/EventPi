@@ -114,7 +114,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         }
 
         Rectangle r = new Rectangle(0, 0, frame.Info.Width, frame.Info.Height);
-        r.Inflate(-400, -400);
+        //r.Inflate(-400, -400);
 
         var count = frame.CountPixelsOutsideRange(20, 200, r);
         //_tmp.Add(count);
