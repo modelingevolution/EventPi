@@ -21,6 +21,7 @@ public static class ContainerExtensions
     }
     public static IServiceCollection AddCameraConfiguration(this IServiceCollection services, IConfiguration config, bool disableAutostart = false)
     {
+        services.AddSingleton<AiCameraConfigurationProvider>();
         services.AddSingleton<CameraManager>();
         services.AddTransient<WeldingRecognitionService>();
         services.AddSingleton<FrameFeatureAccessor>();
