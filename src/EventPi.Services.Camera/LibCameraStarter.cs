@@ -111,6 +111,31 @@ public class CameraSimulatorProcess : IDisposable
     }
 }
 
+public class OpenVidCamProcess(IConfiguration configuration, 
+    ILoggerFactory loggerFactory,
+    ILogger<OpenVidCamProcess> log)
+{
+    public async Task Start(
+        Resolution? res = null,
+        bool killAll = true,
+        string? shmName = null,
+        int nr = 0)
+    {
+        var resolution = res ?? configuration.GetCameraResolution();
+        var openVidPath = configuration.GetOpenVidCamPath();
+        
+
+        var vid = new OpenVidCam(loggerFactory.CreateLogger<OpenVidCam>(), openVidPath);
+        if (killAll && vid.KillAliens())
+            await Task.Delay(1000);
+
+        shmName ??= nr == 0 ? "default" : "default_" + nr;
+
+        var p = await vid.Start(resolution, shmName, nr);
+
+        log.LogInformation($"libcamera-vid started, pid: {p}");
+    }
+}
 public class LibCameraProcess(IConfiguration configuration, 
     IServiceProvider sp, ILogger<LibCameraProcess> log)
 {
@@ -127,7 +152,7 @@ public class LibCameraProcess(IConfiguration configuration,
         var videoCodec = codec ?? VideoCodec.Mjpeg;
 
         var vid = new LibCameraVid(sp.GetRequiredService<ILogger<LibCameraVid>>(), libCameraPath);
-        if (killAll && vid.KillAlients()) 
+        if (killAll && vid.KillAliens()) 
             await Task.Delay(1000);
 
         if (shmName == null)
@@ -143,7 +168,7 @@ public class LibCameraProcess(IConfiguration configuration,
         log.LogInformation($"libcamera-vid started, pid: {p}");
     }
 }
-public class LibCameraStarter(IConfiguration configuration, LibCameraProcess proc) : BackgroundService
+public class CameraStarter(IConfiguration configuration, LibCameraProcess proc) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

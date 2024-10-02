@@ -10,11 +10,70 @@ using System.Runtime.CompilerServices;
 using System.Net;
 using System.Text;
 using MicroPlumberd;
+using Microsoft.Extensions.Configuration;
+using ModelingEvolution_VideoStreaming.Yolo;
 using ModelingEvolution.VideoStreaming.VectorGraphics;
 using Rectangle = System.Drawing.Rectangle;
 
 namespace EventPi.Services.Camera;
 
+public class AiSegmentationService : IPartialYuvFrameHandler, IDisposable
+{
+    private readonly RemoteCanvasStreamPool _pool;
+    private readonly IYoloModelRunner<Segmentation> _runner;
+    private readonly float _threshold;
+    private Rectangle _interestRegion;
+    private ICanvas _canvas;
+
+    public AiSegmentationService(IConfiguration configuration, RemoteCanvasStreamPool pool)
+    {
+        _pool = pool;
+        var modelPath = configuration.GetOnnxModel();
+        this._threshold = configuration.GetAiConfidenceThreshold();
+        this._runner =  YoloModelFactory.LoadSegmentationModel(modelPath);
+    }
+    public int Every { get; } = 15;
+    public unsafe void Handle(YuvFrame frame, YuvFrame? prv, ulong seq, CancellationToken token, object st)
+    {
+        var r = _interestRegion;
+        using var results = _runner.Process(&frame, &r, _threshold);
+        bool initialized = false;
+        
+        foreach (var i in results.Where(x=>x.Polygon != null))
+        {
+            if (!initialized)
+            {
+                _canvas.Begin(seq, 2);
+                initialized = true;
+            }
+            var sPol = i.Polygon;
+            Debug.Assert(sPol.Polygon.Points.Count > 2);
+            
+            sPol.TransformBy(_interestRegion);
+            Debug.Assert(sPol.Polygon.Points.Count > 2);
+            
+            _canvas.DrawPolygon(sPol.Polygon.Points, RgbColor.Red,2);
+            //Debug.WriteLine($"Draw polygon: {sPol.Polygon.ToAnnotationString()}");
+        }
+
+        if (initialized)
+        {
+            _canvas.DrawRectangle(_interestRegion, RgbColor.Green, 2);
+            _canvas.End(2);
+        }
+    }
+
+    public void Init(VideoAddress va)
+    {
+        _interestRegion = new Rectangle(200, 1080/2-300, 640, 640);
+        _canvas = _pool.GetCanvas(va);
+    }
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}
 public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 {
     private readonly ILogger<WeldingRecognitionService> _logger;

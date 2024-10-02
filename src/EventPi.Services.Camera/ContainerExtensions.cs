@@ -35,11 +35,14 @@ public static class ContainerExtensions
         //services.AddStateEventHandler<CameraProfileConfigurationModel>();
         //services.AddStateEventHandler<WeldingRecognitionModel>();
         if(!disableAutostart)
-            services.WhenUnix(services => services.AddHostedService<LibCameraStarter>());
+            services.WhenUnix(services => services.AddHostedService<CameraStarter>());
         services.AddSingleton<CameraSimulatorProcess>();
 
         services.AddSingleton<LibCameraProcess>(sp => new LibCameraProcess(sp.GetRequiredService<IConfiguration>(), sp, sp.GetRequiredService<ILogger<LibCameraProcess>>()));
-
+        services.AddSingleton<OpenVidCamProcess>(sp => new OpenVidCamProcess(sp.GetRequiredService<IConfiguration>(),
+            sp.GetRequiredService<ILoggerFactory>(), 
+            sp.GetRequiredService<ILogger<OpenVidCamProcess>>()));
+        
         CameraSimulatorProcess.KillAll(config);
         return services;
     }

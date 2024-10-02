@@ -23,6 +23,7 @@ public static class CameraConfiguration
 
     public static bool IsCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>(CameraAutostartKey);
     public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>(LibCameraPathKey) ?? LibCameraVid.DefaultPath;
+    public static string GetOpenVidCamPath(this IConfiguration configuration) => configuration.GetValue<string>(OpenVidCamPathKey) ?? LibCameraVid.DefaultPath;
 
     public static string GetCameraSimulatorPath(this IConfiguration configuration) =>
         configuration.GetValue<string>(CameraSimulatorPathKey) ?? "cam-simulator";
@@ -38,6 +39,7 @@ public static class CameraConfiguration
     public const string CameraSimulatorPathKey = "CameraSimulatorPath";
     public const string CameraAutostartKey = "CameraAutostart";
     public const string LibCameraPathKey = "LibCameraPath";
+    public const string OpenVidCamPathKey = "OpenVidCamPath";
     public const string LibCameraListenIpKey = "LibCameraListenIp";
     public const string LibCameraVideoListenPortKey = "LibCameraVideoListenPort";
     public const string LibCameraGrpcListenPortKey = "LibCameraGrpcListenPort";

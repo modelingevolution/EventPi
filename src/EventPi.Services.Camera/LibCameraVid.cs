@@ -44,6 +44,7 @@ class LinuxProcessUtils : IProcessUtils
         return parentProcessId;
     }
 }
+
 public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
 {
     public const string DefaultPath = "/usr/local/bin/rocketwelder-vid";
@@ -61,7 +62,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
         _runningApp = null;
     }
 
-    public bool KillAlients()
+    public bool KillAliens()
     {
         var name = Path.GetFileName(_appName);
         bool killed = false;
