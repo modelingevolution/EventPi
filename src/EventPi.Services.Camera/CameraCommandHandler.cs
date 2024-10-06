@@ -19,32 +19,32 @@ namespace EventPi.Services.Camera;
 public static class CameraConfiguration
 {
 
-    public static Resolution GetCameraResolution(this IConfiguration configuration) => Resolution.TryParse(configuration.GetValue<string>(CameraResolutionKey), out var r) ? r : Resolution.FullHd;
+    public static Resolution GetCameraResolution(this IConfiguration configuration) => Resolution.TryParse(configuration.GetValue<string>(CAMERA_RESOLUTION_KEY), out var r) ? r : Resolution.FullHd;
 
-    public static bool IsCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>(CameraAutostartKey);
-    public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>(LibCameraPathKey) ?? LibCameraVid.DefaultPath;
-    public static string GetOpenVidCamPath(this IConfiguration configuration) => configuration.GetValue<string>(OpenVidCamPathKey) ?? LibCameraVid.DefaultPath;
+    public static bool IsCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>(CAMERA_AUTOSTART_KEY);
+    public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>(LIB_CAMERA_PATH_KEY) ?? LibCameraVid.DefaultPath;
+    public static string GetOpenVidCamPath(this IConfiguration configuration) => configuration.GetValue<string>(OPEN_VID_CAM_PATH_KEY) ?? LibCameraVid.DefaultPath;
 
     public static string GetCameraSimulatorPath(this IConfiguration configuration) =>
-        configuration.GetValue<string>(CameraSimulatorPathKey) ?? "cam-simulator";
+        configuration.GetValue<string>(CAMERA_SIMULATOR_PATH_KEY) ?? "cam-simulator";
     public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration, int nr = 0) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort(nr)}";
 
     public static int GetLibCameraCameraCount(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraCount") ?? 1;
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
-        IPAddress.TryParse(configuration.GetValue<string>(LibCameraListenIpKey), out var p) ? p : IPAddress.Loopback;
-    public static int GetLibCameraVideoListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LibCameraVideoListenPortKey) ?? 6000;
-    public static int GetLibCameraGrpcListenPort(this IConfiguration configuration, int nr=0) => (configuration.GetValue<int?>(LibCameraGrpcListenPortKey) ?? 6500) + nr;
-    public const string CameraResolutionKey = "CameraResolution";
+        IPAddress.TryParse(configuration.GetValue<string>(LIB_CAMERA_LISTEN_IP_KEY), out var p) ? p : IPAddress.Loopback;
+    public static int GetLibCameraVideoListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LIB_CAMERA_VIDEO_LISTEN_PORT_KEY) ?? 6000;
+    public static int GetLibCameraGrpcListenPort(this IConfiguration configuration, int nr=0) => (configuration.GetValue<int?>(LIB_CAMERA_GRPC_LISTEN_PORT_KEY) ?? 6500) + nr;
+    public const string CAMERA_RESOLUTION_KEY = "CameraResolution";
 
-    public const string CameraSimulatorPathKey = "CameraSimulatorPath";
-    public const string CameraAutostartKey = "CameraAutostart";
-    public const string LibCameraPathKey = "LibCameraPath";
-    public const string OpenVidCamPathKey = "OpenVidCamPath";
-    public const string LibCameraListenIpKey = "LibCameraListenIp";
-    public const string LibCameraVideoListenPortKey = "LibCameraVideoListenPort";
-    public const string LibCameraGrpcListenPortKey = "LibCameraGrpcListenPort";
-    public const string LibCameraTuningFilePathKey = "LibCameraTuningFilePath";
-    public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>(LibCameraTuningFilePathKey) ?? LibCameraVid.DefaultTuningFilePath;
+    public const string CAMERA_SIMULATOR_PATH_KEY = "CameraSimulatorPath";
+    public const string CAMERA_AUTOSTART_KEY = "CameraAutostart";
+    public const string LIB_CAMERA_PATH_KEY = "LibCameraPath";
+    public const string OPEN_VID_CAM_PATH_KEY = "OpenVidCamPath";
+    public const string LIB_CAMERA_LISTEN_IP_KEY = "LibCameraListenIp";
+    public const string LIB_CAMERA_VIDEO_LISTEN_PORT_KEY = "LibCameraVideoListenPort";
+    public const string LIB_CAMERA_GRPC_LISTEN_PORT_KEY = "LibCameraGrpcListenPort";
+    public const string LIB_CAMERA_TUNING_FILE_PATH_KEY = "LibCameraTuningFilePath";
+    public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>(LIB_CAMERA_TUNING_FILE_PATH_KEY) ?? LibCameraVid.DefaultTuningFilePath;
 }
 
 [CommandHandler]

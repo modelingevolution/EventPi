@@ -5,15 +5,12 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
 using Microsoft.Extensions.Hosting;
 using ModelingEvolution.VideoStreaming;
-using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using MicroPlumberd;
-using Microsoft.Extensions.Configuration;
-using ModelingEvolution_VideoStreaming.Yolo;
 using ModelingEvolution.VideoStreaming.VectorGraphics;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -38,67 +35,6 @@ public record AiModelConfigurationState
     }
 }
 
-public class AiSegmentationService : IPartialYuvFrameHandler, IDisposable
-{
-    private readonly AiCameraConfigurationProvider _aiConfig;
-    private readonly RemoteCanvasStreamPool _pool;
-    private readonly IYoloModelRunner<Segmentation> _runner;
-    private readonly float _threshold;
-    private Rectangle _interestRegion;
-    private ICanvas _canvas;
-    private AiModelConfiguration _configuration;
-
-    public AiSegmentationService(IConfiguration configuration,
-        AiCameraConfigurationProvider aiConfig,
-        RemoteCanvasStreamPool pool)
-    {
-        _aiConfig = aiConfig;
-        _pool = pool;
-        var modelPath = configuration.GetOnnxModel();
-        this._threshold = configuration.GetAiConfidenceThreshold();
-        this._runner =  YoloModelFactory.LoadSegmentationModel(modelPath);
-    }
-    public int Every { get; } = 20;
-    public unsafe void Handle(YuvFrame frame, YuvFrame? prv, ulong seq, CancellationToken token, object st)
-    {
-        var r = _interestRegion = _configuration.ConfigurationState.InterestRegion;
-        using var results = _runner.Process(&frame, &r, _threshold);
-        bool initialized = false;
-        
-        foreach (var i in results.Where(x=>x.Polygon != null))
-        {
-            if (!initialized)
-            {
-                _canvas.Begin(seq, 2);
-                initialized = true;
-            }
-            var p = i.Polygon;
-            p.TransformBy(_interestRegion);
-            
-            _canvas.DrawPolygon(p.Polygon.Points, RgbColor.Red,2);
-            //Debug.WriteLine($"Draw polygon: {sPol.Polygon.ToAnnotationString()}");
-        }
-
-        Debug.WriteLine($"AI metrics, allocated bytes: {(Bytes)ManagedArray<VectorU16>.ALLOCATED_BYTES} {_runner.Performance}");
-        if (initialized)
-        {
-            _canvas.DrawRectangle(_interestRegion, RgbColor.Green, 2);
-            _canvas.End(2);
-        }
-    }
-
-    public void Init(VideoAddress va)
-    {
-        _interestRegion = new Rectangle(200, 1080/2-300, 640, 640);
-        _canvas = _pool.GetCanvas(va);
-        _configuration = _aiConfig.Get(va);
-    }
-
-    public void Dispose()
-    {
-        
-    }
-}
 public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 {
     private readonly ILogger<WeldingRecognitionService> _logger;
@@ -122,7 +58,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     public ICameraParametersReadOnly CurrentAppliedProfile { get; private set; }
 
     public int Every => 1;
-
+    public bool Should(ulong seq) => seq % (ulong)Every == 0ul;
     public WeldingRecognitionService(
         WeldingRecognitionProvider profileProvider,
         IPlumber plumber,
