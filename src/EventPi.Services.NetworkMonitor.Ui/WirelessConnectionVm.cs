@@ -28,7 +28,7 @@ internal partial class WirelessConnectionVm(IPlumber plumber, IDialogService dia
             { x => x.Ssid, st.Ssid },
             
         };
-        DialogOptions op = new DialogOptions() { ClassBackground = "blur-background", MaxWidth = MaxWidth.Medium };
+        DialogOptions op = new DialogOptions() { BackgroundClass = "blur-background", MaxWidth = MaxWidth.Medium };
         var dialog = await dialogService.ShowAsync<WirelessStationPwdDialog>($"Wifi needs authentication", parameters, op);
     }
 

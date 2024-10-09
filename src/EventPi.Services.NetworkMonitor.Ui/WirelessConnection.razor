@@ -36,12 +36,12 @@
                     }
                     <MudText>Available access points:</MudText>
                     <Observable Source="@_sVm" Context="vm">
-                        <MudList Clickable="true">
+                        <MudList T="string" >
                             @if (_sVm.Stations.Any(x => x.Ssid != _cVm?.Connectivity?.Ssid))
                             {
                                 @foreach (var i in _sVm.Stations.Where(x => x.Ssid != _cVm?.Connectivity?.Ssid))
                                 {
-                                    <MudListItem Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { IsListOpened = false; await _sVm.Connect(i); }">@i.Ssid</MudListItem>
+                                    <MudListItem T="string" Icon="@SignalToIcon.Convert(i.Signal)" OnClick="async () => { IsListOpened = false; await _sVm.Connect(i); }">@i.Ssid</MudListItem>
                                 }
                             }
                             else

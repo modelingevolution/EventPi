@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Routing;
 using MicroPlumberd;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ModelingEvolution.VideoStreaming;
 
 namespace EventPi.Services.Camera;
 
@@ -24,6 +25,8 @@ public static class ContainerExtensions
         services.AddSingleton<AiCameraConfigurationProvider>();
         services.AddSingleton<CameraManager>();
         services.AddTransient<WeldingRecognitionService>();
+        
+
         services.AddSingleton<FrameFeatureAccessor>();
         services.AddSingleton<FeaturePerformanceInfo>();
         //services.AddSingleton<CameraProfileConfigurationModel>( );

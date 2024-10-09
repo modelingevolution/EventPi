@@ -1,11 +1,25 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
+using CliWrap;
 using Microsoft.Extensions.Configuration;
 using ModelingEvolution_VideoStreaming.Yolo;
 using ModelingEvolution.VideoStreaming;
 using ModelingEvolution.VideoStreaming.VectorGraphics;
 using Rectangle = System.Drawing.Rectangle;
+using System.IO;
+using System.Net;
+using ModelingEvolution.VideoStreaming.Buffers;
 
 namespace EventPi.Services.Camera;
+
+static class CommandExtension
+{
+
+    public static Command WithArgumentsIf(this Command cmd, bool condition, string command) => condition ? cmd.WithArguments(command) : cmd;
+}
+
+
+
 
 public class AiSegmentationService : IPartialYuvFrameHandler, IDisposable
 {
@@ -60,6 +74,9 @@ public class AiSegmentationService : IPartialYuvFrameHandler, IDisposable
             p.TransformBy(_interestRegion);
             
             _canvas.DrawPolygon(p.Polygon.Points, RgbColor.Red,3);
+            
+            var p1 = i.Polygon.Polygon[0];
+            _canvas.DrawText(i.Name.Name, p1.X, p1.Y,  color: RgbColor.Green, layerId:3);
             //Debug.WriteLine($"Draw polygon: {sPol.Polygon.ToAnnotationString()}");
         }
         

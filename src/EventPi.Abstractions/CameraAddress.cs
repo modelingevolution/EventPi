@@ -2,6 +2,8 @@
 
 namespace EventPi.Abstractions;
 
+
+
 [JsonConverter(typeof(JsonParsableConverter<CameraAddress>))]
 public readonly struct CameraAddress : IParsable<CameraAddress>, IEquatable<CameraAddress>
 {

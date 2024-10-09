@@ -160,6 +160,7 @@ namespace EventPi.SharedMemory
 
             byte* ptr = null;
             _accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
+            
             ptr += offset;
 
             ulong* controlPtr = (ulong*)(ptr + _frameSize);

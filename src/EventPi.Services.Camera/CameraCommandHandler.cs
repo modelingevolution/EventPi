@@ -16,7 +16,7 @@ namespace EventPi.Services.Camera;
 
 
 
-public static class CameraConfiguration
+public static class CameraModule
 {
 
     public static Resolution GetCameraResolution(this IConfiguration configuration) => Resolution.TryParse(configuration.GetValue<string>(CAMERA_RESOLUTION_KEY), out var r) ? r : Resolution.FullHd;

@@ -46,7 +46,7 @@ internal partial class WirelessStationsVm(IPlumber plumber, ICommandBus bus, IDi
                         { x => x.Ssid, st.Ssid },
                         { x => x.ProfileFileName, ex.Data.ProfileFileName}
                     };
-                DialogOptions op = new DialogOptions() { ClassBackground = "blur-background", MaxWidth = MaxWidth.Medium };
+                DialogOptions op = new DialogOptions() { BackgroundClass = "blur-background", MaxWidth = MaxWidth.Medium };
                 var dialog = await dialogService.ShowAsync<WirelessStationPwdDialog>($"Wifi needs authentication", parameters, op);
                 var result = await dialog.Result;
                 if (result.Canceled)
@@ -60,7 +60,7 @@ internal partial class WirelessStationsVm(IPlumber plumber, ICommandBus bus, IDi
                     { x => x.Ssid, st.Ssid }
                 };
                 DialogOptions op = new DialogOptions()
-                    { ClassBackground = "blur-background", MaxWidth = MaxWidth.Medium };
+                    { BackgroundClass = "blur-background", MaxWidth = MaxWidth.Medium };
                 var dialog = await dialogService.ShowAsync<WirelessStationPwdDialog>($"Wifi needs authentication", parameters, op);
                 var result = await dialog.Result;
                 if (result.Canceled)

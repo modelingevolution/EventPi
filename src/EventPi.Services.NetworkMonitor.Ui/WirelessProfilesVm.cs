@@ -24,7 +24,7 @@ internal partial class WirelessProfilesVm(IPlumber plumber, ICommandBus commandB
     public string Style(WirelessProfile st)
     {
         if (st.IsConnected)
-            return $"font-weight:bold; color:{Theme?.Palette?.SuccessLighten}";
+            return $"font-weight:bold; color:{Theme?.PaletteDark?.SuccessLighten}";
         return string.Empty;
     }
     private async Task Given(Metadata m, WirelessProfilesState state) => Profiles = state;
