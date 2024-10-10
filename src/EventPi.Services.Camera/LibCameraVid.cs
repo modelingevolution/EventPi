@@ -4,6 +4,7 @@ using System.Text;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Extensions.Logging;
+using ModelingEvolution.VideoStreaming;
 
 namespace EventPi.Services.Camera;
 
@@ -109,7 +110,7 @@ public class LibCameraVid(ILogger<LibCameraVid> logger, string? appName =null)
         if (cameraNr.HasValue && cameraNr.Value > 0)
             args.AddRange(["--camera", cameraNr.Value.ToString()]);
 
-        if (transport == VideoTransport.Shm)
+        if (transport.HasFlag(VideoTransport.Shm))
             args.AddRange(["--shm", shmName]);
         else
             args.AddRange(["--listen", "-o", $"tcp://{address}:{listenPort}" ]);
