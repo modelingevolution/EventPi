@@ -1,4 +1,5 @@
-﻿using EventPi.Services.Camera.Contract;
+﻿using System.Threading.Channels;
+using EventPi.Services.Camera.Contract;
 using EventPi.Services.CameraAutoHistogram;
 using EventPi.Services.CameraConfigurator;
 using EventPi.Services.CameraFrameFeaturesConfigurator;
@@ -20,7 +21,7 @@ namespace EventPi.Services.Camera
 {
     public interface ICameraManager : IDisposable
     {
-        Task<Empty> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0);
+        Task<bool> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0);
         Task<bool> ProcessAsync(ICameraParameters ev, int cameraNr = 0);
         Task<bool> GreetWithRpiCam(int camNr = 0);
         
@@ -33,10 +34,10 @@ namespace EventPi.Services.Camera
             
         }
 
-        public async Task<Empty> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0)
+        public async Task<bool> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0)
         {
             logger.LogInformation($"Process async [{cameraNr}]: {ev}");
-            return new Empty();
+            return true;
         }
 
         public async Task<bool> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
@@ -54,14 +55,27 @@ namespace EventPi.Services.Camera
 
     public class CameraManager : IDisposable, ICameraManager
     {
-
         private readonly Dictionary<int, GrpcChannel> _channels = new();
         private readonly ILogger<CameraManager> _logger;
         private readonly IConfiguration _config;
+        private readonly Channel<Func<Task>> _queue = Channel.CreateUnbounded<Func<Task>>();
+        private readonly CancellationTokenSource _cts = new();
+        
         public CameraManager(ILogger<CameraManager> logger, IConfiguration config)
         {
             this._config = config;
             _logger = logger;
+            Task.Factory.StartNew(OnRunQueue, TaskCreationOptions.LongRunning);
+        }
+
+        private async Task OnRunQueue()
+        {
+            try
+            {
+                await foreach (var i in _queue.Reader.ReadAllAsync(_cts.Token))
+                    await i();
+            }
+            catch(OperationCanceledException) {}
         }
         private int CameraCount => _config.GetLibCameraCameraCount();
 
@@ -74,8 +88,25 @@ namespace EventPi.Services.Camera
             return ch;
         }
 
+        public async Task<bool> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0)
+        {
+            return _queue.Writer.TryWrite(() => OnProcessAsyncWithRetry(ev, cameraNr));
+        }
+        private async Task OnProcessAsyncWithRetry(SetCameraHistogramFilter ev, int cameraNr = 0, int retry = 10, int delay = 1200)
+        {
+            for (int i = 0; i < retry; i++)
+            {
+                if (await OnProcessAsync(ev, cameraNr))
+                    break;
+                else
+                    await Task.Delay(delay);
+            }
+            _logger.LogError($"Could not set camera histogram after {retry} retries: {cameraNr}");
 
-        public async Task<Empty> ProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0)
+        }
+
+        private async Task<bool> OnProcessAsync(SetCameraHistogramFilter ev, int cameraNr = 0, int retry = 10,
+            int delay = 1200)
         {
             var client = new CameraConfigurator.CameraConfigurator.CameraConfiguratorClient(GetClient(cameraNr));
 
@@ -84,18 +115,20 @@ namespace EventPi.Services.Camera
                 await client.ProcessAsync(new ConfigureHistogramRequest()
                 {
                     ConfigurationName = ev.Id.ToString(),
-                    Histogram =  ByteString.CopyFrom(ev.Values)
+                    Histogram = ByteString.CopyFrom(ev.Values)
 
                 });
+                return true;
             }
             catch (Exception e)
             {
                 _logger.LogError("Couldn't set camera histogram via gRPC!");
             }
-           
-        return new Empty();
+
+            return false;
 
         }
+
         public async Task<bool> GreetWithRpiCam(int camNr = 0)
         {
             try
@@ -115,8 +148,26 @@ namespace EventPi.Services.Camera
             return false;
 
         }
-   
+
         public async Task<bool> ProcessAsync(ICameraParameters ev, int cameraNr = 0)
+        {
+            return _queue.Writer.TryWrite(() => OnProcessAsyncWithRetry(ev, cameraNr));
+        }
+
+        private async Task OnProcessAsyncWithRetry(ICameraParameters ev, int cameraNr = 0, int retry = 10, int delay=1200)
+        {
+            for (int i = 0; i < retry; i++)
+            {
+                if (await OnProcessAsync(ev, cameraNr))
+                    break;
+                else
+                    await Task.Delay(delay);
+            }
+            _logger.LogError($"Could not set camera parameters  after {retry} retries: {cameraNr}");
+            
+        }
+
+        private async Task<bool> OnProcessAsync(ICameraParameters ev, int cameraNr = 0)
         {
             if (cameraNr == -1)
             {
@@ -179,20 +230,7 @@ namespace EventPi.Services.Camera
             if (!error)
                 _logger.LogInformation($"Set camera {cameraNr} completed with parameters: {ev}");
             else _logger.LogError($"Set camera (options or shutter) {cameraNr} failed with parameters: {ev}");
-            //try
-            //{
-            //    var clientAutoHistogram =
-            //        new CameraAutoHistogram.CameraAutoHistogram.CameraAutoHistogramClient(GetClient(cameraNr));
-            //    await clientAutoHistogram.ProcessAsync(new CameraAutoHistogramRequest()
-            //    {
-            //        EnableAutoHistogram = ev.AutoHistogramEnabled
-
-            //    });
-            //}
-            //catch (Exception e)
-            //{
-            //    _logger.LogError($"Couldn't send camera auto histogram via gRPC to camera {cameraNr}.");
-            //}
+            
 
             return !error;
         }
@@ -201,6 +239,8 @@ namespace EventPi.Services.Camera
         {
             foreach(var v in _channels.Values)
                 v.Dispose();
+            _cts.Cancel();
+            _cts.Dispose();
         }
     }
 }

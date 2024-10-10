@@ -89,23 +89,19 @@ public partial class CameraCommandHandler(IPlumber plumber, CameraManager manage
 
     public async Task Handle(CameraAddress addr, SetCameraParameters cmd)
     {
-        for (int i = 0; i < 10; i++)
-        {
-            if (i > 0) await Task.Delay(1000);
 
-            if (addr.CameraNumber.HasValue)
-            {
-                logger.LogInformation($"Setting specific camera parameters: {addr}.");
-                if (await manager.ProcessAsync(cmd, addr.CameraNumber.Value))
-                    break;
-            }
-            else
-            {
-                logger.LogInformation($"Setting all cameras parameters: {addr}.");
-                if (await manager.ProcessAsync(cmd, -1))
-                    break;
-            }
+        if (addr.CameraNumber.HasValue)
+        {
+            logger.LogInformation($"Setting specific camera parameters: {addr}.");
+            await manager.ProcessAsync(cmd, addr.CameraNumber.Value);
         }
+        else
+        {
+            logger.LogInformation($"Setting all cameras parameters: {addr}.");
+            await manager.ProcessAsync(cmd, -1);
+
+        }
+
 
         var ev = new CameraParametersState()
         {
