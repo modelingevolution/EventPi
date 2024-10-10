@@ -97,7 +97,7 @@ namespace EventPi.Services.Camera
             for (int i = 0; i < retry; i++)
             {
                 if (await OnProcessAsync(ev, cameraNr))
-                    break;
+                    return;
                 else
                     await Task.Delay(delay);
             }
@@ -159,7 +159,7 @@ namespace EventPi.Services.Camera
             for (int i = 0; i < retry; i++)
             {
                 if (await OnProcessAsync(ev, cameraNr))
-                    break;
+                    return;
                 else
                     await Task.Delay(delay);
             }
