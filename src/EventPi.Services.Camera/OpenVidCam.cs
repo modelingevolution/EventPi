@@ -28,20 +28,40 @@ public class OpenVidCam(ILogger<OpenVidCam> logger, string _appName)
         string shmName = "default",
         int? cameraNr = null)
     {
-        if (_runningApp != null) throw new InvalidOperationException();
-
-        _cstForce = new CancellationTokenSource();
-        _cstGrace = new CancellationTokenSource();
-
-
-        List<string> args = new List<string>
+        var args = new string[]
         {
             $"--Camera={(cameraNr ?? 0)}",
             $"--Width={resolution.Width}",
             $"--Height={resolution.Height}",
             $"--StreamName={shmName}"
         };
+
+        return OnStart(args);
+    }
+    public async Task<int> Start(Resolution resolution,
+        string remoteHost,
+        string shmName = "default",
+        int remotePort = 7000)
+    {
+        var args = new string[]
+        {
+            $"--Width={resolution.Width}",
+            $"--Height={resolution.Height}",
+            $"--StreamName={shmName}",
+            $"--RemoteHost={remoteHost}",
+            $"--RemotePort={remotePort}"
+        };
+
+        return OnStart(args);
+    }
+
+    private int OnStart(params string[] args)
+    {
+        if (_runningApp != null) throw new InvalidOperationException();
         
+        _cstForce = new CancellationTokenSource();
+        _cstGrace = new CancellationTokenSource();
+
         var cmd = CliWrap.Cli.Wrap(_appName)
             .WithArguments(args);
 

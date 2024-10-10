@@ -119,7 +119,9 @@ public class OpenVidCamProcess(IConfiguration configuration,
         Resolution? res = null,
         bool killAll = true,
         string? shmName = null,
-        int nr = 0)
+        int nr = 0,
+        string remoteHost=null, 
+        int remotePort=7000)
     {
         var resolution = res ?? configuration.GetCameraResolution();
         var openVidPath = configuration.GetOpenVidCamPath();
@@ -130,10 +132,16 @@ public class OpenVidCamProcess(IConfiguration configuration,
             await Task.Delay(1000);
 
         shmName ??= nr == 0 ? "default" : "default_" + nr;
-
-        var p = await vid.Start(resolution, shmName, nr);
-
-        log.LogInformation($"libcamera-vid started, pid: {p}");
+        if (remoteHost == null)
+        {
+            var p = await vid.Start(resolution, shmName, nr);
+            log.LogInformation($"open-vid-cam started, pid: {p}");
+        }
+        else
+        {
+            var p = await vid.Start(resolution,  remoteHost, shmName, remotePort);
+            log.LogInformation($"open-vid-cam (stream-proxy) started, pid: {p}");
+        }
     }
 }
 public class LibCameraProcess(IConfiguration configuration, 
