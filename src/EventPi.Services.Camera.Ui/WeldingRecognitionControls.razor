@@ -7,13 +7,13 @@
 <MudStack>
     <Observable Source="@_vm.SetWeldingRecognitionConfiguration">
     <MudExpansionPanels MultiExpansion="true">
-        <MudExpansionPanel Text="Testing panel" @bind-IsExpanded="@_isTestTurnedOn">
+        <MudExpansionPanel Text="Testing panel" @bind-Expanded="@_isTestTurnedOn">
             <MudButton OnClick="OnSwitchToWeldingProfile"> Switch to Welding profile </MudButton>
             <MudButton OnClick="OnSwitchToDefaultProfile"> Switch to Default profile </MudButton>
         </MudExpansionPanel>
     </MudExpansionPanels>
     <MudExpansionPanels MultiExpansion="true">
-        <MudExpansionPanel Text="Auto switch mode" @bind-IsExpanded="@_isAutoSwitchExpanded">
+        <MudExpansionPanel Text="Auto switch mode" @bind-Expanded="@_isAutoSwitchExpanded">
             <MudSimpleTable Dense="true" Bordered="false">
                 <tbody>
                 <tr>
