@@ -22,6 +22,7 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
     private readonly IEnvironment _env;
     private readonly CancellationTokenSource _cts;
     private readonly IPlumber _plumber;
+    private bool _disposed = false;
     private ICameraManager _manager;
     private readonly Channel<SetCameraParameters> _channel;
     private readonly CircularBuffer<int> _bufferBrightPixels;
@@ -205,8 +206,14 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 
     public void Dispose()
     {
-        _cts.Cancel();
-        _cts.Dispose();
+        if (_disposed) return;
+        try
+        {
+            _disposed = true;
+            _cts.Cancel();
+            _cts.Dispose();
+        } catch(ObjectDisposedException) {}
+        
     }
 }
 public static class YuvFrameWeldingRecognitionUtils
