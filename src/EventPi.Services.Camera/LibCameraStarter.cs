@@ -25,7 +25,7 @@ public class CameraSimulatorProcess : IDisposable
         this._appName = _configuration.GetCameraSimulatorPath();
 
     }
-    public static bool KillAll(IConfiguration config)
+    public static bool KillAliens(IConfiguration config)
     {
         var name = Path.GetFileNameWithoutExtension(config.GetCameraSimulatorPath());
         bool killed = false;
@@ -36,9 +36,9 @@ public class CameraSimulatorProcess : IDisposable
         }
         return killed;
     }
-    public bool KillAll()
+    public bool KillAliens()
     {
-        var name = Path.GetFileName(_appName);
+        var name = Path.GetFileNameWithoutExtension(_appName);
         bool killed = false;
         foreach (var i in Process.GetProcessesByName(name))
         {

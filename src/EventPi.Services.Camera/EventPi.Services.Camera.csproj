@@ -20,7 +20,9 @@
   <ItemGroup>
     <None Remove="Protos\cameraAutoHistogram.proto" />
   </ItemGroup>
-
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<Protobuf Include="Protos\cameraAutoHistogram.proto" GrpcServices="Client" />

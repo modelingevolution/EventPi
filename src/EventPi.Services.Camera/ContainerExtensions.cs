@@ -47,7 +47,7 @@ public static class ContainerExtensions
             sp.GetRequiredService<ILoggerFactory>(), 
             sp.GetRequiredService<ILogger<OpenVidCamProcess>>()));
         
-        CameraSimulatorProcess.KillAll(config);
+        CameraSimulatorProcess.KillAliens(config);
         return services;
     }
 }

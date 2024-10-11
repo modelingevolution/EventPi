@@ -13,7 +13,7 @@ public class OpenVidCam(ILogger<OpenVidCam> logger, string _appName)
     private CancellationTokenSource? _cstGrace;
     public bool KillAliens()
     {
-        var name = Path.GetFileName(_appName);
+        var name = Path.GetFileNameWithoutExtension(_appName);
         bool killed = false;
         var cPid = Process.GetCurrentProcess().Id;
         foreach (var i in Process.GetProcessesByName(name))
