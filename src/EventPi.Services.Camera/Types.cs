@@ -7,12 +7,19 @@ using EventPi.Abstractions;
 namespace EventPi.Services.Camera;
 
 
-
+/// <summary>
+/// Be carefull it's duplicated in 2 assemblies
+/// </summary>
+[Flags]
 public enum VideoTransport : int
 {
-    Tcp, Udp, Shm
+    Tcp = 1,
+    Udp = 2,
+    Shm = 4
 }
-
+/// <summary>
+/// Be carefull it's duplicated in 2 assemblies
+/// </summary>
 public enum VideoCodec : int
 {
     Mjpeg, H264
