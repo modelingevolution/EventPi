@@ -17,25 +17,33 @@ internal class NetworkManagerListener(IPlumber plumber, IEnvironment env, ILogge
     private Disposables _d = new();
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-        log.LogInformation("Starting NetworkManager listener");
-        _channel = Channel.CreateBounded<Func<CancellationToken, Task>>(new BoundedChannelOptions(5){ FullMode = BoundedChannelFullMode.DropOldest});
-        _client = await NetworkManagerClient.Create();
-        await AppendStations(stoppingToken);
-        await AppendWifiProfiles(stoppingToken);
-        await AppendConnectivity(token:stoppingToken);
-        var wifis = await _client.GetDevices().OfType<WifiDeviceInfo>().ToArrayAsync();
-        
-        foreach (var i in wifis)
+        try
         {
-            i.StateChanged += OnWifiDeviceStateChanged;
-            i.AccessPointVisilibityChanged += OnWifiAccessPointChanged;
-            i.AccessPointSignalChanged += OnWifiSignalChanged;
-            _d += await i.SubscribeStateChanged();
-            _d += await i.SubscribeAccessPoint();
-        }
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+            log.LogInformation("Starting NetworkManager listener");
+            _channel = Channel.CreateBounded<Func<CancellationToken, Task>>(new BoundedChannelOptions(5)
+                { FullMode = BoundedChannelFullMode.DropOldest });
+            _client = await NetworkManagerClient.Create();
+            await AppendStations(stoppingToken);
+            await AppendWifiProfiles(stoppingToken);
+            await AppendConnectivity(token: stoppingToken);
+            var wifis = await _client.GetDevices().OfType<WifiDeviceInfo>().ToArrayAsync();
 
-        await Task.Factory.StartNew(OnStateAppender, TaskCreationOptions.LongRunning);
+            foreach (var i in wifis)
+            {
+                i.StateChanged += OnWifiDeviceStateChanged;
+                i.AccessPointVisilibityChanged += OnWifiAccessPointChanged;
+                i.AccessPointSignalChanged += OnWifiSignalChanged;
+                _d += await i.SubscribeStateChanged();
+                _d += await i.SubscribeAccessPoint();
+            }
+
+            await Task.Factory.StartNew(OnStateAppender, TaskCreationOptions.LongRunning);
+        }
+        catch(Exception ex)
+        {
+            log.LogError(ex, "Network monitor failed to start.");
+        }
     }
 
     private void OnWifiSignalChanged(object? sender, AccessPointPropertyChangedArgs e)

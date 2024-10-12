@@ -15,8 +15,8 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.10" />
     <PackageReference Include="MudBlazor" Version="7.9.0" />
-    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.72.122" />
-    <PackageReference Include="MicroPlumberd.Services" Version="1.0.72.122" />
+    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.73.124" />
+    <PackageReference Include="MicroPlumberd.Services" Version="1.0.73.124" />
     <PackageReference Include="ModelingEvolution.Observable" Version="0.0.5.4" />
     <PackageReference Include="ModelingEvolution.Observable.Blazor" Version="0.0.5.4" />
 
