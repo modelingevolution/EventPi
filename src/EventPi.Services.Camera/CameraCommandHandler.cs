@@ -29,7 +29,7 @@ public static class CameraModule
         configuration.GetValue<string>(CAMERA_SIMULATOR_PATH_KEY) ?? "cam-simulator";
     public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration, int nr = 0) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort(nr)}";
 
-    public static int GetLibCameraCameraCount(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraCount") ?? 1;
+    public static int GetCameraCameraCount(this IConfiguration configuration) => configuration.GetValue<int?>("CameraCount") ?? (configuration.GetValue<int?>("LibCameraCount") ?? 1);
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
         IPAddress.TryParse(configuration.GetValue<string>(LIB_CAMERA_LISTEN_IP_KEY), out var p) ? p : IPAddress.Loopback;
     public static int GetLibCameraVideoListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LIB_CAMERA_VIDEO_LISTEN_PORT_KEY) ?? 6000;

@@ -77,7 +77,7 @@ namespace EventPi.Services.Camera
             }
             catch(OperationCanceledException) {}
         }
-        private int CameraCount => _config.GetLibCameraCameraCount();
+        private int CameraCount => _config.GetCameraCameraCount();
 
         private GrpcChannel GetClient(int cameraNr = 0)
         {

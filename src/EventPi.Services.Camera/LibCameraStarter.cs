@@ -132,7 +132,7 @@ public class OpenVidCamProcess(IConfiguration configuration,
             await Task.Delay(1000);
 
         shmName ??= nr == 0 ? "default" : "default_" + nr;
-        if (remoteHost == null)
+        if (remoteHost == null || remoteHost == "localhost")
         {
             var p = await vid.Start(resolution, shmName, nr);
             log.LogInformation($"open-vid-cam started, pid: {p}");
