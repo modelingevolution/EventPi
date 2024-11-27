@@ -25,7 +25,7 @@ public class AiSegmentationService : IPartialYuvFrameHandler, IDisposable
 {
     private readonly AiCameraConfigurationProvider _aiConfig;
     private readonly RemoteCanvasStreamPool _pool;
-    private readonly IYoloModelRunner<Segmentation> _runner;
+    private readonly ISegmentationModelRunner<ISegmentation> _runner;
     private readonly float _threshold;
     private Rectangle _interestRegion;
     private ICanvas _canvas;
@@ -53,15 +53,15 @@ public class AiSegmentationService : IPartialYuvFrameHandler, IDisposable
     {
         _aiConfig = aiConfig;
         _pool = pool;
-        var modelPath = configuration.GetOnnxModel();
+        var modelPath = configuration.GetModelAiPath();
         this._threshold = configuration.GetAiConfidenceThreshold();
-        this._runner =  YoloModelFactory.LoadSegmentationModel(modelPath);
+        this._runner =  ModelFactory.LoadSegmentationModel(modelPath);
     }
     public int Every { get; } = 1;
     public unsafe void Handle(YuvFrame frame, YuvFrame? prv, ulong seq, CancellationToken token, object st)
     {
         var r = _interestRegion = _configuration.ConfigurationState.InterestRegion;
-        using var results = _runner.Process(&frame, &r, _threshold);
+        using var results = _runner.Process(&frame, r, r.Size, _threshold);
 
         _canvas.Begin(seq, 2);
         _canvas.DrawRectangle(_interestRegion, RgbColor.Green, 2);
