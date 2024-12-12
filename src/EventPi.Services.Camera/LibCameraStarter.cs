@@ -144,9 +144,22 @@ public class OpenVidCamProcess(IConfiguration configuration,
         }
     }
 }
-public class LibCameraProcess(IConfiguration configuration, 
-    IServiceProvider sp, ILogger<LibCameraProcess> log)
+public class CameraProcessFactory(IConfiguration configuration, 
+    IServiceProvider sp, ILogger<CameraProcessFactory> log, ILogger<DockerLibCamera> log2)
 {
+    private ILibCameraVidProcess Create()
+    {
+        var libCameraPath = configuration.GetLibCameraPath();
+        if(configuration.GetLibCameraRunMode() == RunMode.Process)
+            return new LibCameraVidProcess(sp.GetRequiredService<ILogger<LibCameraVidProcess>>(), libCameraPath);
+        else if (configuration.GetLibCameraRunMode() == RunMode.Docker)
+        {
+            var img = configuration.GetLibCameraDockerImage();
+            
+            return new DockerLibCamera(log2, img.Name, img.Tag, configuration.GetLibCameraDockerPat() ?? throw new ArgumentException("PAT for Docker repository is required"));
+        }
+        else throw new NotSupportedException();
+    }
     public async Task Start(VideoCodec? codec = null, 
         VideoTransport? vt = null, 
         Resolution? res = null, 
@@ -156,15 +169,13 @@ public class LibCameraProcess(IConfiguration configuration,
     {
         var transport = vt ?? VideoTransport.Shm;
         var resolution = res ?? configuration.GetCameraResolution();
-        var libCameraPath = configuration.GetLibCameraPath();
         var videoCodec = codec ?? VideoCodec.Mjpeg;
 
-        var vid = new LibCameraVid(sp.GetRequiredService<ILogger<LibCameraVid>>(), libCameraPath);
-        if (killAll && vid.KillAliens()) 
-            await Task.Delay(1000);
+        var vid = Create();
+        //if (killAll && vid.KillAliens()) 
+        //    await Task.Delay(1000);
 
-        if (shmName == null)
-            shmName = nr == 0 ? "default" : "default_" + nr;
+        shmName ??= nr == 0 ? "default" : "default_" + nr;
 
         var p = await vid.Start(resolution, videoCodec, 
             configuration.GetLibCameraTuningPath(), 
@@ -173,10 +184,10 @@ public class LibCameraProcess(IConfiguration configuration,
             configuration.GetLibCameraVideoListenPort(),
             configuration.GetLibcameraGrpcFullListenAddress(nr), shmName, nr);
 
-        log.LogInformation($"libcamera-vid started, pid: {p}");
+        log.LogInformation($"camera-vid started, pid: {p}");
     }
 }
-public class CameraStarter(IConfiguration configuration, LibCameraProcess proc) : BackgroundService
+public class CameraStarter(IConfiguration configuration, CameraProcessFactory proc) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

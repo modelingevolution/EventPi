@@ -42,7 +42,8 @@ public static class ContainerExtensions
             services.WhenUnix(services => services.AddHostedService<CameraStarter>());
         services.AddSingleton<CameraSimulatorProcess>();
 
-        services.AddSingleton<LibCameraProcess>(sp => new LibCameraProcess(sp.GetRequiredService<IConfiguration>(), sp, sp.GetRequiredService<ILogger<LibCameraProcess>>()));
+        services.AddSingleton<CameraProcessFactory>(sp => new CameraProcessFactory(sp.GetRequiredService<IConfiguration>(), sp, 
+            sp.GetRequiredService<ILogger<CameraProcessFactory>>(), sp.GetRequiredService<ILogger<DockerLibCamera>>()));
         services.AddSingleton<OpenVidCamProcess>(sp => new OpenVidCamProcess(sp.GetRequiredService<IConfiguration>(),
             sp.GetRequiredService<ILoggerFactory>(), 
             sp.GetRequiredService<ILogger<OpenVidCamProcess>>()));

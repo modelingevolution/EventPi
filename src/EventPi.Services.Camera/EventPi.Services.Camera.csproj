@@ -36,6 +36,7 @@
 
   <ItemGroup>
 	  <PackageReference Include="CliWrap" Version="3.6.7" />
+	  <PackageReference Include="Docker.DotNet" Version="3.125.15" />
 	  <PackageReference Include="FluentValidation" Version="11.11.0" />
 	  <PackageReference Include="Google.Protobuf" Version="3.29.0" />
 	  <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
@@ -53,6 +54,7 @@
     <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.77.125" />
     <PackageReference Include="ModelingEvolution.DirectConnect" Version="1.0.8.25" />
     <PackageReference Include="protobuf-net.Core" Version="3.2.45" />
+    <PackageReference Include="SkiaSharp.Views.Blazor" Version="3.116.1" />
   </ItemGroup>
 
   <ItemGroup>

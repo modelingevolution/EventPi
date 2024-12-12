@@ -19,7 +19,8 @@
     <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.77.125" />
     <PackageReference Include="ModelingEvolution.Observable" Version="0.0.5.4" />
     <PackageReference Include="ModelingEvolution.Observable.Blazor" Version="0.0.5.4" />
-    <PackageReference Include="ModelingEvolution.Controls.Blazor.HistogramControl" Version="0.0.8.17" />
+    <PackageReference Include="ModelingEvolution.Controls.Blazor.HistogramControl" Version="0.0.10.17" />
+    <PackageReference Include="SkiaSharp.Views.Blazor" Version="3.116.1" />
 
   </ItemGroup>
 

@@ -1,0 +1,27 @@
+﻿<h3>PID Service Properties</h3>
+<div>
+    <label for="kp">Kp:</label>
+    <input id="kp" type="number" @bind="PidService.Kp" step="0.01" />
+</div>
+<div>
+    <label for="ki">Ki:</label>
+    <input id="ki" type="number" @bind="PidService.Ki" step="0.01" />
+</div>
+<div>
+    <label for="kd">Kd:</label>
+    <input id="kd" type="number" @bind="PidService.Kd" step="0.001" />
+</div>
+<div>
+    <label for="outputUpperLimit">Output Upper Limit:</label>
+    <input id="outputUpperLimit" type="number" @bind="PidService.OutputUpperLimit" step="0.01" />
+</div>
+<div>
+    <label for="outputLowerLimit">Output Lower Limit:</label>
+    <input id="outputLowerLimit" type="number" @bind="PidService.OutputLowerLimit" step="0.01" />
+</div>
+
+@code {
+    
+    [Parameter]
+    public PidService PidService { get; set; }
+}
