@@ -106,7 +106,7 @@ namespace EventPi.Tests
             _ = Task.Run(async () =>
                 {
                     await foreach (var signals in receiverClient.ReadAll())
-                        receivedSignals.Add(signals);
+                        receivedSignals.Add(signals.Values);
                 }
             );
 

@@ -37,8 +37,11 @@ public class CanvasRenderEngineTests
     [Fact]
     public void Paint3()
     {
-        for (int i = 0; i < 2*640 / _sut.Dt + 2; i++)
+        for (int i = 0; i < 2 * 640 / _sut.Dt + 2; i++)
+        {
             _stream.Write(1, (float)i);
+            if(i == 100) Thread.Sleep(1000);
+        }
 
         _sut.Paint(_canvas);
     }

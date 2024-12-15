@@ -413,13 +413,13 @@ namespace EventPi.SignalProcessing
 
     public class SignalsQueueStream : ISignalsStream
     {
-        private readonly ConcurrentQueue<SortedListDictionary<ushort, object>> _index = new();
-        public bool TryRead(out SortedListDictionary<ushort, object>? result)
+        private readonly ConcurrentQueue<SignalsFrame> _index = new();
+        public bool TryRead(out SignalsFrame result)
         {
             return _index.TryDequeue(out result);
         }
        
-        public void Write(SortedListDictionary<ushort, object> data)
+        public void Write(SignalsFrame data)
         {
             _index.Enqueue(data);
         }
@@ -427,19 +427,26 @@ namespace EventPi.SignalProcessing
         {
             var d = new SortedListDictionary<ushort, object>();
             d.Add(id, value);
-            _index.Enqueue(d);
+            _index.Enqueue(new SignalsFrame() {Values= d, Timestamp = DateTime.Now});
         }
+    }
+
+    public readonly record struct SignalsFrame
+    {
+        public SortedListDictionary<ushort, object> Values { get; init; }
+        public DateTime Timestamp { get; init; }
+        
     }
     public interface ISignalsStream
     {
-        bool TryRead(out SortedListDictionary<ushort, object>? result);
+        bool TryRead(out SignalsFrame result);
     }
 
     public class SignalsStream : IDisposable, ISignalsStream
     {
         private readonly ClientWebSocket _socket;
         private readonly MessageDeserializer _deserializer;
-        private readonly Channel<SortedListDictionary<ushort, object>> _channel;
+        private readonly Channel<SignalsFrame> _channel;
         private readonly CancellationTokenSource _cancellationTokenSource;
         public SignalsStream(ClientWebSocket socket, MessageDeserializer deserializer)
         {
@@ -449,7 +456,7 @@ namespace EventPi.SignalProcessing
             _deserializer = deserializer;
 
             // Create an unbounded channel for signal data
-            _channel = Channel.CreateUnbounded<SortedListDictionary<ushort, object>>(
+            _channel = Channel.CreateUnbounded<SignalsFrame> (
                 new UnboundedChannelOptions
                 {
                     SingleReader = true,
@@ -459,9 +466,9 @@ namespace EventPi.SignalProcessing
         // Deserializes signals. We expect that in the web socket each message contains pairs of Signal-Id (short) and value; 
         // The Signal-Id allows us to find appropriate deserializer - this is primitive deserializer. Values are primitive types, such as float, double, int, etc.
         public void Start(){ _ = Task.Factory.StartNew(ReceiveSignalsAsync, TaskCreationOptions.LongRunning); }
-        public IAsyncEnumerable<SortedListDictionary<ushort, object>> ReadAll(CancellationToken ct = default) => _channel.Reader.ReadAllAsync(ct);
+        public IAsyncEnumerable<SignalsFrame> ReadAll(CancellationToken ct = default) => _channel.Reader.ReadAllAsync(ct);
 
-        public bool TryRead(out SortedListDictionary<ushort, object>? result)
+        public bool TryRead(out SignalsFrame result)
         {
             return _channel.Reader.TryRead(out result);
         }
@@ -491,7 +498,7 @@ namespace EventPi.SignalProcessing
                     
                     // Deserialize received signals
                     var signals = _deserializer.DeserializeMessage(buffer.AsSpan(0, result.Count));
-                    await _channel.Writer.WriteAsync(signals);
+                    await _channel.Writer.WriteAsync(new SignalsFrame() { Values= signals, Timestamp = DateTime.Now} );;
                 }
             }
             catch (Exception)

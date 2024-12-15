@@ -22,7 +22,7 @@
     {
         sw = Stopwatch.StartNew();
         // Start UI refresh timer
-        _uiTimer = new Timer(RefreshUI, null, 0, (int)(1000 / _uiRefreshRate));
+        //_uiTimer = new Timer(RefreshUI, null, 0, (int)(1000 / _uiRefreshRate));
         // Start producer timer
         _cancellationTokenSource = new CancellationTokenSource();
         _producerTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000 / _sampling));
