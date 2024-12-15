@@ -1,0 +1,33 @@
+﻿@using EventPi.SignalProcessing
+<div>
+    <h3>Signal Sinks</h3>
+    @if (SignalSinks == null || !SignalSinks.Any())
+    {
+        <p>No Signal Sinks available.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var sink in SignalSinks)
+            {
+                <tr>
+                    <td>@sink.Name</td>
+                    <td>@sink.Type</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<SignalSink>? SignalSinks { get; set; }
+}

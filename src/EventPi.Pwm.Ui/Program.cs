@@ -3,6 +3,9 @@ using System.Diagnostics;
 using EventPi.Pid;
 using EventPi.Pwm.Ui.Components;
 using Microsoft.AspNetCore.Mvc;
+using EventPi.Pwm.Ui.Wasm.Client;
+using EventPi.SignalProcessing;
+using _Imports = EventPi.Pwm.Ui.Wasm.Client._Imports;
 
 namespace EventPi.Pwm.Ui
 {
@@ -15,20 +18,32 @@ namespace EventPi.Pwm.Ui
             // Add services to the container.
             var services = builder.Services;
             services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+                .AddInteractiveServerComponents()
+                .AddInteractiveWebAssemblyComponents(); 
 
             services.AddOpenApi()
+                .AddSignalWasm()
+                .AddSignalsServer(s => s
+                    .RegisterSink<float>("input")
+                    .RegisterSink<float>("output"))
+                
+                
                 .AddSingleton<NullPwmService>()
                 .AddSingleton<PidService>()
-                .AddSingleton<IPwmService>(sp => sp.GetRequiredService<NullPwmService>());
+                .AddSingleton<IPwmService>(sp => sp.GetRequiredService<NullPwmService>())
+                .AddHttpClient("default", sp =>
+                    sp.BaseAddress = new Uri(builder.Configuration.GetValue<string>("Urls") ?? throw new InvalidOperationException("You need to configure Urls."))
+                );
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
+                app.UseWebAssemblyDebugging();
                 app.UseExceptionHandler("/Error");
             }
+            app.UseWebSockets();
             app.UseSwaggerUI(options =>
             {
                 options.RoutePrefix = "api";
@@ -39,12 +54,17 @@ namespace EventPi.Pwm.Ui
             
             app.MapStaticAssets();
             app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+                .AddInteractiveServerRenderMode()
+                .AddInteractiveWebAssemblyRenderMode()
+                .AddAdditionalAssemblies(typeof(_Imports).Assembly); 
+            ;
+            app.MapSignals();
+            
             app.MapPost("/Pwm/Parameters", PwmHandler.SetParameters);
             app.MapPost("/Pwm/Start", PwmHandler.Start);
             app.MapPost("/Pwm/Stop", PwmHandler.Stop);
             app.MapGet("/Pwm", PwmHandler.Get);
-            
+           
             app.MapPost("/Pid/Parameters", PidHandler.SetParameters);
             app.MapPost("/Pid/Compute", PidHandler.Compute);
 

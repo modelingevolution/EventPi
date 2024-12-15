@@ -1,0 +1,57 @@
+﻿@using System.Text
+@using EventPi.SignalProcessing
+@using ModelingEvolution.VideoStreaming.Buffers
+@using SkiaSharp
+@inject NavigationManager nm
+@inject SignalHubClient _client
+<h3>SignalCanvas</h3>
+
+
+<button @onclick="OnConnect">Connect</button>
+<button @onclick="OnRefresh">Refresh</button>
+<SignalListControl SignalSinks="@signals"></SignalListControl>
+
+<p>Counter: @_counter</p>
+<p>Read: @_read</p>
+<p>@_error</p>
+<SKCanvasView EnableRenderLoop="true" 
+OnPaintSurface="@OnPaint" width="640px" height="640px"/>
+
+@code {
+    private SignalSink[] signals;
+    private SignalsStream stream;
+
+    private CanvasRenderEngine? _engine;
+    private int _counter;
+    private int _read;
+    private string _error;
+
+    [Parameter] 
+    public float Frequency { get; set; } = 30f;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        signals = await _client.GetSignals();
+        _client.Frequency = Frequency;
+    }
+
+    private async Task OnRefresh()
+    {
+        await this.InvokeAsync(this.StateHasChanged);
+    }
+    private async Task OnConnect()
+    {
+        this.stream = await _client.Subscribe(signals);
+        _engine = new CanvasRenderEngine(stream);
+
+    }
+
+
+    private void OnPaint(SKPaintSurfaceEventArgs obj)
+    {
+        _engine?.Paint(obj);
+    }
+
+    
+
+}
