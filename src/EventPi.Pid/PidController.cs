@@ -24,11 +24,12 @@ namespace EventPi.Pid
         private double _integralSum;
         private double _prevError;
         
-        public PidController(double kp,  double kd, double ki, double outputUpperLimit, double outputLowerLimit)
+        public PidController(double kp,  double kd, double ki, double outputUpperLimit, double outputLowerLimit, double? integralErrorThreshold = null)
         {
             Kp = kp;
             Ki = ki;
             Kd = kd;
+            IntegralErrorThreshold = integralErrorThreshold;
             
             OutputUpperLimit = outputUpperLimit;
             OutputLowerLimit = outputLowerLimit;
@@ -68,17 +69,26 @@ namespace EventPi.Pid
         }
 
        
-        public double CalculateOutput(double setPoint, double processValue, TimeSpan ts)
+        public double Compute(double setPoint, double processValue, TimeSpan ts)
         {
             double error = setPoint - processValue;
-            _integralSum += error * ts.TotalSeconds;
-            double derivative = (error - _prevError) / ts.TotalSeconds;
+            var dt = ts.TotalSeconds;
+            
+            if (IntegralErrorThreshold.HasValue)
+            {
+                if(Math.Abs(error) < IntegralErrorThreshold.Value) 
+                    _integralSum += error * dt;
+            } 
+            else _integralSum += error * dt;
+            
+            double derivative = (error - _prevError) / dt;
             double output = Kp * error + Ki * _integralSum + Kd * derivative;
-            output = Math.Max(OutputLowerLimit, Math.Min(OutputUpperLimit, output)); // Clamp output within limits
+            output = Math.Clamp(output, this.OutputLowerLimit, this.OutputUpperLimit);
             _prevError = error;
             return output;
         }
-
+        public double? IntegralErrorThreshold { get; set; }
+        public double IntegralSum => _integralSum;
         public void ResetController()
         {
             _integralSum = 0;

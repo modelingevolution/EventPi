@@ -1,12 +1,14 @@
 ﻿@page "/"
 @using EventPi.Pwm.Ui.Wasm.Client
-@inject PidService _pid
+
 @inject IPwmService _pwm
 
 <PageTitle>Pwm UI</PageTitle>
 
 <a href="/api" target="_blank">API Explorer</a>
-<PidControl @rendermode="InteractiveServer"  PidService="_pid"/>
+<PidControl @rendermode="InteractiveServer"  />
+
 <PwmControl @rendermode="InteractiveServer"  PwmService="_pwm"/>
-<SignalSimulator SignalName="input" @rendermode="InteractiveServer" />
+
+<SignalSimulator SignalName="x" @rendermode="InteractiveServer" />
 <SignalCanvas @rendermode="InteractiveWebAssembly" />

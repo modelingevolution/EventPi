@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventPi.Pwm.Ui.Wasm\EventPi.Pwm.Ui.Wasm.Client\EventPi.Pwm.Ui.Wasm.Client.csproj" />
+    <ProjectReference Include="..\EventPi.Pwm.Ui\EventPi.Pwm.Ui.csproj" />
     <ProjectReference Include="..\EventPi.SignalProcessing\EventPi.SignalProcessing.csproj" />
   </ItemGroup>
 

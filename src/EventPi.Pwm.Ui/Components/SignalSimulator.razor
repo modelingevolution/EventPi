@@ -1,28 +1,55 @@
 ﻿@using System.Diagnostics
 @using System.Transactions
+@using EventPi.Pid
+
 @using EventPi.SignalProcessing
-@inject SignalHubServer _srv
-<h3>Signal Simulator</h3>
-<label>@_lastValue</label>
+@inject SignalHubServer _signals
+@inject PidService _pid
+<h3>Signal Simulator, x => A * sin (w * t)</h3>
+<label>Target value: @_targetValue</label>
+<label>Delay in ms : @DelayMilliseconds()</label>
+<div>
+    <label for="A">A:</label>
+    <input id="A" type="number" @bind="@_a" step="0.01" />
+</div>
+<div>
+    <label for="W">w:</label>
+    <input id="W" type="number" @bind="@_w" step="0.01" />
+</div>
+<div>
+    <label for="Delay">Delay:</label>
+    <input id="Delay" type="number" @bind="@_delay"  />
+</div>
+
 <button @onclick="Start">Start</button>
 <button @onclick="Stop">Stop</button>
 @code {
+    private int DelayMilliseconds()
+    {
+        return (int)(_delay * 1000 / _sampling);
+    }
     private float _sampling = 60; // 60Hz
     private float _uiRefreshRate = 2; // 2Hz
     private Timer _uiTimer;
     private PeriodicTimer _producerTimer;
-    private float _lastValue;
+    private float _targetValue;
     private Stopwatch sw;
-    private ISignalSink<float> _sink;
+    private ISignalSink<float> _target;
+    private ISignalSink<float> _processed;
+    private float _processedValue;
+    private float _errorValue;
+
+    private ISignalSink<float> _error;
     // Backing fields for A and W
-    private float _a = 1;
-    private float _w = 1;
+    private float _a = 20;
+    private float _w = 0.1f;
+    private int _delay = 0;
     private CancellationTokenSource _cancellationTokenSource;
     private void Start()
     {
         sw = Stopwatch.StartNew();
         // Start UI refresh timer
-        //_uiTimer = new Timer(RefreshUI, null, 0, (int)(1000 / _uiRefreshRate));
+        _uiTimer = new Timer(RefreshUI, null, 0, (int)(1000 / _uiRefreshRate));
         // Start producer timer
         _cancellationTokenSource = new CancellationTokenSource();
         _producerTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000 / _sampling));
@@ -52,6 +79,7 @@
     }
     [Parameter]
     public string SignalName { get; set; }
+
     [Parameter]
     public float A
     {
@@ -72,16 +100,38 @@
     }
     protected override void OnParametersSet()
     {
-        this._sink = _srv.GetSink<float>(SignalName);
+        this._target = _signals.GetSink<float>(SignalName + "-target");
+        this._processed = _signals.GetSink<float>(SignalName + "-processed");
+        this._error = _signals.GetSink<float>(SignalName + "-error");
+
     }
+    StepMotorModel _motor = new StepMotorModel(1.8, 38000, 0.5, 0);
+
+    private Queue<float> _delayBuffer = new Queue<float>();
+
     private async Task ProduceValuesAsync(CancellationToken cancellationToken)
     {
         try
         {
+            _pid.Start();
             while (await _producerTimer.WaitForNextTickAsync(cancellationToken))
             {
-                _lastValue = _a * Function(_w * (float)sw.Elapsed.TotalSeconds);
-                _sink.Write(_lastValue);
+                _delayBuffer.Enqueue((float)_motor.Position());
+
+                _processedValue = _delayBuffer.Count >= (1+_delay) ? _delayBuffer.Dequeue() : 0;
+                _targetValue = _a * Function(_w * (float)sw.Elapsed.TotalSeconds);
+
+                double adjustment = _pid.Compute(_targetValue, _processedValue);
+                double motorTarget = _processedValue + adjustment * 2;
+                _motor.MoveTo(motorTarget);
+
+                _errorValue = _targetValue - _processedValue;
+
+                _target.Write(_targetValue);
+                _processed.Write(_processedValue);
+                _error.Write(_errorValue*10);
+
+                
             }
         }
         catch (OperationCanceledException)

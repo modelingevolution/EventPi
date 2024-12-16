@@ -2,5 +2,5 @@
 
 public interface IController
 {
-    double CalculateOutput(double setPoint, double processValue, TimeSpan ts);
+    double Compute(double setPoint, double processValue, TimeSpan ts);
 }

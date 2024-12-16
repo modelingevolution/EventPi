@@ -24,12 +24,13 @@ namespace EventPi.Pwm.Ui
             services.AddOpenApi()
                 .AddSignalWasm()
                 .AddSignalsServer(s => s
-                    .RegisterSink<float>("input")
-                    .RegisterSink<float>("output"))
+                    .RegisterSink<float>("x-target")
+                    .RegisterSink<float>("x-processed")
+                    .RegisterSink<float>("x-error"))
                 
                 
                 .AddSingleton<NullPwmService>()
-                .AddSingleton<PidService>()
+                .AddSingleton<PidService>((sp) => new PidService(0.9,0,2,20,-20,2))
                 .AddSingleton<IPwmService>(sp => sp.GetRequiredService<NullPwmService>())
                 .AddHttpClient("default", sp =>
                     sp.BaseAddress = new Uri(builder.Configuration.GetValue<string>("Urls") ?? throw new InvalidOperationException("You need to configure Urls."))
@@ -90,7 +91,7 @@ namespace EventPi.Pwm.Ui
         
         public static void Compute([FromServices] PidService srv,[FromServices] IPwmService pwm,  [FromBody] Signal signal)
         {
-            var result = srv.Compute(signal.Input, signal.Expected);
+            var result = srv.Compute(signal.Expected, signal.Input);
             pwm.DutyCycle = Math.Abs(result);
             pwm.IsReverse = result < 0;
         }
@@ -100,51 +101,13 @@ namespace EventPi.Pwm.Ui
         }
     }
 
-    public class PidService
+    public class PidService : PidControllerTimeWrapper<PidController>
     {
-        private readonly PidController _controller = new(0.2, 0.01, 0.001, 0.5, 0);
-        private Stopwatch? _dt;
-
-        public double Compute(double input, double expected)
+        
+        public PidService(double kp, double kd, double ki, double ou, double ol, double? ig) : base(new PidController(kp,kd,ki,ou,ol, ig))
         {
-            if (_dt == null)
-            {
-                _dt = Stopwatch.StartNew();
-                return 0;
-            }
-            var value = _controller.CalculateOutput(expected, input, _dt.Elapsed);
-            _dt.Restart();
-            return value;
         }
-        public double Kp
-        {
-            get => _controller.Kp;
-            set => _controller.Kp = value;
-        }
-
-        public double Ki
-        {
-            get => _controller.Ki;
-            set => _controller.Ki = value;
-        }
-
-        public double Kd
-        {
-            get => _controller.Kd;
-            set => _controller.Kd = value;
-        }
-
-        public double OutputUpperLimit
-        {
-            get => _controller.OutputUpperLimit;
-            set => _controller.OutputUpperLimit = value;
-        }
-
-        public double OutputLowerLimit
-        {
-            get => _controller.OutputLowerLimit;
-            set => _controller.OutputLowerLimit = value;
-        }
+        
     }
 
     public interface IPwmService

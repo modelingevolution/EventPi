@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\VideoStreaming\src\ModelingEvolution.VideoStreaming.VectorGraphics\ModelingEvolution.VideoStreaming.VectorGraphics.csproj" />
     <ProjectReference Include="..\..\EventPi.SignalProcessing\EventPi.SignalProcessing.csproj" />
   </ItemGroup>
   

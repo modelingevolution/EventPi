@@ -5,7 +5,8 @@ namespace EventPi.Pid;
 public class PidControllerTimeWrapper<TPid>(TPid _pid) : IPidConfig, IController
     where TPid : IPidConfig, IController
 {
-    private Stopwatch _sw = new Stopwatch();
+    private readonly Stopwatch _sw = Stopwatch.StartNew();
+    public void Start() => _sw.Restart();
     public double Kp
     {
         get => _pid.Kp;
@@ -35,15 +36,22 @@ public class PidControllerTimeWrapper<TPid>(TPid _pid) : IPidConfig, IController
         get => _pid.OutputLowerLimit;
         set => _pid.OutputLowerLimit = value;
     }
-    public double CalculateOutput(double setPoint, double processValue)
+    public double Compute(double setPoint, double processValue)
     {
         var ts = _sw.Elapsed;
-        var r = _pid.CalculateOutput(setPoint, processValue, ts);
+        
+        var r = _pid.Compute(setPoint, processValue, ts);
         _sw.Restart();
         return r;
     }
-    public double CalculateOutput(double setPoint, double processValue, TimeSpan ts)
+
+    public double Compute(double setPoint, double processValue, long milliseconds)
     {
-        return _pid.CalculateOutput(setPoint, processValue, ts);
+        var ts = TimeSpan.FromMilliseconds(milliseconds);
+        return _pid.Compute(setPoint, processValue, ts);
+    }
+    public double Compute(double setPoint, double processValue, TimeSpan ts)
+    {
+        return _pid.Compute(setPoint, processValue, ts);
     }
 }
