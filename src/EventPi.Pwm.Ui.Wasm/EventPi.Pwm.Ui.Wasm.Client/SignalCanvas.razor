@@ -9,13 +9,9 @@
 
 <button @onclick="OnConnect">Connect</button>
 <button @onclick="OnRefresh">Refresh</button>
-<SignalListControl SignalSinks="@signals"></SignalListControl>
+<SignalListControl SignalSinks="@signals" Engine="@_engine"></SignalListControl>
 
-<p>Counter: @_counter</p>
-<p>Read: @_read</p>
-<p>@_error</p>
-<SKCanvasView EnableRenderLoop="true" 
-OnPaintSurface="@OnPaint" width="640px" height="640px"/>
+<SKCanvasView EnableRenderLoop="true" OnPaintSurface="@OnPaint" width="640px" height="640px"/>
 
 @code {
     private SignalSink[] signals;

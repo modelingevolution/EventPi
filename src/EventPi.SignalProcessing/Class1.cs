@@ -268,7 +268,10 @@ namespace EventPi.SignalProcessing
             );
         }
     }
-    public record SignalSink(string Name, string Type);
+    public record SignalSink(string Name, string Type)
+    {
+        public ushort Id { get; set; }
+    }
 
     public static class ContainerExtensions
     {

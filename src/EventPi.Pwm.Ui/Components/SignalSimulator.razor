@@ -116,9 +116,11 @@
             _pid.Start();
             while (await _producerTimer.WaitForNextTickAsync(cancellationToken))
             {
+                // wartosc aktualna z kamery
                 _delayBuffer.Enqueue((float)_motor.Position());
 
                 _processedValue = _delayBuffer.Count >= (1+_delay) ? _delayBuffer.Dequeue() : 0;
+                // wartosc zadana z kamery
                 _targetValue = _a * Function(_w * (float)sw.Elapsed.TotalSeconds);
 
                 double adjustment = _pid.Compute(_targetValue, _processedValue);
@@ -129,7 +131,7 @@
 
                 _target.Write(_targetValue);
                 _processed.Write(_processedValue);
-                _error.Write(_errorValue*10);
+                _error.Write(_errorValue);
 
                 
             }

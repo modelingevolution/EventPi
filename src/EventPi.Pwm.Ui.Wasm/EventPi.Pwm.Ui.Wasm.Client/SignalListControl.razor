@@ -12,22 +12,33 @@
             <tr>
                 <th>Name</th>
                 <th>Type</th>
+                <th>Scale</th>
             </tr>
             </thead>
             <tbody>
-            @foreach (var sink in SignalSinks)
-            {
-                <tr>
-                    <td>@sink.Name</td>
-                    <td>@sink.Type</td>
-                </tr>
-            }
-            </tbody>
+            @for (ushort index = 0; index < SignalSinks.Length; index++) {
+            var sink = SignalSinks[index];
+            var settings = Engine?.GetSignalSetting(index);
+            <tr>
+                <td>@sink.Name</td>
+                <td>@sink.Type</td>
+                <td>
+                    @if (settings != null)
+                    {
+                        <input type="number" @bind="@settings.Factor" />
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
         </table>
     }
 </div>
 
 @code {
     [Parameter]
-    public IEnumerable<SignalSink>? SignalSinks { get; set; }
+    public SignalSink[]? SignalSinks { get; set; }
+
+    [Parameter]
+    public CanvasRenderEngine Engine { get; set; }
 }

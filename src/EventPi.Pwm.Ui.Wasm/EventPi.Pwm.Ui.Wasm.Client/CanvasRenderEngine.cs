@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using EventPi.SignalProcessing;
+using ModelingEvolution.Drawing;
 using ModelingEvolution.VideoStreaming.Buffers;
 using ModelingEvolution.VideoStreaming.VectorGraphics;
 using SkiaSharp;
@@ -35,7 +36,7 @@ namespace EventPi.Pwm.Ui.Wasm.Client
         /// </summary>
         /// <param name="id">The ID (0-15) for which to generate the color.</param>
         /// <returns>An SKPaint object with the corresponding color.</returns>
-        public static SKPaint GetPaintById(byte id, int count = 16)
+        public static SKColor GetPaintById(byte id, int count = 16)
         {
             // Ensure the ID is within the valid range (0-15)
             id = (byte)(id % count);
@@ -44,12 +45,7 @@ namespace EventPi.Pwm.Ui.Wasm.Client
             // Convert HSV to RGB
             SKColor color = HsvToRgb(hue, 1f, 1f);
             // Create and return the SKPaint object
-            return new SKPaint
-            {
-                Color = color,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 2
-            };
+            return color;
         }
         /// <summary>
         /// Converts HSV values to an SKColor.
@@ -107,7 +103,7 @@ namespace EventPi.Pwm.Ui.Wasm.Client
         private SKPaint _gridLinesStokePaint;
         private SKPaint _axisStrokePaint;
         private DateTime _lastTimestamp;
-        private SizeF _gridCellSize = new SizeF(10,80);
+        private SizeF _gridCellSize = new SizeF(10,50);
         
         public float PointRadius { get; set; } = 5;
         private float _textSize;
@@ -271,28 +267,58 @@ namespace EventPi.Pwm.Ui.Wasm.Client
             this.Paint(args.Surface.Canvas);
         }
 
-        private Dictionary<ushort, SKPaint> _colors = new();
-        private SKPaint GetColor(ushort id)
+        private readonly Dictionary<ushort, SignalSettings> _signalSettings = new();
+
+        public record SignalSettings
         {
-            if (_colors.TryGetValue(id, out var color))
+            private SKColor _color;
+            public SKPaint Paint { get; internal set; }
+
+            public SKColor Color
             {
-                return color;
+                get => _color;
+                set
+                {
+                    if (_color == value) return;
+                    _color = value;
+                    Paint = new SKPaint
+                    {
+                        Color = value,
+                        Style = SKPaintStyle.Stroke,
+                        StrokeWidth = Width
+                    };
+                }
             }
 
-            _colors.Add(id, color = ColorGenerator.GetPaintById((byte)id));
-            return color;
+            public float Width { get; set; } = 2;
+            public float Factor { get; set; } = 1;
         }
+        public SignalSettings GetSignalSetting(ushort id)
+        {
+            if (_signalSettings.TryGetValue(id, out var setting))
+            {
+                return setting;
+            }
+
+            _signalSettings.Add(id, setting = new SignalSettings() { Color = ColorGenerator.GetPaintById((byte)id)});
+            return setting;
+        }
+        
+       
         private void DrawSignal(SKCanvas canvas, ushort id, float prvX, object prvValue, float x, object currentValue)
         {
+            var factor = GetSignalSetting(id).Factor * _dy;
+            
             var prvY = (float)prvValue;
-            prvY *= _dy;
+            prvY *= factor;
             var h = _h;
             prvY = h - prvY;
             var currentY = (float)currentValue;
-            currentY *= _dy;
+            
+            currentY *= factor;
             currentY = h - currentY;
 
-            canvas.DrawLine(prvX, prvY, x, currentY, GetColor(id));
+            canvas.DrawLine(prvX, prvY, x, currentY, GetSignalSetting(id).Paint);
             
         }
         
@@ -441,6 +467,7 @@ namespace EventPi.Pwm.Ui.Wasm.Client
                 _col += 1;
             }
             
+            
             _buffer.Flush();
             _buffer.Restore();
 
@@ -450,6 +477,17 @@ namespace EventPi.Pwm.Ui.Wasm.Client
             
             c.DrawBitmap(_bitmap, src, _view, _bitmapPaint);
             c.DrawTextBox(0, 0, 12, 100, $"{_col}/{processed}", SKColors.LightGray, SKColors.Black);
+
+            if (Align == Align.Center)
+            {
+                for (float dy = _gridCellSize.Height; dy < _h / 2; dy += _gridCellSize.Height)
+                {
+                    var y = -Offset.Y - dy;
+                    var y2 = -Offset.Y + dy;
+                    c.DrawTextBox(1, y-6,12,25,(dy/_dy).ToString(), SKColors.White, SKColors.Black);
+                    c.DrawTextBox(1, y2-6, 12, 30, (-dy / _dy).ToString(), SKColors.White, SKColors.Black);
+                }
+            }
 
         }
 
