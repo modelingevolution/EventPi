@@ -1,7 +1,7 @@
-﻿using SkiaSharp;
-using System.Text;
+﻿using System.Text;
+using SkiaSharp;
 
-namespace EventPi.Pwm.Ui.Wasm.Client
+namespace EventPi.SignalProcessing.Ui
 {
     public static class CanvasExtensions
     {

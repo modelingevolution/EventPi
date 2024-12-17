@@ -5,6 +5,7 @@ using EventPi.Pwm.Ui.Components;
 using Microsoft.AspNetCore.Mvc;
 using EventPi.Pwm.Ui.Wasm.Client;
 using EventPi.SignalProcessing;
+using EventPi.SignalProcessing.Ui;
 using _Imports = EventPi.Pwm.Ui.Wasm.Client._Imports;
 
 namespace EventPi.Pwm.Ui
@@ -22,7 +23,7 @@ namespace EventPi.Pwm.Ui
                 .AddInteractiveWebAssemblyComponents(); 
 
             services.AddOpenApi()
-                .AddSignalWasm()
+                .AddSignalProcessingUi()
                 .AddSignalsServer(s => s
                     .RegisterSink<float>("x-target")
                     .RegisterSink<float>("x-processed")
@@ -57,7 +58,8 @@ namespace EventPi.Pwm.Ui
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode()
                 .AddInteractiveWebAssemblyRenderMode()
-                .AddAdditionalAssemblies(typeof(_Imports).Assembly); 
+                .AddAdditionalAssemblies(typeof(_Imports).Assembly)
+                .AddAdditionalAssemblies(typeof(EventPi.SignalProcessing.Ui._Imports).Assembly); 
             ;
             app.MapSignals();
             

@@ -1,3 +1,4 @@
+using EventPi.SignalProcessing.Ui;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ProtoBuf.Meta;
@@ -15,7 +16,7 @@ namespace EventPi.Pwm.Ui.Wasm.Client
             builder.Services.AddHttpClient("default",
                 (provider, client) => client.BaseAddress = new Uri(baseAddress));
             
-            builder.Services.AddSignalWasm();
+            builder.Services.AddSignalProcessingUi();
             
             await builder.Build().RunAsync();
         }

@@ -1,5 +1,6 @@
 ﻿using EventPi.Pwm.Ui.Wasm.Client;
 using EventPi.SignalProcessing;
+using EventPi.SignalProcessing.Ui;
 using SkiaSharp;
 
 namespace EventPi.Tests;

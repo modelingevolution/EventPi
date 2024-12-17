@@ -373,7 +373,7 @@ namespace EventPi.SignalProcessing
     public class MessageDeserializer
     {
         private readonly FrozenDictionary<ushort, ISignalDeserializer> _signals;
-
+        public IEnumerable<ushort> Signals => _signals.Keys;
         public MessageDeserializer(params ISignalDeserializer[] deserializers)
         {
             _signals = deserializers
@@ -421,7 +421,9 @@ namespace EventPi.SignalProcessing
         {
             return _index.TryDequeue(out result);
         }
-       
+
+        public IEnumerable<ushort> Signals => Array.Empty<ushort>();
+
         public void Write(SignalsFrame data)
         {
             _index.Enqueue(data);
@@ -443,6 +445,7 @@ namespace EventPi.SignalProcessing
     public interface ISignalsStream
     {
         bool TryRead(out SignalsFrame result);
+        IEnumerable<ushort> Signals { get; }
     }
 
     public class SignalsStream : IDisposable, ISignalsStream
@@ -475,6 +478,9 @@ namespace EventPi.SignalProcessing
         {
             return _channel.Reader.TryRead(out result);
         }
+
+        public IEnumerable<ushort> Signals => _deserializer.Signals;
+
         private async Task ReceiveSignalsAsync()
         {
             var buffer = new byte[1024 * 4]; // 4KB buffer

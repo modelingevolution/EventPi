@@ -1,17 +1,13 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Drawing;
-using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
-using EventPi.SignalProcessing;
-using ModelingEvolution.Drawing;
 using ModelingEvolution.VideoStreaming.Buffers;
-using ModelingEvolution.VideoStreaming.VectorGraphics;
 using SkiaSharp;
 using SkiaSharp.Views.Blazor;
 
-namespace EventPi.Pwm.Ui.Wasm.Client
+namespace EventPi.SignalProcessing.Ui
 {
     public enum Align
     {
@@ -213,6 +209,7 @@ namespace EventPi.Pwm.Ui.Wasm.Client
             PointColor = SKColors.Green;
             FontColor = SKColors.Black;
             TextSize = 12;
+            this._signalSettings = stream.Signals.ToFrozenDictionary(x => x, y => new SignalSettings(this,y));
         }
 
         public float Dt => _dt;
@@ -267,13 +264,30 @@ namespace EventPi.Pwm.Ui.Wasm.Client
             this.Paint(args.Surface.Canvas);
         }
 
-        private readonly Dictionary<ushort, SignalSettings> _signalSettings = new();
+        private readonly FrozenDictionary<ushort, SignalSettings> _signalSettings;
 
         public record SignalSettings
         {
             private SKColor _color;
+
+            public SignalSettings(CanvasRenderEngine Parent, ushort id)
+            {
+                this.Parent = Parent;
+                this.Id = id;
+                this.Color = ColorGenerator.GetPaintById((byte)id);
+            }
+
             public SKPaint Paint { get; internal set; }
 
+            private SKPaint GetPaint(SKColor value)
+            {
+                return new SKPaint
+                {
+                    Color = value,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = Width
+                };
+            }
             public SKColor Color
             {
                 get => _color;
@@ -281,27 +295,29 @@ namespace EventPi.Pwm.Ui.Wasm.Client
                 {
                     if (_color == value) return;
                     _color = value;
-                    Paint = new SKPaint
-                    {
-                        Color = value,
-                        Style = SKPaintStyle.Stroke,
-                        StrokeWidth = Width
-                    };
+                    var prv = Paint;
+                    Paint = GetPaint(value);
+                    if(prv != null!)
+                        Parent.Invoke(() => prv.Dispose());
                 }
             }
 
             public float Width { get; set; } = 2;
             public float Factor { get; set; } = 1;
+            public CanvasRenderEngine Parent { get; init; }
+            public ushort Id { get; init; }
+
+            public string CssColor
+            {
+                get { return $"rgba({_color.Red}, {_color.Green}, {_color.Blue}, {_color.Alpha / 255.0f})"; }
+            }
         }
         public SignalSettings GetSignalSetting(ushort id)
         {
             if (_signalSettings.TryGetValue(id, out var setting))
-            {
                 return setting;
-            }
 
-            _signalSettings.Add(id, setting = new SignalSettings() { Color = ColorGenerator.GetPaintById((byte)id)});
-            return setting;
+            throw new IndexOutOfRangeException();
         }
         
        

@@ -6,8 +6,8 @@
 @using EventPi.SignalProcessing
 @inject SignalHubServer _signals
 @inject PidService _pid
-<h3>Signal Simulator, x => A * sin (w * t)</h3>
-<label>Target value: @_targetValue</label>
+<h3>Signal Simulator, x-target => A * sin (w * t)</h3>
+<label>Current target value: @_targetValue</label><br/>
 <label>Delay in ms : @DelayMilliseconds()</label>
 <div>
     <label for="A">A:</label>
