@@ -270,7 +270,7 @@ namespace EventPi.SignalProcessing
     }
     public record SignalSink(string Name, string Type)
     {
-        public ushort Id { get; set; }
+        
     }
 
     public static class ContainerExtensions
@@ -592,8 +592,19 @@ namespace EventPi.SignalProcessing
 
 
     // strongly typed structure for storing signal names. Should implement IParsable and explicit operator from string and to string.
-    public readonly record struct SignalName : IParsable<SignalName>
+    public readonly record struct SignalName : IParsable<SignalName>, IComparable<SignalName>, IComparable
     {
+        public int CompareTo(SignalName other)
+        {
+            return string.Compare(Value, other.Value, StringComparison.Ordinal);
+        }
+
+        public int CompareTo(object? obj)
+        {
+            if (obj is null) return 1;
+            return obj is SignalName other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(SignalName)}");
+        }
+
         public string Value { get; }
 
         public SignalName(string value)

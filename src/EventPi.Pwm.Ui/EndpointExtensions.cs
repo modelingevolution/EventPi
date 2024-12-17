@@ -20,7 +20,7 @@ public static class Handlers
 {
     public static IEnumerable<SignalSink> Get([FromServices] SignalHubServer srv)
     {
-        foreach (var m in srv.MetadataIndex)
+        foreach (var m in srv.MetadataIndex.OrderBy(x=>x.Name))
             yield return new SignalSink(m.Name, m.Type.Name);
     }
 

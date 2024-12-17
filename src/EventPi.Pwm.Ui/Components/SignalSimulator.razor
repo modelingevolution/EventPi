@@ -1,4 +1,5 @@
-﻿@using System.Diagnostics
+﻿@using System.Collections.Concurrent
+@using System.Diagnostics
 @using System.Transactions
 @using EventPi.Pid
 
@@ -18,7 +19,7 @@
 </div>
 <div>
     <label for="Delay">Delay:</label>
-    <input id="Delay" type="number" @bind="@_delay"  />
+    <input id="Delay" type="number" @bind="@Delay"  />
 </div>
 
 <button @onclick="Start">Start</button>
@@ -44,6 +45,34 @@
     private float _a = 20;
     private float _w = 0.1f;
     private int _delay = 0;
+
+    private int Delay
+    {
+        get { return _delay; }
+        set
+        {
+            if (_delay == value) return;
+            
+            var d = value - _delay;
+            _delay = value;
+            if (d > 0)
+            {
+                while (d-- > 0)
+                {
+                    if (_delayBuffer.TryPeek(out var v))
+                        _delayBuffer.Enqueue(v);
+                    else
+                        _delayBuffer.Enqueue(0);
+                }
+                
+            } 
+            else if (d < 0)
+            {
+                while (d++ < 0)
+                    _delayBuffer.TryDequeue(out var _);
+            }
+        }
+    }
     private CancellationTokenSource _cancellationTokenSource;
     private void Start()
     {
@@ -107,7 +136,7 @@
     }
     StepMotorModel _motor = new StepMotorModel(1.8, 38000, 0.5, 0);
 
-    private Queue<float> _delayBuffer = new Queue<float>();
+    private ConcurrentQueue<float> _delayBuffer = new ConcurrentQueue<float>();
 
     private async Task ProduceValuesAsync(CancellationToken cancellationToken)
     {
@@ -119,7 +148,7 @@
                 // wartosc aktualna z kamery
                 _delayBuffer.Enqueue((float)_motor.Position());
 
-                _processedValue = _delayBuffer.Count >= (1+_delay) ? _delayBuffer.Dequeue() : 0;
+                _processedValue =  _delayBuffer.TryDequeue(out var v) ? v : 0;
                 // wartosc zadana z kamery
                 _targetValue = _a * Function(_w * (float)sw.Elapsed.TotalSeconds);
 
