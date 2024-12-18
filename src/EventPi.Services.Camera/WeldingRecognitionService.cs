@@ -119,12 +119,8 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
 
         var count = frame.CountPixelsOutsideRange(_model.DarkPixelsBorder, _model.BrightPixelsBorder, r);
         //_tmp.Add(count);
-        
-        _canvas.Begin(frame.Metadata.FrameNumber);
-        
-        _canvas.DrawText($"{frame.Metadata.FrameNumber}: {count.BrightPixels*100/ frame.Info.Pixels}% {count.DarkPixels*100/frame.Info.Pixels}%", 10,20,20,RgbColor.White);
-        _canvas.End();
-        
+
+        //AgumentWithPixelInformation(frame, count);
         if (prv == null)
         {
             _count0 = count;
@@ -202,6 +198,17 @@ public class WeldingRecognitionService : IPartialYuvFrameHandler, IDisposable
         //    sb.AppendLine($"[{c}]: {tmp}");
         //    Console.WriteLine(sb.ToString());
         //}
+    }
+
+    private void AgumentWithPixelInformation(YuvFrame frame, DarkBrightPixels count)
+    {
+        using (var c = _canvas.BeginScope(frame.Metadata.FrameNumber, 0))
+        {
+            c.DrawText(
+                $"Frame: {frame.Metadata.FrameNumber} Bright/Dark: {count.BrightPixels * 100 / frame.Info.Pixels}% / {count.DarkPixels * 100 / frame.Info.Pixels}%",
+                10, 20, 20, RgbColor.White);
+            
+        }
     }
 
     public void Dispose()

@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,6 +8,10 @@ namespace EventPi.Abstractions;
 
 public static class Extensions
 {
+    public static string ToStringShort(this in Rectangle r)
+    {
+        return string.Format(CultureInfo.InvariantCulture, "[{0} {1} {2} {3}]", r.X, r.Y, r.Width, r.Height);
+    }
     public static byte[] ToHash(this string t)
     {
         using (SHA256 shA256 = SHA256.Create())

@@ -494,6 +494,7 @@ namespace EventPi.SignalProcessing.Ui
             c.DrawBitmap(_bitmap, src, _view, _bitmapPaint);
             c.DrawTextBox(0, 0, 12, 100, $"{_col}/{processed}", SKColors.LightGray, SKColors.Black);
 
+            // most likely could be painted on layer once. 
             if (Align == Align.Center)
             {
                 for (float dy = _gridCellSize.Height; dy < _h / 2; dy += _gridCellSize.Height)

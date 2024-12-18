@@ -155,8 +155,11 @@ public class CameraProcessFactory(IConfiguration configuration,
         else if (configuration.GetLibCameraRunMode() == RunMode.Docker)
         {
             var img = configuration.GetLibCameraDockerImage();
+            var pat = configuration.GetLibCameraDockerPat();
+            if (pat != null) return new DockerLibCamera(log2, img.Name, img.Tag, pat);
             
-            return new DockerLibCamera(log2, img.Name, img.Tag, configuration.GetLibCameraDockerPat() ?? throw new ArgumentException("PAT for Docker repository is required"));
+            log.LogWarning("Docker PAT is not set! It is required to connect for one of video streams.");
+            throw new ArgumentException("PAT for Docker repository is required");
         }
         else throw new NotSupportedException();
     }
