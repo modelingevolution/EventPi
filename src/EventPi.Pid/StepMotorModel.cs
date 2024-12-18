@@ -1,29 +1,7 @@
-﻿namespace EventPi.Pid;
+﻿using System.Threading;
 
+namespace EventPi.Pid;
 
-public class StepMotorController
-{
-    private readonly IPwmService _pwm;
-    private readonly StepMotorModel _model;
-
-    public StepMotorController(IPwmService pwm)
-    {
-        _pwm=pwm;
-        _model = new StepMotorModel(1.8, 38000, 0.5, 0);
-        _= Task.Factory.StartNew(OnRun, TaskCreationOptions.LongRunning);
-
-    }
-
-    public void MoveTo(double value)
-    {
-        var stopMotor = _model.MoveTo(value);
-
-    }
-    private void OnRun()
-    {
-       
-    }
-}
 public class StepMotorModel
 {
     private double _lastPosition = 0;
@@ -44,6 +22,7 @@ public class StepMotorModel
     public double Rpm => _rpm;
     public double Precision => _precision;
     public double Velocity => _precision / _dt;
+    
     public StepMotorModel(double stepDeg, double frequency, double distancePerRotation, 
         double initPosition = 0d)
     {
@@ -105,12 +84,25 @@ public class StepMotorModel
         return distance;
     }
 
+    public MoveDirection LastDirection => _targetSteps > 0 ? MoveDirection.Forward : MoveDirection.Backward; 
+    public enum MotorAction
+    {
+        Continue, Start, Reverse
+    }
+
+    public enum MoveDirection
+    {
+        Forward,
+        Backward
+    }
+
+    public DateTime MoveTo(double targetPos) => MoveTo(targetPos, out var _);
     /// <summary>
     /// When invoked it means that from now we need to move by distance.
     /// It means that we might, change direction of the motor.
     /// </summary>
     /// <param name="targetPos">The distance.</param>
-    public DateTime MoveTo(double targetPos)
+    public DateTime MoveTo(double targetPos, out MotorAction action)
     {
         // If the motor is already moving, we check direction and adjust accordingly
         var n = DateTime.Now;
@@ -124,6 +116,7 @@ public class StepMotorModel
                 _targetSteps = CalculateSteps(currentPos, targetPos);
                 var remainingSteps = CalculateSteps(currentPos, _target);
                 _finish = n.Add(ComputeDuration(remainingSteps));
+                action = MotorAction.Continue;
             }
             else
             {
@@ -132,6 +125,7 @@ public class StepMotorModel
                 _target = targetPos;
                 _targetSteps = CalculateSteps(currentPos, targetPos);
                 _finish = _started.Add(ComputeDuration(_targetSteps));
+                action = MotorAction.Reverse;
             }
         }
         else
@@ -141,8 +135,24 @@ public class StepMotorModel
             _target = targetPos;
             _targetSteps = CalculateSteps(_lastPosition, targetPos);
             _finish = _started.Add(ComputeDuration(_targetSteps)); // Ile Pwm ma smigac, podpinamy sie eventhandlerem ze motor powinnien sie ruszyc o timespan
+            action = MotorAction.Start;
 
         }
         return _finish;
+    }
+
+    public override string ToString()
+    {
+        // add new line between values
+        return string.Join(Environment.NewLine,
+            new string[]
+            {
+                $"Step (deg): {_stepDeg}", 
+                $"Frequency (Hz): {_frequency}", 
+                $"Rpm: {_rpm}", 
+                $"Precision (mm): {_precision}",
+                $"Velocity (mm/s): {Velocity}"
+            });
+        
     }
 }

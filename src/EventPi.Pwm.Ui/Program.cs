@@ -111,19 +111,39 @@ namespace EventPi.Pwm.Ui
         }
         
     }
-    public class NullPwmService : IPwmService
+    public class NullPwmService(ILogger<NullPwmService> logger) : IPwmService
     {
+        private Stopwatch _sw;
+        private bool _isReverse;
         public bool IsRunning { get; private set; }
         public double DutyCycle { get; set; } = 0;
-        public bool IsReverse { get; set; }
+        public TimeSpan Worked => _sw.Elapsed;
+        public bool IsReverse
+        {
+            get => _isReverse;
+            set
+            {
+                if (_isReverse == value) return;
+                _isReverse = value;
+                logger.LogInformation("Pwm is-reverse changed: " + value.ToString());
+            }
+        }
+
         public void Start()
         {
+            if (IsRunning) return;
             IsRunning = true;
+            _sw = Stopwatch.StartNew();
+            logger.LogInformation("Pwm started.");
         }
 
         public void Stop()
         {
+            if (!IsRunning) return;
+                
             IsRunning = false;
+            _sw.Stop();
+            logger.LogInformation($"Pwm stopped. Worked for {_sw.ElapsedMilliseconds} ms.");
         }
 
         public int Frequency { get; set; } = 16000;
