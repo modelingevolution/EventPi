@@ -1,5 +1,29 @@
 ﻿namespace EventPi.Pid;
 
+
+public class StepMotorController
+{
+    private readonly IPwmService _pwm;
+    private readonly StepMotorModel _model;
+
+    public StepMotorController(IPwmService pwm)
+    {
+        _pwm=pwm;
+        _model = new StepMotorModel(1.8, 38000, 0.5, 0);
+        _= Task.Factory.StartNew(OnRun, TaskCreationOptions.LongRunning);
+
+    }
+
+    public void MoveTo(double value)
+    {
+        var stopMotor = _model.MoveTo(value);
+
+    }
+    private void OnRun()
+    {
+       
+    }
+}
 public class StepMotorModel
 {
     private double _lastPosition = 0;
@@ -14,6 +38,7 @@ public class StepMotorModel
     private double _distancePerRotation;
     private double _precision;
     
+  
     public double StepDeg => _stepDeg;
     public double Frequency => _frequency;
     public double Rpm => _rpm;
@@ -85,7 +110,7 @@ public class StepMotorModel
     /// It means that we might, change direction of the motor.
     /// </summary>
     /// <param name="targetPos">The distance.</param>
-    public void MoveTo(double targetPos)
+    public DateTime MoveTo(double targetPos)
     {
         // If the motor is already moving, we check direction and adjust accordingly
         var n = DateTime.Now;
@@ -115,7 +140,9 @@ public class StepMotorModel
             _started = n;
             _target = targetPos;
             _targetSteps = CalculateSteps(_lastPosition, targetPos);
-            _finish = _started.Add(ComputeDuration(_targetSteps));
+            _finish = _started.Add(ComputeDuration(_targetSteps)); // Ile Pwm ma smigac, podpinamy sie eventhandlerem ze motor powinnien sie ruszyc o timespan
+
         }
+        return _finish;
     }
 }

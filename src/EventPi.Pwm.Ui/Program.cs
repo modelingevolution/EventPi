@@ -1,4 +1,3 @@
-using System.Device.Pwm;
 using System.Diagnostics;
 using EventPi.Pid;
 using EventPi.Pwm.Ui.Components;
@@ -30,7 +29,8 @@ namespace EventPi.Pwm.Ui
                     .RegisterSink<float>("x-error"))
                 
                 
-                .AddSingleton<NullPwmService>()
+                //.AddSingleton<NullPwmService>()
+                .AddSingleton<DevicePwmService>()
                 .AddSingleton<PidService>((sp) => new PidService(0.9,0,2,20,-20,2))
                 .AddSingleton<IPwmService>(sp => sp.GetRequiredService<NullPwmService>())
                 .AddHttpClient("default", sp =>
@@ -110,46 +110,6 @@ namespace EventPi.Pwm.Ui
         {
         }
         
-    }
-
-    public interface IPwmService
-    {
-        bool IsReverse { get; set; }
-        bool IsRunning { get; }
-        void Start();
-        void Stop();
-        int Frequency { get; set; }
-        double DutyCycle { get; set; }
-    }
-
-    public class DevicePwmService : IPwmService
-    {
-        readonly PwmChannel _channel;
-        public bool IsReverse { get; set; }
-        public bool IsRunning { get; private set; }
-        public void Start()
-        {
-            _channel.Start();
-            IsRunning = true;
-        }
-
-        public void Stop()
-        {
-            _channel.Stop();
-            IsRunning = false;
-        }
-
-        public int Frequency
-        {
-            get => _channel.Frequency;
-            set => _channel.Frequency = value;
-        }
-
-        public double DutyCycle
-        {
-            get => _channel.DutyCycle;
-            set => _channel.DutyCycle = value;
-        }
     }
     public class NullPwmService : IPwmService
     {

@@ -1,0 +1,6 @@
+@EventPi.SimpleAPIToPWM_HostAddress = http://localhost:5150
+
+GET {{EventPi.SimpleAPIToPWM_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
