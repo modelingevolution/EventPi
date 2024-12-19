@@ -23,9 +23,9 @@ namespace EventPi.Pwm.Ui
                 if (_isReverse== value) return;
                 _isReverse= value;
                 if (value==true)
-                    _dirPin.Write(PinValue.Low);
-                else
                     _dirPin.Write(PinValue.High);
+                else
+                    _dirPin.Write(PinValue.Low);
             }
         }
         public bool IsRunning { get; private set; }
