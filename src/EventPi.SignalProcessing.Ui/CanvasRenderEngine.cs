@@ -302,7 +302,7 @@ namespace EventPi.SignalProcessing.Ui
                 }
             }
 
-            public float Width { get; set; } = 2;
+            public float Width { get; set; } = 4;
             public float Factor { get; set; } = 1;
             public CanvasRenderEngine Parent { get; init; }
             public ushort Id { get; init; }

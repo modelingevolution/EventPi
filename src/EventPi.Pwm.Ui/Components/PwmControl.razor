@@ -1,4 +1,5 @@
 ﻿@using EventPi.Pid
+@inject IPwmService _pwmService
 
 <h3>PWM Service</h3>
 <div>
@@ -22,49 +23,50 @@
     <button @onclick="StopService" disabled="@(!IsRunning)">Stop</button>
 </div>
 @code {
-    [Parameter]
-    public IPwmService? PwmService { get; set; }
+    //private IPwmService? _pwmService;
+
+    
 
     private double DutyCycle
     {
-        get => PwmService?.DutyCycle ?? 0;
+        get => _pwmService?.DutyCycle ?? 0;
         set
         {
-            if (PwmService != null)
+            if (_pwmService != null)
             {
-                PwmService.DutyCycle = value;
+                _pwmService.DutyCycle = value;
             }
         }
     }
     private int Frequency
     {
-        get => PwmService?.Frequency ?? 0;
+        get => _pwmService?.Frequency ?? 0;
         set
         {
-            if (PwmService != null)
+            if (_pwmService != null)
             {
-                PwmService.Frequency = value;
+                _pwmService.Frequency = value;
             }
         }
     }
     private bool IsReverse
     {
-        get => PwmService?.IsReverse ?? false;
+        get => _pwmService?.IsReverse ?? false;
         set
         {
-            if (PwmService != null)
+            if (_pwmService != null)
             {
-                PwmService.IsReverse = value;
+                _pwmService.IsReverse = value;
             }
         }
     }
-    private bool IsRunning => PwmService?.IsRunning ?? false;
+    private bool IsRunning => _pwmService?.IsRunning ?? false;
     private void StartService()
     {
-        PwmService?.Start();
+        _pwmService?.Start();
     }
     private void StopService()
     {
-        PwmService?.Stop();
+        _pwmService?.Stop();
     }
 }

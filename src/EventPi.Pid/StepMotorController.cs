@@ -1,4 +1,6 @@
-﻿using System.Threading.Channels;
+﻿using System.Data;
+using System.Threading.Channels;
+using EventPi.SignalProcessing;
 using Microsoft.Extensions.Logging;
 
 namespace EventPi.Pid;
@@ -11,7 +13,10 @@ public class StepMotorController : IDisposable
     private readonly ManualResetEventSlim _manualResetEvent;
     private readonly CancellationTokenSource _cts;
     public StepMotorModel MotorModel => _model;
-    public StepMotorController(IPwmService pwm, ILogger<StepMotorController> logger)
+    public double Target { get; private set; }
+    public double ProcessedValue { get; private set; }
+    public StepMotorController(IPwmService pwm, 
+        ILogger<StepMotorController> logger)
     {
         _cts = new();
         _pwm =pwm;
@@ -22,9 +27,9 @@ public class StepMotorController : IDisposable
 
     }
 
-    public void MoveTo(double value)
+    public void MoveTo(double targetValue, double currentValue)
     {
-        _commands.Writer.TryWrite(value);
+        _commands.Writer.TryWrite(new Command(targetValue, currentValue));
         _manualResetEvent.Set();
     }
 
@@ -41,8 +46,8 @@ public class StepMotorController : IDisposable
         }
     }
 
-    
-    private readonly Channel<double> _commands = Channel.CreateBounded<double>(new BoundedChannelOptions(1)
+    private readonly record struct Command(double Target, double ProcessedValue);
+    private readonly Channel<Command> _commands = Channel.CreateBounded<Command>(new BoundedChannelOptions(1)
     {
         Capacity = 1,
         FullMode = BoundedChannelFullMode.DropOldest, 
@@ -78,10 +83,10 @@ public class StepMotorController : IDisposable
                         {
                             _manualResetEvent.Reset();
                             // it means that a command was send.
-                            if (_commands.Reader.TryRead(out var value))
+                            if (_commands.Reader.TryRead(out var cmd))
                             {
-
-                                var nextValidUntil = _model.MoveTo(value, out var action);
+                                Update(cmd);
+                                var nextValidUntil = _model.MoveTo(cmd.Target, out var action, cmd.ProcessedValue);
                                 _pwm.IsReverse = _model.LastDirection == StepMotorModel.MoveDirection.Backward;
                                 delayedAction = new MotorDelayedAction(nextValidUntil, action, _model.LastDirection);
                             } // We don't care about else, it means we already processed it.
@@ -97,9 +102,9 @@ public class StepMotorController : IDisposable
                 else
                 {
                     _logger.LogInformation("Waiting for commands.");
-                    var moveTo = await _commands.Reader.ReadAsync(_cts.Token);
-
-                    var until = _model.MoveTo(moveTo, out var action);
+                    var cmd = await _commands.Reader.ReadAsync(_cts.Token);
+                    Update(cmd);
+                    var until = _model.MoveTo(cmd.Target, out var action, cmd.ProcessedValue);
                     delayedAction = new MotorDelayedAction(until, action, _model.LastDirection);
                     _pwm.IsReverse = _model.LastDirection == StepMotorModel.MoveDirection.Backward;
                     _pwm.Start();
@@ -117,6 +122,13 @@ public class StepMotorController : IDisposable
         {
             _pwm.Stop();
         }
+    }
+
+    private Command Update(Command cmd)
+    {
+        this.Target = cmd.Target;
+        this.ProcessedValue = cmd.ProcessedValue;
+        return cmd;
     }
 
     private bool _disposed = false;

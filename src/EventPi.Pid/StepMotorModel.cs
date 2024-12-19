@@ -84,7 +84,12 @@ public class StepMotorModel
         return distance;
     }
 
-    public MoveDirection LastDirection => _targetSteps > 0 ? MoveDirection.Forward : MoveDirection.Backward; 
+    public MoveDirection LastDirection => _targetSteps > 0 ? MoveDirection.Forward : MoveDirection.Backward;
+    public double Target
+    {
+        get => _target;
+    }
+
     public enum MotorAction
     {
         Continue, Start, Reverse
@@ -102,13 +107,13 @@ public class StepMotorModel
     /// It means that we might, change direction of the motor.
     /// </summary>
     /// <param name="targetPos">The distance.</param>
-    public DateTime MoveTo(double targetPos, out MotorAction action)
+    public DateTime MoveTo(double targetPos, out MotorAction action, double? currentPosition = null)
     {
         // If the motor is already moving, we check direction and adjust accordingly
         var n = DateTime.Now;
         if (IsRunning(n))
         {
-            var currentPos = Position(n);
+            var currentPos = currentPosition ?? Position(n);
             if ((targetPos >= currentPos && _target >= currentPos) || (targetPos <= currentPos && _target <= currentPos))
             {
                 // Same direction: Update the target and finish time
@@ -117,6 +122,11 @@ public class StepMotorModel
                 var remainingSteps = CalculateSteps(currentPos, _target);
                 _finish = n.Add(ComputeDuration(remainingSteps));
                 action = MotorAction.Continue;
+                if (currentPosition != null)
+                {
+                    _lastPosition = currentPosition.Value;
+                }
+                
             }
             else
             {
@@ -131,6 +141,7 @@ public class StepMotorModel
         else
         {
             // If motor is not moving, simply start the movement
+            if (currentPosition != null) _lastPosition = currentPosition.Value;
             _started = n;
             _target = targetPos;
             _targetSteps = CalculateSteps(_lastPosition, targetPos);

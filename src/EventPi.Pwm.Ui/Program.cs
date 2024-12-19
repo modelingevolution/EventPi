@@ -6,6 +6,8 @@ using EventPi.Pwm.Ui.Wasm.Client;
 using EventPi.SignalProcessing;
 using EventPi.SignalProcessing.Ui;
 using _Imports = EventPi.Pwm.Ui.Wasm.Client._Imports;
+using Microsoft.AspNetCore.SignalR;
+using System.Xml.Linq;
 
 namespace EventPi.Pwm.Ui
 {
@@ -26,11 +28,17 @@ namespace EventPi.Pwm.Ui
                 .AddSignalsServer(s => s
                     .RegisterSink<float>("x-target")
                     .RegisterSink<float>("x-processed")
-                    .RegisterSink<float>("x-error"))
+                    .RegisterSink<float>("x-error")
+                    .RegisterSink<float>("x-motor")
+                    .RegisterSink<float>("x-prediction")
+                    
+                    )
                 
                 
-                //.AddSingleton<NullPwmService>()
-                .AddSingleton<DevicePwmService>()
+                .AddSingleton<NullPwmService>()
+                //.AddSingleton<DevicePwmService>()
+                .AddSingleton<StepMotorController>()
+                .AddSingleton<StepMotorSignalsObserver>()
                 .AddSingleton<PidService>((sp) => new PidService(0.9,0,2,20,-20,2))
                 .AddSingleton<IPwmService>(sp => sp.GetRequiredService<NullPwmService>())
                 .AddHttpClient("default", sp =>
@@ -71,10 +79,145 @@ namespace EventPi.Pwm.Ui
             app.MapPost("/Pid/Parameters", PidHandler.SetParameters);
             app.MapPost("/Pid/Compute", PidHandler.Compute);
 
+            app.MapPost("/Motor/{name}", MotorHandler.Steer);
+            app.MapPut("/Motor/{name}", MotorHandler.RegisterMotor);
+            app.MapPost("/Motor/{name}/Observe", MotorHandler.ObserveMotor);
+
             app.Run();
         }
     }
 
+    public class StepMotorSignalsObserver
+    {
+        private readonly SignalHubServer hub;
+        private readonly StepMotorController _srv;
+        private readonly IPwmService _pwm;
+        private ISignalSink<float> targetSink;
+        private ISignalSink<float> actualSink;
+        private ISignalSink<float> errorSink;
+        private ISignalSink<float> predictionSink;
+        private ISignalSink<float> motorSink;
+        private PeriodicTimer _pt;
+        private CancellationTokenSource _cts;
+        public StepMotorSignalsObserver(SignalHubServer hub, StepMotorController srv, IPwmService pwm)
+        {
+            this.hub = hub;
+            _srv = srv;
+            _pwm = pwm;
+        }
+        public bool IsRunning { get; private set; }
+        public void Start(string name)
+        {
+            if (IsRunning) return;
+            IsRunning = true;
+            
+            this.targetSink = hub.GetSink<float>(name + "-target");
+            this.actualSink = hub.GetSink<float>(name + "-processed");
+            this.errorSink = hub.GetSink<float>(name + "-error");
+            this.predictionSink = hub.GetSink<float>(name + "-prediction");
+            this.motorSink = hub.GetSink<float>(name + "-motor");
+            _pt = new PeriodicTimer(TimeSpan.FromSeconds(1d / 60));
+            _cts = new CancellationTokenSource();
+            _ = Task.Factory.StartNew(Run, TaskCreationOptions.LongRunning);
+        }
+        private async Task Run()
+        {
+            var motor = _srv.MotorModel;
+            try
+            {
+                while (!_cts.IsCancellationRequested)
+                {
+                    await _pt.WaitForNextTickAsync(_cts.Token);
+                    var target = _srv.Target;
+                    var processed = _srv.ProcessedValue;
+                    var error = target - processed;
+                    var prediction = motor.Position();
+                    float pwmValue = 0f;
+                    if (_pwm.IsRunning)
+                        pwmValue = _pwm.IsReverse ? -1f : 1f;
+                    
+                    motorSink.Write(pwmValue);
+                    actualSink.Write((float)processed);
+                    targetSink.Write((float)target);
+                    errorSink.Write((float)error);
+                    predictionSink.Write((float)prediction);
+                }
+            }
+            catch (OperationCanceledException ex)
+            {
+                
+            }
+
+        }
+    }
+    public class MotorHandler
+    {
+        public readonly record struct Args(float Target, float Actual);
+
+        public static void ObserveMotor([FromServices] StepMotorSignalsObserver observer, string? name)
+        {
+            name ??= "x";
+            observer.Start(name);
+        }
+        public static void RegisterMotor([FromServices] SignalHubServer hub, 
+            string name)
+        {
+            hub.RegisterSink<float>(name + "-target");
+            hub.RegisterSink<float>(name + "-processed");
+            hub.RegisterSink<float>(name + "-error");
+            hub.RegisterSink<float>(name + "-prediction");
+            hub.RegisterSink<float>(name + "-motor");
+        }
+        public static SteerResponse Steer([FromServices] StepMotorController srv,
+            [FromServices] SignalHubServer hub, string? name, 
+            [FromServices] IPwmService pwm,
+            [FromServices] ILogger<MotorHandler> logger,
+            [FromBody]  Args arg)
+        {
+            name ??= "x";
+            var targetSink =     hub.GetSink<float>(name + "-target");
+            var actualSink =     hub.GetSink<float>(name + "-processed");
+            var errorSink =      hub.GetSink<float>(name + "-error");
+            var predictionSink = hub.GetSink<float>(name + "-prediction");
+            var motorSink =      hub.GetSink<float>(name + "-motor");
+
+            var prediction = srv.MotorModel.Position();
+            srv.MoveTo(arg.Target, arg.Actual);
+
+            float pwmValue = 0f;
+            if (pwm.IsRunning)
+                pwmValue = pwm.IsReverse ? -1f : 1f;
+            
+            predictionSink.Write((float)prediction);
+            targetSink.Write(arg.Target);
+            actualSink.Write(arg.Actual);
+            motorSink.Write(pwmValue);
+            errorSink.Write(arg.Target - arg.Actual);
+            
+            // write all 5 values to logger
+            logger.LogInformation(
+                "Target: {Target}, Actual: {Actual}, Prediction: {Prediction}, Motor: {Motor}, Error: {Error}",
+                arg.Target, arg.Actual, prediction, pwmValue, arg.Target - arg.Actual);
+            // return anonymous type with all those 5 values and named properties
+            return new SteerResponse()
+            {
+                Target = arg.Target,
+                Actual = arg.Actual,
+                Prediction = (float)prediction,
+                Motor = pwmValue,
+                Error = arg.Target - arg.Actual
+            };
+            
+            
+        }
+
+        public readonly record struct SteerResponse(
+            float Target,
+            float Actual,
+            float Prediction,
+            float Motor,
+            float Error);
+    }
     
     public class PidHandler
     {
@@ -113,11 +256,12 @@ namespace EventPi.Pwm.Ui
     }
     public class NullPwmService(ILogger<NullPwmService> logger) : IPwmService
     {
-        private Stopwatch _sw;
+        private Stopwatch? _sw;
         private bool _isReverse;
         public bool IsRunning { get; private set; }
         public double DutyCycle { get; set; } = 0;
-        public TimeSpan Worked => _sw.Elapsed;
+        public TimeSpan Worked => _sw?.Elapsed ?? TimeSpan.Zero;
+       
         public bool IsReverse
         {
             get => _isReverse;
