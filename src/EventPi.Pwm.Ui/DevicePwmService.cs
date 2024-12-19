@@ -11,7 +11,23 @@ namespace EventPi.Pwm.Ui
         private readonly GpioController _controller;
         private readonly GpioPin _dirPin;
 
-        public bool IsReverse { get; set; }
+        private bool _isReverse;
+        public bool IsReverse
+        {
+            get
+            {
+                return _isReverse;
+            }
+            set
+            {
+                if (_isReverse== value) return;
+                _isReverse= value;
+                if (value==true)
+                    _dirPin.Write(PinValue.Low);
+                else
+                    _dirPin.Write(PinValue.High);
+            }
+        }
         public bool IsRunning { get; private set; }
 
         public DevicePwmService()
@@ -19,18 +35,9 @@ namespace EventPi.Pwm.Ui
             _channel=PwmChannel.Create(2, 0, 37000, 0.5);
             _controller= new GpioController(PinNumberingScheme.Logical);
             _dirPin=_controller.OpenPin(26, PinMode.Output);
-            ChangeToForward();
+           
         }
-        public void ChangeToForward()
-        {
-            IsReverse=false;
-            _dirPin.Write(PinValue.High);
-        }
-        public void ChangeToBackward()
-        {
-            IsReverse=true;
-            _dirPin.Write(PinValue.Low);
-        }
+     
 
         public void Start()
         {

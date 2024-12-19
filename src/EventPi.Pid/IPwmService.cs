@@ -6,8 +6,7 @@
         bool IsRunning { get; }
         void Start();
         void Stop();
-        void ChangeToForward();
-        void ChangeToBackward();
+      
         int Frequency { get; set; }
         double DutyCycle { get; set; }
     }
