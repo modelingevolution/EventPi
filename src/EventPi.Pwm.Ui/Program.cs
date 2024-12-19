@@ -39,11 +39,11 @@ namespace EventPi.Pwm.Ui
                 
                 
                 .AddSingleton<NullPwmService>()
-                //.AddSingleton<DevicePwmService>()
+                .AddSingleton<DevicePwmService>()
                 .AddSingleton<StepMotorController>()
                 .AddSingleton<StepMotorSignalsObserver>()
                 .AddSingleton<PidService>((sp) => new PidService(0.9,0,2,20,-20,2))
-                .AddSingleton<IPwmService>(sp => sp.GetRequiredService<NullPwmService>())
+                .AddSingleton<IPwmService>(sp => sp.GetRequiredService<DevicePwmService>())
                 .AddHttpClient("default", sp =>
                     sp.BaseAddress = new Uri(builder.Configuration.GetValue<string>("Urls") ?? throw new InvalidOperationException("You need to configure Urls."))
                 );

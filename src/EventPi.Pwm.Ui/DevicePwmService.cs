@@ -7,25 +7,19 @@ namespace EventPi.Pwm.Ui
 {
     public class DevicePwmService : IPwmService
     {
-        readonly PwmChannel _channel;
+        private readonly PwmChannel _channel;
         private readonly GpioController _controller;
         private readonly GpioPin _dirPin;
 
         private bool _isReverse;
         public bool IsReverse
         {
-            get
-            {
-                return _isReverse;
-            }
+            get => _isReverse;
             set
             {
                 if (_isReverse== value) return;
                 _isReverse= value;
-                if (value==true)
-                    _dirPin.Write(PinValue.Low);
-                else
-                    _dirPin.Write(PinValue.High);
+                _dirPin.Write(value == true ? PinValue.Low : PinValue.High);
             }
         }
         public bool IsRunning { get; private set; }
