@@ -331,6 +331,16 @@ namespace EventPi.Pwm.Ui
             logger.LogInformation($"Pwm stopped. Worked for {_sw.ElapsedMilliseconds} ms.");
         }
 
+        public void ChangeToForward()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ChangeToBackward()
+        {
+            throw new NotImplementedException();
+        }
+
         public int Frequency { get; set; } = 16000;
 
     }
