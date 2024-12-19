@@ -87,6 +87,8 @@ public class StepMotorController : IDisposable
                             {
                                 Update(cmd);
                                 var nextValidUntil = _model.MoveTo(cmd.Target, out var action, cmd.ProcessedValue);
+                                if (action == StepMotorModel.MotorAction.Pause) continue;
+                                
                                 _pwm.IsReverse = _model.LastDirection == StepMotorModel.MoveDirection.Backward;
                                 delayedAction = new MotorDelayedAction(nextValidUntil, action, _model.LastDirection);
                             } // We don't care about else, it means we already processed it.
@@ -104,7 +106,10 @@ public class StepMotorController : IDisposable
                     _logger.LogInformation("Waiting for commands.");
                     var cmd = await _commands.Reader.ReadAsync(_cts.Token);
                     Update(cmd);
+                    
                     var until = _model.MoveTo(cmd.Target, out var action, cmd.ProcessedValue);
+                    if(action == StepMotorModel.MotorAction.Pause) continue;
+                    
                     delayedAction = new MotorDelayedAction(until, action, _model.LastDirection);
                     _pwm.IsReverse = _model.LastDirection == StepMotorModel.MoveDirection.Backward;
                     _pwm.Start();

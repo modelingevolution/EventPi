@@ -27,6 +27,7 @@ namespace EventPi.Pwm.Ui
                 .AddSignalProcessingUi()
                 .AddSignalsServer(s => s
                     .RegisterSink<float>("x-target")
+                    .RegisterSink<float>("x-short-target")
                     .RegisterSink<float>("x-processed")
                     .RegisterSink<float>("x-error")
                     .RegisterSink<float>("x-motor")
@@ -87,7 +88,7 @@ namespace EventPi.Pwm.Ui
         }
     }
 
-    public class StepMotorSignalsObserver
+    public class StepMotorSignalsObserver : IDisposable
     {
         private readonly SignalHubServer hub;
         private readonly StepMotorController _srv;
@@ -97,8 +98,11 @@ namespace EventPi.Pwm.Ui
         private ISignalSink<float> errorSink;
         private ISignalSink<float> predictionSink;
         private ISignalSink<float> motorSink;
+        private ISignalSink<float> shortTargetSink;
         private PeriodicTimer _pt;
         private CancellationTokenSource _cts;
+        
+
         public StepMotorSignalsObserver(SignalHubServer hub, StepMotorController srv, IPwmService pwm)
         {
             this.hub = hub;
@@ -112,6 +116,7 @@ namespace EventPi.Pwm.Ui
             IsRunning = true;
             
             this.targetSink = hub.GetSink<float>(name + "-target");
+            this.shortTargetSink = hub.GetSink<float>(name + "-short-target");
             this.actualSink = hub.GetSink<float>(name + "-processed");
             this.errorSink = hub.GetSink<float>(name + "-error");
             this.predictionSink = hub.GetSink<float>(name + "-prediction");
@@ -129,13 +134,15 @@ namespace EventPi.Pwm.Ui
                 {
                     await _pt.WaitForNextTickAsync(_cts.Token);
                     var target = _srv.Target;
+                    var shortTarget = _srv.MotorModel.Target;
                     var processed = _srv.ProcessedValue;
                     var error = target - processed;
                     var prediction = motor.Position();
                     float pwmValue = 0f;
                     if (_pwm.IsRunning)
                         pwmValue = _pwm.IsReverse ? -1f : 1f;
-                    
+
+                    shortTargetSink.Write((float)shortTarget);
                     motorSink.Write(pwmValue);
                     actualSink.Write((float)processed);
                     targetSink.Write((float)target);
@@ -148,6 +155,18 @@ namespace EventPi.Pwm.Ui
                 
             }
 
+        }
+
+        private bool _isDisposed;
+        public void Dispose()
+        {
+            if (_isDisposed) return;
+            _isDisposed = true;
+            if(IsRunning)
+                _cts.Cancel();
+            _srv?.Dispose();
+            _pt?.Dispose();
+            _cts?.Dispose();
         }
     }
     public class MotorHandler
@@ -163,6 +182,7 @@ namespace EventPi.Pwm.Ui
             string name)
         {
             hub.RegisterSink<float>(name + "-target");
+            hub.RegisterSink<float>(name + "-short-target");
             hub.RegisterSink<float>(name + "-processed");
             hub.RegisterSink<float>(name + "-error");
             hub.RegisterSink<float>(name + "-prediction");
@@ -176,11 +196,13 @@ namespace EventPi.Pwm.Ui
         {
             name ??= "x";
             var targetSink =     hub.GetSink<float>(name + "-target");
+            var shortTargetSink =hub.GetSink<float>(name + "-short-target");
             var actualSink =     hub.GetSink<float>(name + "-processed");
             var errorSink =      hub.GetSink<float>(name + "-error");
             var predictionSink = hub.GetSink<float>(name + "-prediction");
             var motorSink =      hub.GetSink<float>(name + "-motor");
 
+            shortTargetSink.Write((float)srv.MotorModel.Target);
             var prediction = srv.MotorModel.Position();
             srv.MoveTo(arg.Target, arg.Actual);
 

@@ -32,7 +32,7 @@ namespace EventPi.SignalProcessing.Ui
         /// </summary>
         /// <param name="id">The ID (0-15) for which to generate the color.</param>
         /// <returns>An SKPaint object with the corresponding color.</returns>
-        public static SKColor GetPaintById(byte id, int count = 16)
+        public static SKColor GetPaintById(byte id, int count = 8)
         {
             // Ensure the ID is within the valid range (0-15)
             id = (byte)(id % count);

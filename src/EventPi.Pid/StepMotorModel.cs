@@ -92,7 +92,7 @@ public class StepMotorModel
 
     public enum MotorAction
     {
-        Continue, Start, Reverse
+        Continue, Start, Reverse, Pause
     }
 
     public enum MoveDirection
@@ -142,6 +142,11 @@ public class StepMotorModel
         {
             // If motor is not moving, simply start the movement
             if (currentPosition != null) _lastPosition = currentPosition.Value;
+            if (Math.Abs(_lastPosition - targetPos) < double.E)
+            {
+                action = MotorAction.Pause;
+                return n;
+            }
             _started = n;
             _target = targetPos;
             _targetSteps = CalculateSteps(_lastPosition, targetPos);

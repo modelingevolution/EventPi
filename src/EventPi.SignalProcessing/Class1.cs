@@ -127,12 +127,10 @@ namespace EventPi.SignalProcessing
             await foreach (var signal in _channel.Reader.ReadAllAsync())
             {
                 // Dispatch signal to all subscribed client pipes
-                if (_clients.TryGetValue(signal.Name, out var pipes))
+                if (!_clients.TryGetValue(signal.Name, out var pipes)) continue;
+                foreach (var pipe in pipes)
                 {
-                    foreach (var pipe in pipes)
-                    {
-                        pipe.AggregateAvg(signal.Name, signal.Value);
-                    }
+                    pipe.AggregateAvg(signal.Name, signal.Value);
                 }
             }
         }
