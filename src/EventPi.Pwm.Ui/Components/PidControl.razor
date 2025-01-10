@@ -1,0 +1,30 @@
+﻿@inject PidService _pid
+
+<h3>PID Service Properties</h3>
+<div>
+    <label for="kp">Kp:</label>
+    <input id="kp" type="number" @bind="_pid.Kp" step="0.01" />
+</div>
+<div>
+    <label for="ki">Ki:</label>
+    <input id="ki" type="number" @bind="_pid.Ki" step="0.01" />
+</div>
+<div>
+    <label for="kd">Kd:</label>
+    <input id="kd" type="number" @bind="_pid.Kd" step="0.001" />
+</div>
+<div>
+    <label for="outputUpperLimit">Output Upper Limit:</label>
+    <input id="outputUpperLimit" type="number" @bind="_pid.OutputUpperLimit" step="0.01" />
+</div>
+<div>
+    <label for="outputLowerLimit">Output Lower Limit:</label>
+    <input id="outputLowerLimit" type="number" @bind="_pid.OutputLowerLimit" step="0.01" />
+</div>
+
+
+@code {
+
+
+
+}

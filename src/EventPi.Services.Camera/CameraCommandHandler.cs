@@ -22,14 +22,14 @@ public static class CameraModule
     public static Resolution GetCameraResolution(this IConfiguration configuration) => Resolution.TryParse(configuration.GetValue<string>(CAMERA_RESOLUTION_KEY), out var r) ? r : Resolution.FullHd;
 
     public static bool IsCameraAutostart(this IConfiguration configuration) => configuration.GetValue<bool>(CAMERA_AUTOSTART_KEY);
-    public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>(LIB_CAMERA_PATH_KEY) ?? LibCameraVid.DefaultPath;
-    public static string GetOpenVidCamPath(this IConfiguration configuration) => configuration.GetValue<string>(OPEN_VID_CAM_PATH_KEY) ?? LibCameraVid.DefaultPath;
+    public static string GetLibCameraPath(this IConfiguration configuration) => configuration.GetValue<string>(LIB_CAMERA_PATH_KEY) ?? LibCameraVidProcess.DefaultPath;
+    public static string GetOpenVidCamPath(this IConfiguration configuration) => configuration.GetValue<string>(OPEN_VID_CAM_PATH_KEY) ?? LibCameraVidProcess.DefaultPath;
 
     public static string GetCameraSimulatorPath(this IConfiguration configuration) =>
         configuration.GetValue<string>(CAMERA_SIMULATOR_PATH_KEY) ?? "cam-simulator";
     public static string GetLibcameraGrpcFullListenAddress(this IConfiguration configuration, int nr = 0) => $"{configuration.GetLibCameraListenIp()}:{configuration.GetLibCameraGrpcListenPort(nr)}";
 
-    public static int GetLibCameraCameraCount(this IConfiguration configuration) => configuration.GetValue<int?>("LibCameraCount") ?? 1;
+    public static int GetCameraCameraCount(this IConfiguration configuration) => configuration.GetValue<int?>("CameraCount") ?? (configuration.GetValue<int?>("LibCameraCount") ?? 1);
     public static IPAddress GetLibCameraListenIp(this IConfiguration configuration) =>
         IPAddress.TryParse(configuration.GetValue<string>(LIB_CAMERA_LISTEN_IP_KEY), out var p) ? p : IPAddress.Loopback;
     public static int GetLibCameraVideoListenPort(this IConfiguration configuration) => configuration.GetValue<int?>(LIB_CAMERA_VIDEO_LISTEN_PORT_KEY) ?? 6000;
@@ -39,12 +39,23 @@ public static class CameraModule
     public const string CAMERA_SIMULATOR_PATH_KEY = "CameraSimulatorPath";
     public const string CAMERA_AUTOSTART_KEY = "CameraAutostart";
     public const string LIB_CAMERA_PATH_KEY = "LibCameraPath";
+    public const string LIB_CAMERA_RUN_MODE = "LibCameraRunMode";
+    public const string LIB_CAMERA_DOCKER_IMAGE = "LibCameraDockerImage";
+    public const string LIB_CAMERA_DOCKER_PAT = "LibCameraDockerPat";
     public const string OPEN_VID_CAM_PATH_KEY = "OpenVidCamPath";
     public const string LIB_CAMERA_LISTEN_IP_KEY = "LibCameraListenIp";
     public const string LIB_CAMERA_VIDEO_LISTEN_PORT_KEY = "LibCameraVideoListenPort";
     public const string LIB_CAMERA_GRPC_LISTEN_PORT_KEY = "LibCameraGrpcListenPort";
     public const string LIB_CAMERA_TUNING_FILE_PATH_KEY = "LibCameraTuningFilePath";
-    public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>(LIB_CAMERA_TUNING_FILE_PATH_KEY) ?? LibCameraVid.DefaultTuningFilePath;
+    public static string GetLibCameraTuningPath(this IConfiguration configuration) => configuration.GetValue<string>(LIB_CAMERA_TUNING_FILE_PATH_KEY) ?? LibCameraVidProcess.DefaultTuningFilePath;
+    public static string? GetLibCameraDockerPat(this IConfiguration configuration) => configuration.GetValue<string>(LIB_CAMERA_DOCKER_PAT) ?? null;
+    public static DockerImageName GetLibCameraDockerImage(this IConfiguration configuration) => configuration.GetValue<string>(LIB_CAMERA_DOCKER_IMAGE) ?? "modelingevolution/eventpi-vid:latest";
+    public static RunMode GetLibCameraRunMode(this IConfiguration configuration) => (configuration.GetValue<string>(LIB_CAMERA_RUN_MODE) ?? "Docker") == "Docker" ? RunMode.Docker : RunMode.Process;
+}
+
+public enum RunMode
+{
+    Process, Docker
 }
 
 [CommandHandler]

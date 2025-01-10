@@ -1,0 +1,53 @@
+﻿@using EventPi.SignalProcessing
+<div>
+    <h3>Signals</h3>
+    @if (SignalSinks == null || !SignalSinks.Any())
+    {
+        <p>No Signal Sinks available.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Scale</th>
+                <th>Color</th>
+            </tr>
+            </thead>
+            <tbody>
+            @for (ushort index = 0; index < SignalSinks.Length; index++) {
+            var sink = SignalSinks[index];
+            var settings = Engine?.GetSignalSetting(index);
+            <tr>
+                <td>@sink.Name</td>
+                <td>@sink.Type</td>
+                <td>
+                    @if (settings != null)
+                    {
+                        <input type="number" @bind="@settings.Factor" />
+                    }
+                </td>
+                <td>
+                    @if (settings != null)
+                    {
+                        <div style="color:@settings.CssColor">
+                        ▮▮▮▮▮
+                        </div>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public SignalSink[]? SignalSinks { get; set; }
+
+    [Parameter]
+    public CanvasRenderEngine Engine { get; set; }
+}

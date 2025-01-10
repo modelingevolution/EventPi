@@ -1,0 +1,72 @@
+﻿@using EventPi.Pid
+@inject IPwmService _pwmService
+
+<h3>PWM Service</h3>
+<div>
+    <label for="dutyCycle">Duty Cycle:</label>
+    <input id="dutyCycle" type="number" @bind="DutyCycle" step="0.01" min="0" max="1" />
+</div>
+<div>
+    <label for="frequency">Frequency:</label>
+    <input id="frequency" type="number" @bind="Frequency" step="1" min="0" />
+</div>
+<div>
+    <label for="isReverse">Is Reverse:</label>
+    <input id="isReverse" type="checkbox" @bind="IsReverse" />
+</div>
+<div>
+    <label for="isRunning">Is Running:</label>
+    <input id="isRunning" type="checkbox" disabled value="@IsRunning" />
+</div>
+<div>
+    <button @onclick="StartService" disabled="@IsRunning">Start</button>
+    <button @onclick="StopService" disabled="@(!IsRunning)">Stop</button>
+</div>
+@code {
+    //private IPwmService? _pwmService;
+
+    
+
+    private double DutyCycle
+    {
+        get => _pwmService?.DutyCycle ?? 0;
+        set
+        {
+            if (_pwmService != null)
+            {
+                _pwmService.DutyCycle = value;
+            }
+        }
+    }
+    private int Frequency
+    {
+        get => _pwmService?.Frequency ?? 0;
+        set
+        {
+            if (_pwmService != null)
+            {
+                _pwmService.Frequency = value;
+            }
+        }
+    }
+    private bool IsReverse
+    {
+        get => _pwmService?.IsReverse ?? false;
+        set
+        {
+            if (_pwmService != null)
+            {
+                _pwmService.IsReverse = value;
+            }
+        }
+    }
+    private bool IsRunning => _pwmService?.IsRunning ?? false;
+    private void StartService()
+    {
+        _pwmService?.Start();
+    }
+    private void StopService()
+    {
+        _pwmService?.Stop();
+    }
+}

@@ -1,0 +1,178 @@
+﻿@using System.Collections.Concurrent
+@using System.Diagnostics
+@using System.Transactions
+@using EventPi.Pid
+
+@using EventPi.SignalProcessing
+@inject SignalHubServer _signals
+@inject PidService _pid
+<h3>Signal Simulator, x-target => A * sin (w * t)</h3>
+<label>Current target value: @_targetValue</label><br/>
+<label>Delay in ms : @DelayMilliseconds()</label>
+<div>
+    <label for="A">A:</label>
+    <input id="A" type="number" @bind="@_a" step="0.01" />
+</div>
+<div>
+    <label for="W">w:</label>
+    <input id="W" type="number" @bind="@_w" step="0.01" />
+</div>
+<div>
+    <label for="Delay">Delay:</label>
+    <input id="Delay" type="number" @bind="@Delay"  />
+</div>
+
+<button @onclick="Start">Start</button>
+<button @onclick="Stop">Stop</button>
+@code {
+    private int DelayMilliseconds()
+    {
+        return (int)(_delay * 1000 / _sampling);
+    }
+    private float _sampling = 60; // 60Hz
+    private float _uiRefreshRate = 2; // 2Hz
+    private Timer _uiTimer;
+    private PeriodicTimer _producerTimer;
+    private float _targetValue;
+    private Stopwatch sw;
+    private ISignalSink<float> _target;
+    private ISignalSink<float> _processed;
+    private float _processedValue;
+    private float _errorValue;
+
+    private ISignalSink<float> _error;
+    // Backing fields for A and W
+    private float _a = 20;
+    private float _w = 0.1f;
+    private int _delay = 0;
+
+    private int Delay
+    {
+        get { return _delay; }
+        set
+        {
+            if (_delay == value) return;
+            
+            var d = value - _delay;
+            _delay = value;
+            if (d > 0)
+            {
+                while (d-- > 0)
+                {
+                    if (_delayBuffer.TryPeek(out var v))
+                        _delayBuffer.Enqueue(v);
+                    else
+                        _delayBuffer.Enqueue(0);
+                }
+                
+            } 
+            else if (d < 0)
+            {
+                while (d++ < 0)
+                    _delayBuffer.TryDequeue(out var _);
+            }
+        }
+    }
+    private CancellationTokenSource _cancellationTokenSource;
+    private void Start()
+    {
+        sw = Stopwatch.StartNew();
+        // Start UI refresh timer
+        _uiTimer = new Timer(RefreshUI, null, 0, (int)(1000 / _uiRefreshRate));
+        // Start producer timer
+        _cancellationTokenSource = new CancellationTokenSource();
+        _producerTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000 / _sampling));
+        _ = ProduceValuesAsync(_cancellationTokenSource.Token);
+    }
+    private void Stop()
+    {
+        // Dispose timers
+        _uiTimer?.Dispose();
+        _uiTimer = null;
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
+        sw?.Stop();
+    }
+    [Parameter]
+    public float SamplingRate
+    {
+        get => _sampling;
+        set => _sampling = value;
+    }
+    [Parameter]
+    public float UiRefreshRate
+    {
+        get => _uiRefreshRate;
+        set => _uiRefreshRate = value;
+    }
+    [Parameter]
+    public string SignalName { get; set; }
+
+    [Parameter]
+    public float A
+    {
+        get => _a;
+        set => _a = value;
+    }
+    [Parameter]
+    public float W
+    {
+        get => _w;
+        set => _w = value;
+    }
+    [Parameter]
+    public Func<float, float> Function { get; set; } = MathF.Sin;
+    private void RefreshUI(object state)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    protected override void OnParametersSet()
+    {
+        this._target = _signals.GetSink<float>(SignalName + "-target");
+        this._processed = _signals.GetSink<float>(SignalName + "-processed");
+        this._error = _signals.GetSink<float>(SignalName + "-error");
+
+    }
+    StepMotorModel _motor = new StepMotorModel(1.8, 38000, 0.5, 0);
+
+    private ConcurrentQueue<float> _delayBuffer = new ConcurrentQueue<float>();
+
+    private async Task ProduceValuesAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            _pid.Start();
+            while (await _producerTimer.WaitForNextTickAsync(cancellationToken))
+            {
+                // wartosc aktualna z kamery
+                _delayBuffer.Enqueue((float)_motor.Position());
+
+                _processedValue =  _delayBuffer.TryDequeue(out var v) ? v : 0;
+                // wartosc zadana z kamery
+                _targetValue = _a * Function(_w * (float)sw.Elapsed.TotalSeconds);
+
+                double adjustment = _pid.Compute(_targetValue, _processedValue);
+                double motorTarget = _processedValue + adjustment * 2;
+                _motor.MoveTo(motorTarget);
+
+                _errorValue = _targetValue - _processedValue;
+
+                _target.Write(_targetValue);
+                _processed.Write(_processedValue);
+                _error.Write(_errorValue);
+
+                
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Handle cancellation
+        }
+    }
+    public void Dispose()
+    {
+        // Dispose timers when the component is disposed
+        Stop();
+    }
+}
