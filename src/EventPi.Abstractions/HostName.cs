@@ -1,17 +1,22 @@
+using ProtoBuf;
 using System.Text.Json.Serialization;
 
 namespace EventPi.Abstractions;
 
 [JsonConverter(typeof(JsonParsableConverter<HostName>))]
+[ProtoContract]
 public readonly struct HostName : IEquatable<HostName>, IComparable<HostName>, 
     IComparable, IParsable<HostName>
 {
     public static readonly HostName Empty = new HostName(string.Empty);
     public static readonly HostName Localhost = new HostName("localhost");
+    [ProtoMember(1)]
     private readonly string _name;
 
     private HostName(string n) => _name = n;
     public static explicit operator HostName(string hostname) => new HostName(hostname);
+
+
     public static implicit operator string(HostName hostname) => hostname.ToString();
     public static HostName From(string name) => new HostName(name);
     public bool Equals(HostName other)

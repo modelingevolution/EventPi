@@ -1,29 +1,35 @@
-﻿using System.Globalization;
+﻿using ProtoBuf;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EventPi.Abstractions;
 
+[ProtoContract]
 [JsonConverter(typeof(JsonParsableConverter<FrameId>))]
 public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
     IComparable, IParsable<FrameId>
 {
-
+    [ProtoMember(1)]
     public HostName Device { get => _device; private init
         {
             _device=value;
         }
     }
-    public long FrameNumber { get => _frameNumber; private init
+    [ProtoMember(2)]
+    public ulong FrameNumber { get => _frameNumber; private init
         {
             _frameNumber=value;
         }
     }
+    [ProtoMember(3)]
     public int CameraId { get => _cameraId; private init
         {
             _cameraId=value;
         }
     }
+    [ProtoMember(4)]
     public DateTimeOffset RecordingDate { get => _recordingDate; private init
         {
             _recordingDate=value;
@@ -31,18 +37,27 @@ public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
     }
 
     private readonly HostName _device;
-    private readonly long _frameNumber;
+    private readonly ulong _frameNumber;
     private readonly int _cameraId;
     private readonly DateTimeOffset _recordingDate;
 
-    private FrameId(HostName device, long frameNumber, int cameraId, DateTimeOffset recordingDate)
+
+    private FrameId(HostName device, ulong frameNumber, int cameraId, DateTimeOffset recordingDate)
     {
         _device = device;
         _frameNumber = frameNumber;
         _recordingDate = recordingDate;
         _cameraId = cameraId;
     }
+    public static FrameId From(VideoRecordingIdentifier identifier, ulong frameNumber)
+    {
+        return new FrameId(identifier.HostName,  frameNumber, identifier.CameraNumber.Value, identifier.CreatedTime);
+    }
 
+    public static implicit operator Guid(FrameId frame)
+    {
+        return frame.ToString().ToGuid();
+    }
     public static implicit operator string(FrameId frameId) => frameId.ToString();
     public static FrameId From(string frameId)
     {
@@ -59,7 +74,7 @@ public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
     {
         return (ToString() != null ? ToString().GetHashCode(StringComparison.OrdinalIgnoreCase) : 0);
     }
-
+    
     public override string ToString() =>
     $"frame://{_device.ToString()}:{_cameraId}/{_recordingDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture)}/{_frameNumber.ToString()}";
 
@@ -107,7 +122,7 @@ public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
                 throw new FormatException($"Invalid date format: {segments[1]}");
             }
 
-            if (!long.TryParse(segments[2], NumberStyles.Integer, formatProvider, out long frameNumber))
+            if (!ulong.TryParse(segments[2], NumberStyles.Integer, formatProvider, out ulong frameNumber))
             {
                 throw new FormatException($"Invalid frame number format: {segments[2]}");
             }
