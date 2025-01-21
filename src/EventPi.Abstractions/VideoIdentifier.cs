@@ -4,125 +4,212 @@ using System.Text.Json.Serialization;
 
 namespace EventPi.Abstractions;
 
-/// <summary>
-/// In the form of {HostName}/cam-{CameraNumber}/{data} or {HostName}/file-{FileName}/{data}
-/// </summary>
-/// <seealso cref="IParsable&lt;ModelingEvolution.VideoStreaming.VideoIdentifier&gt;" />
+public interface IVideoRecodingLocator
+{
+    bool Exists(in VideoRecordingIdentifier recording);
+    bool Exists(in FrameId frameId);
+    RecordingPath GetPath(in VideoRecordingIdentifier recording);
+    string GetFolderFullPath(in VideoRecordingIdentifier recording);
+    IEnumerable<VideoRecordingIdentifier> Recording();
+}
+
+public readonly record struct RecordingPath(string DataPath, string IndexPath);
+
 [JsonConverter(typeof(JsonParsableConverter<VideoRecordingIdentifier>))]
 [ProtoContract]
 public readonly struct VideoRecordingIdentifier : IParsable<VideoRecordingIdentifier>
 {
     [ProtoMember(1)]
-    public required HostName HostName { get; init; }
+    public HostName HostName { get; init; }
+
     [ProtoMember(2)]
     public int? CameraNumber { get; init; }
+
     [ProtoMember(3)]
-    public string FileName { get; init; }
-    [ProtoMember(4)]
-    public required DateTime CreatedTime { get; init; }
+    public DateTimeOffset CreatedTime { get; init; }
+
+    public VideoRecordingIdentifier(HostName hostName, DateTimeOffset createdTime)
+    {
+        HostName = hostName;
+        CameraNumber = null;
+        CreatedTime = createdTime;
+    }
+
+    public VideoRecordingIdentifier(HostName hostName, int cameraNumber, DateTimeOffset createdTime)
+    {
+        HostName = hostName;
+        CameraNumber = cameraNumber;
+        CreatedTime = createdTime;
+    }
 
     public static VideoRecordingIdentifier Parse(string s, IFormatProvider? provider)
     {
         if (string.IsNullOrEmpty(s)) throw new ArgumentNullException(nameof(s));
 
         var parts = s.Split('/');
+        if (parts.Length != 2) throw new FormatException("Invalid format for VideoSourceIdentifier.");
 
-        if (parts.Length < 2) throw new FormatException("Invalid format for VideoSourceIdentifier.");
-
-        var hostName = HostName.Parse(parts[0], provider);
-
-        var createdTime = parts.Length == 3 ? DateTime.ParseExact(parts[^1], "yyyyMMdd_HHmmss", provider) : DateTime.MinValue;
-
-        if (parts[1].StartsWith("cam-"))
+        var sourceInfo = parts[0].Split(':');
+        if (sourceInfo.Length == 1)
         {
-            var cameraNumber = int.Parse(parts[1].Substring(4));
-            return new VideoRecordingIdentifier
-            {
-                HostName = hostName,
-                CameraNumber = cameraNumber,
-                CreatedTime = createdTime
-            };
-        }
-        else if (parts[1].StartsWith("file-"))
-        {
-            var fileName = parts[1].Substring(5);
-            return new VideoRecordingIdentifier { HostName = hostName, FileName = fileName, CreatedTime = createdTime };
+            var hostName = HostName.Parse(sourceInfo[0], provider);
+            var createdTime = DateTime.ParseExact(parts[1], "o", provider);
+            return new VideoRecordingIdentifier(hostName, createdTime);
         }
         else
         {
-            throw new FormatException("Invalid format for VideoSourceIdentifier.");
+            var hostName = HostName.Parse(sourceInfo[0], provider);
+            var cameraId = int.Parse(sourceInfo[1]);
+            var createdTime = DateTime.ParseExact(parts[1], "o", provider);
+
+            return new VideoRecordingIdentifier(hostName, cameraId, createdTime);
         }
     }
-    public static implicit operator Guid(VideoRecordingIdentifier addr)
+    public string ToStringFileName()
     {
-        return addr.ToString().ToGuid();
+        // Convert to filename-safe ISO 8601
+        if (CreatedTime.Offset == TimeSpan.Zero)
+        {
+            // Use Z for UTC
+            var utcStr = CreatedTime.UtcDateTime.ToString("yyyyMMddTHHmmss.ffffff") + "Z";
+            return CameraNumber.HasValue && CameraNumber.Value != 0
+                ? $"{HostName}.{CameraNumber}.{utcStr}"
+                : $"{HostName}.{utcStr}";
+        }
+        else
+        {
+            // Use numeric offset (e.g., +0100, -0500)
+            var dateStr = CreatedTime.ToString("yyyyMMddTHHmmss.ffffff");
+            var offsetStr = CreatedTime.ToString("zzz").Replace(":", "");
+            var fullDateStr = dateStr + offsetStr;
+
+            return CameraNumber.HasValue && CameraNumber.Value != 0
+                ? $"{HostName}.{CameraNumber}.{fullDateStr}"
+                : $"{HostName}.{fullDateStr}";
+        }
     }
-   
-    public static implicit operator VideoRecordingDevice(VideoRecordingIdentifier addr)
+
+    public static bool TryParseFileName(string fileName, out VideoRecordingIdentifier result)
     {
-        return new VideoRecordingDevice { HostName = addr.HostName, CameraNumber = addr.CameraNumber, FileName = addr.FileName };
-    }
-    public static implicit operator VideoRecordingIdentifier(VideoAddress addr)
-    {
-        return addr.VideoSource == VideoSource.File
-            ? new VideoRecordingIdentifier
+        result = default;
+        if (string.IsNullOrEmpty(fileName)) return false;
+
+        // Split the filename parts by dots
+        var parts = fileName.Split('.');
+        if (parts.Length < 3 || parts.Length > 4) return false;
+
+        // Parse hostname (first part)
+        if (!HostName.TryParse(parts[0], null, out var hostName)) return false;
+
+        // Parse the datetime part (last part)
+        string dateTimePart = $"{parts[^2]}.{parts[^1]}";
+        if (dateTimePart.Length < 20) return false; // Basic length validation
+
+        try
+        {
+            // Handle both Z and offset formats
+            DateTimeOffset parsedTime;
+            if (dateTimePart.EndsWith("Z"))
             {
-                HostName = HostName.Parse(addr.Host),
-                FileName = Path.GetFileName(addr.File),
-                CreatedTime = DateTime.Now
+                // UTC format
+                
+                var utcDateTime = DateTime.ParseExact(
+                    dateTimePart.TrimEnd('Z'),
+                    "yyyyMMddTHHmmss.ffffff",
+                    null,
+                    System.Globalization.DateTimeStyles.AssumeUniversal);
+                parsedTime = utcDateTime;
             }
-            : new VideoRecordingIdentifier { HostName = HostName.Parse(addr.Host), CameraNumber = addr.CameraNumber, CreatedTime = DateTime.Now };
-    }
-    public static implicit operator VideoRecordingIdentifier(CameraAddress addr)
-    {
-        return new VideoRecordingIdentifier { HostName = addr.HostName, CameraNumber = addr.CameraNumber, FileName = null, CreatedTime = DateTime.Now };
+            else
+            {
+                // With offset format: split into datetime and offset parts
+                int signPos = dateTimePart.LastIndexOfAny(new[] { '+', '-' });
+                if (signPos == -1) return false;
+
+                string dtPart = dateTimePart.Substring(0, signPos);
+                string offsetPart = dateTimePart.Substring(signPos);
+
+                // Parse the date time
+                var dt = DateTime.ParseExact(
+                    dtPart,
+                    "yyyyMMddTHHmmss.ffffff",
+                    null,
+                    System.Globalization.DateTimeStyles.None);
+
+                // Parse the offset (+0100 or -0500 format)
+                if (offsetPart.Length != 5) return false; // +/- plus 4 digits
+
+                int offsetHours = int.Parse(offsetPart.Substring(1, 2));
+                int offsetMinutes = int.Parse(offsetPart.Substring(3, 2));
+                var offset = new TimeSpan(offsetHours, offsetMinutes, 0);
+                if (offsetPart[0] == '-') offset = -offset;
+
+                parsedTime = new DateTimeOffset(dt, offset);
+            }
+
+            // Create result based on whether we have a camera number
+            if (parts.Length == 4)
+            {
+                if (!int.TryParse(parts[1], out int cameraNumber)) return false;
+                result = new VideoRecordingIdentifier(hostName, cameraNumber, parsedTime);
+            }
+            else
+            {
+                result = new VideoRecordingIdentifier(hostName, parsedTime);
+            }
+
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out VideoRecordingIdentifier result)
     {
         result = default;
-
         if (string.IsNullOrEmpty(s)) return false;
 
         var parts = s.Split('/');
-        if (parts.Length < 2) return false;
+        if (parts.Length != 2) return false;
 
-        if (!HostName.TryParse(parts[0], provider, out var hostName)) return false;
+        var sourceInfo = parts[0].Split(':');
+        if (sourceInfo.Length != 2) return false;
 
-
-        if (parts.Length == 3 && !DateTime.TryParseExact(parts[^1], "yyyyMMdd_HHmmss", provider, System.Globalization.DateTimeStyles.None,
-                out var createdTime))
+        if (!HostName.TryParse(sourceInfo[0], provider, out var hostName)) return false;
+        if (!int.TryParse(sourceInfo[1], out var cameraId)) return false;
+        if (!DateTime.TryParseExact(parts[1], "o", provider, System.Globalization.DateTimeStyles.None, out var createdTime))
             return false;
 
-        else createdTime = DateTime.MinValue;
-
-        if (parts[1].StartsWith("cam-"))
-        {
-            if (int.TryParse(parts[1].Substring(4), out var cameraNumber))
-            {
-                result = new VideoRecordingIdentifier
-                {
-                    HostName = hostName,
-                    CameraNumber = cameraNumber,
-                    CreatedTime = createdTime
-                };
-                return true;
-            }
-        }
-        else if (parts[1].StartsWith("file-"))
-        {
-            var fileName = parts[1].Substring(5);
-            result = new VideoRecordingIdentifier { HostName = hostName, FileName = fileName, CreatedTime = createdTime };
-            return true;
-        }
-
-        return false;
+        result = new VideoRecordingIdentifier(hostName, cameraId, createdTime);
+        return true;
     }
 
     public override string ToString()
     {
-        var ct = CreatedTime.ToString("yyyyMMdd_HHmmss");
+        return CameraNumber.HasValue ? $"{HostName}:{CameraNumber}/{CreatedTime:o}" : $"{HostName}/{CreatedTime:o}";
+    }
 
-        return !string.IsNullOrEmpty(FileName) ? $"{HostName}/file-{FileName}/{ct}"
-            : $"{HostName}/cam-{CameraNumber ?? 0}/{ct}";
+    public static implicit operator Guid(VideoRecordingIdentifier addr)
+    {
+        return addr.ToString().ToGuid();
+    }
+
+    public static implicit operator VideoRecordingDevice(VideoRecordingIdentifier addr)
+    {
+        return new VideoRecordingDevice { HostName = addr.HostName, CameraNumber = addr.CameraNumber };
+    }
+
+    public static implicit operator VideoRecordingIdentifier(VideoAddress addr)
+    {
+        var hostName = HostName.Parse(addr.Host);
+        return addr.VideoSource == VideoSource.File
+            ? new VideoRecordingIdentifier(hostName, DateTimeOffset.Now)
+            : new VideoRecordingIdentifier(hostName, addr.CameraNumber ?? 0, DateTimeOffset.Now);
+    }
+
+    public static implicit operator VideoRecordingIdentifier(CameraAddress addr)
+    {
+        return new VideoRecordingIdentifier(addr.HostName, addr.CameraNumber ?? 0, DateTimeOffset.Now);
     }
 }

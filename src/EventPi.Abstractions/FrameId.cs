@@ -11,35 +11,29 @@ namespace EventPi.Abstractions;
 public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
     IComparable, IParsable<FrameId>
 {
-    [ProtoMember(1)]
-    public HostName Device { get => _device; private init => _device=value;
-    }
-    [ProtoMember(2)]
-    public ulong FrameNumber { get => _frameNumber; private init => _frameNumber=value;
-    }
-    [ProtoMember(3)]
-    public int CameraId { get => _cameraId; private init => _cameraId=value;
-    }
-    [ProtoMember(4)]
-    public DateTimeOffset RecordingDate { get => _recordingDate; private init => _recordingDate=value;
-    }
-
-    private readonly HostName _device;
     private readonly ulong _frameNumber;
-    private readonly int _cameraId;
-    private readonly DateTimeOffset _recordingDate;
+    
+    [ProtoMember(0)]
+    public VideoRecordingIdentifier Recording { get; init; }
+
+    public HostName Device => Recording.HostName;
 
 
-    private FrameId(HostName device, ulong frameNumber, int cameraId, DateTimeOffset recordingDate)
+    public ulong FrameNumber { get => _frameNumber; private init => _frameNumber=value; }
+
+    public int? CameraId => Recording.CameraNumber;
+
+    public DateTimeOffset RecordingDate => (DateTimeOffset) RecordingDate.Date;
+
+    public FrameId(VideoRecordingIdentifier recording, ulong frameNumber)
     {
-        _device = device;
+        Recording = recording;
         _frameNumber = frameNumber;
-        _recordingDate = recordingDate;
-        _cameraId = cameraId;
     }
+
     public static FrameId From(VideoRecordingIdentifier identifier, ulong frameNumber)
     {
-        return new FrameId(identifier.HostName,  frameNumber, identifier.CameraNumber.Value, identifier.CreatedTime);
+        return new FrameId(identifier, frameNumber);
     }
 
     public static implicit operator Guid(FrameId frame)
@@ -53,7 +47,7 @@ public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
     }
     public bool Equals(FrameId other)
     {
-        return HostName.Equals(this._device, other._device) && (this._frameNumber == other._frameNumber) &&(this._cameraId == other._cameraId) &&this._recordingDate.Equals(other._recordingDate);
+        return this.Recording.Equals(other.Recording) && (this._frameNumber == other._frameNumber);
     }
 
     public override bool Equals(object obj) => obj is FrameId other && Equals(other);
@@ -63,8 +57,7 @@ public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
         return (ToString() != null ? ToString().GetHashCode(StringComparison.OrdinalIgnoreCase) : 0);
     }
     
-    public override string ToString() =>
-    $"frame://{_device.ToString()}:{_cameraId}/{_recordingDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture)}/{_frameNumber.ToString()}";
+    public override string ToString() => $"{Recording}/{FrameNumber}";
 
     public static bool operator ==(FrameId left, FrameId right) => left.Equals(right);
 
@@ -88,34 +81,12 @@ public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
             throw new ArgumentNullException(nameof(input), "Input string cannot be null or empty.");
         }
 
-        var url = new Uri(input);
-        const string prefix = "frame";
-        if (!url.Scheme.Equals(prefix, StringComparison.Ordinal))
-        {
-            throw new FormatException($"Input string must start with '{prefix}'");
-        }
-
         try
         {
-            // Remove the prefix and split the remaining string
-            string[] segments = url.Segments;
-
-            if (segments.Length != 3)
-                throw new FormatException("URI format must contain exactly 4 segments: device/cameraId/recordingDate/frameNumber");
-
-            if (!DateTimeOffset.TryParse(segments[1].Replace("/",""), formatProvider, DateTimeStyles.None, out DateTimeOffset recordingDate))
-                throw new FormatException($"Invalid date format: {segments[1]}");
-
-            if (!ulong.TryParse(segments[2], NumberStyles.Integer, formatProvider, out ulong frameNumber))
-                throw new FormatException($"Invalid frame number format: {segments[2]}");
-
-            return new FrameId
-            {
-                Device = HostName.From(url.Host),
-                CameraId = url.Port,
-                RecordingDate = recordingDate,
-                FrameNumber = frameNumber
-            };
+            int lastIndex = input.LastIndexOf('/');
+            string recording = input.Remove(lastIndex);
+            string number = input.Substring(lastIndex + 1);
+            return new FrameId(VideoRecordingIdentifier.Parse(recording, null), ulong.Parse(number));
         }
         catch (Exception ex) when (ex is not FormatException)
         {

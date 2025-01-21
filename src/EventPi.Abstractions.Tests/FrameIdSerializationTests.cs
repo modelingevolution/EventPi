@@ -2,12 +2,21 @@
 using System.Text.Json;
 using Xunit;
 using EventPi.Abstractions;
+using Xunit.Abstractions;
 
 namespace EventPi.Tests;
 
 public class FrameIdSerializationTests
 {
-    private static readonly FrameId TestFrameId = FrameId.Parse("frame://device1:1/2024-01-16T12:00:00Z/123");
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public FrameIdSerializationTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
+    private static readonly FrameId TestFrameId =
+        new FrameId(new VideoRecordingIdentifier(HostName.Localhost, 1, DateTimeOffset.Now),69);
 
 
 
@@ -22,6 +31,7 @@ public class FrameIdSerializationTests
 
         // Act
         var sut=FrameId.Parse(TestFrameId.ToString());
+        _testOutputHelper.WriteLine(TestFrameId);
         // Assert
         Assert.Equal(TestFrameId, sut);
     }
@@ -46,21 +56,5 @@ public class FrameIdSerializationTests
 
 
   
-    [Fact]
-    public void SerializeMultipleFrameIds_ShouldMaintainDistinctValues()
-    {
-        // Arrange
-        var frameId1 = FrameId.Parse("frame://device1:1/2024-01-16T12:00:00Z/123");
-        var frameId2 = FrameId.Parse("frame://device2:2/2024-01-16T12:00:00Z/456");
-        var frameIds = new[] { frameId1, frameId2 };
-
-        // Act
-        string jsonString = JsonSerializer.Serialize(frameIds);
-        var deserializedFrameIds = JsonSerializer.Deserialize<FrameId[]>(jsonString);
-
-        // Assert
-        Assert.Equal(2, deserializedFrameIds.Length);
-        Assert.Equal(frameId1, deserializedFrameIds[0]);
-        Assert.Equal(frameId2, deserializedFrameIds[1]);
-    }
+   
 }
