@@ -117,8 +117,9 @@ public readonly struct VideoRecordingIdentifier : IParsable<VideoRecordingIdenti
                     dateTimePart.TrimEnd('Z'),
                     "yyyyMMddTHHmmss.ffffff",
                     null,
-                    System.Globalization.DateTimeStyles.AssumeUniversal);
-                parsedTime = utcDateTime;
+                    System.Globalization.DateTimeStyles.AssumeUniversal |
+                    System.Globalization.DateTimeStyles.AdjustToUniversal);
+                parsedTime = new DateTimeOffset(utcDateTime, TimeSpan.Zero);
             }
             else
             {
