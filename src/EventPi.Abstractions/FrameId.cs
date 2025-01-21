@@ -16,14 +16,10 @@ public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
     [ProtoMember(0)]
     public VideoRecordingIdentifier Recording { get; init; }
 
-    public HostName Device => Recording.HostName;
 
 
     public ulong FrameNumber { get => _frameNumber; private init => _frameNumber=value; }
 
-    public int? CameraId => Recording.CameraNumber;
-
-    public DateTimeOffset RecordingDate => (DateTimeOffset) RecordingDate.Date;
 
     public FrameId(VideoRecordingIdentifier recording, ulong frameNumber)
     {
