@@ -8,23 +8,24 @@ namespace EventPi.Abstractions;
 
 [ProtoContract]
 [JsonConverter(typeof(JsonParsableConverter<FrameId>))]
-public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
+public readonly record struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
     IComparable, IParsable<FrameId>
 {
-    private readonly ulong _frameNumber;
-    
-    [ProtoMember(0)]
+    [ProtoMember(1)]
     public VideoRecordingIdentifier Recording { get; init; }
 
 
+    [ProtoMember(2)]
+    public ulong FrameNumber { get; init; }
 
-    public ulong FrameNumber { get => _frameNumber; private init => _frameNumber=value; }
-
-
+    public FrameId()
+    {
+        
+    }
     public FrameId(VideoRecordingIdentifier recording, ulong frameNumber)
     {
         Recording = recording;
-        _frameNumber = frameNumber;
+        FrameNumber = frameNumber;
     }
 
     public static FrameId From(VideoRecordingIdentifier identifier, ulong frameNumber)
@@ -41,23 +42,11 @@ public readonly struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
     {
         return Parse(frameId);
     }
-    public bool Equals(FrameId other)
-    {
-        return this.Recording.Equals(other.Recording) && (this._frameNumber == other._frameNumber);
-    }
-
-    public override bool Equals(object obj) => obj is FrameId other && Equals(other);
-
-    public override int GetHashCode()
-    {
-        return (ToString() != null ? ToString().GetHashCode(StringComparison.OrdinalIgnoreCase) : 0);
-    }
+    
     
     public override string ToString() => $"{Recording}/{FrameNumber}";
 
-    public static bool operator ==(FrameId left, FrameId right) => left.Equals(right);
-
-    public static bool operator !=(FrameId left, FrameId right) => !left.Equals(right);
+    
 
     public int CompareTo(FrameId other)
     {

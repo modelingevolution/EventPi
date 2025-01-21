@@ -1,6 +1,8 @@
 ﻿using ProtoBuf;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using Grpc.Core;
+using ProtoBuf.Meta;
 
 namespace EventPi.Abstractions;
 
@@ -15,18 +17,56 @@ public interface IVideoRecodingLocator
 
 public readonly record struct RecordingPath(string DataPath, string IndexPath);
 
-[JsonConverter(typeof(JsonParsableConverter<VideoRecordingIdentifier>))]
 [ProtoContract]
-public readonly struct VideoRecordingIdentifier : IParsable<VideoRecordingIdentifier>
+public class DateTimeOffsetSurrogate
 {
     [ProtoMember(1)]
-    public HostName HostName { get; init; }
+    public long Ticks { get; set; }
+
+    [ProtoMember(2)]
+    public TimeSpan Offset { get; set; }
+
+    public static implicit operator DateTimeOffsetSurrogate(DateTimeOffset value)
+        => new DateTimeOffsetSurrogate
+        {
+            Ticks = value.Ticks,
+            Offset = value.Offset
+        };
+
+    public static implicit operator DateTimeOffset(DateTimeOffsetSurrogate value)
+        => new DateTimeOffset(value.Ticks, value.Offset);
+}
+public static class ProtobufConfig
+{
+    private static bool _configured = false;
+    public static void Configure()
+    {
+        if(!_configured)
+            RuntimeTypeModel.Default
+            .Add(typeof(DateTimeOffset), false)
+            .SetSurrogate(typeof(DateTimeOffsetSurrogate));
+        _configured = true;
+    }
+}
+
+
+[JsonConverter(typeof(JsonParsableConverter<VideoRecordingIdentifier>))]
+[ProtoContract]
+public readonly record struct VideoRecordingIdentifier : IParsable<VideoRecordingIdentifier>
+{
+    [ProtoMember(1)]
+    public HostName HostName { get; init;  }
 
     [ProtoMember(2)]
     public int? CameraNumber { get; init; }
 
     [ProtoMember(3)]
     public DateTimeOffset CreatedTime { get; init; }
+
+    public VideoRecordingIdentifier()
+    {
+        
+    }
 
     public VideoRecordingIdentifier(HostName hostName, DateTimeOffset createdTime)
     {
