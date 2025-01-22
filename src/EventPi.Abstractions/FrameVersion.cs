@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace EventPi.Abstractions
 {
     // ToString = T:Version, we search for last ':' char in the string.
-    public readonly record struct Reference<T> : IParsable<Reference<T>>
+    public readonly record struct StreamEventPosition<T> : IParsable<StreamEventPosition<T>>
         where T : struct, IParsable<T>
     {
         
        
-        public uint Version { get; init; }
+        public long Version { get; init; }
         public T Value { get; init; }
-        public static Reference<T> Parse(string s, IFormatProvider? provider)
+        public static StreamEventPosition<T> Parse(string s, IFormatProvider? provider)
         {
             if (string.IsNullOrEmpty(s)) throw new ArgumentNullException(nameof(s));
 
@@ -25,14 +26,14 @@ namespace EventPi.Abstractions
             var valuePart = s.Substring(0, lastColonIndex);
             var versionPart = s.Substring(lastColonIndex + 1);
 
-            if (!uint.TryParse(versionPart, out var version)) throw new FormatException("Version part is not a valid unsigned integer.");
+            if (!long.TryParse(versionPart, out var version)) throw new FormatException("Version part is not a valid unsigned integer.");
 
             var value = T.Parse(valuePart, provider);
 
-            return new Reference<T> { Value = value, Version = version };
+            return new StreamEventPosition<T> { Value = value, Version = version };
         }
 
-        public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Reference<T> result)
+        public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out StreamEventPosition<T> result)
         {
             result = default;
 
@@ -44,11 +45,11 @@ namespace EventPi.Abstractions
             var valuePart = s.Substring(0, lastColonIndex);
             var versionPart = s.Substring(lastColonIndex + 1);
 
-            if (!uint.TryParse(versionPart, out var version)) return false;
+            if (!long.TryParse(versionPart, out var version)) return false;
 
             if (!T.TryParse(valuePart, provider, out var value)) return false;
 
-            result = new Reference<T> { Value = value, Version = version };
+            result = new StreamEventPosition<T> { Value = value, Version = version };
             return true;
         }
 
