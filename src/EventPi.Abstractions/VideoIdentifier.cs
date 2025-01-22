@@ -6,7 +6,7 @@ using ProtoBuf.Meta;
 
 namespace EventPi.Abstractions;
 
-public interface IVideoRecodingLocator
+public interface IVideoRecordingLocator
 {
     bool Exists(in VideoRecordingIdentifier recording);
     bool Exists(in FrameId frameId);
