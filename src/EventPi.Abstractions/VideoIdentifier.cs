@@ -15,7 +15,10 @@ public interface IVideoRecodingLocator
     IEnumerable<VideoRecordingIdentifier> Recording();
 }
 
-public readonly record struct RecordingPath(string DataPath, string IndexPath);
+public readonly record struct RecordingPath(string DataPath, string IndexPath)
+{
+    public string Directory => Path.GetDirectoryName(DataPath)!;
+}
 
 [ProtoContract]
 public class DateTimeOffsetSurrogate
@@ -82,7 +85,7 @@ public readonly record struct VideoRecordingIdentifier : IParsable<VideoRecordin
         CreatedTime = createdTime;
     }
 
-    public static VideoRecordingIdentifier Parse(string s, IFormatProvider? provider)
+    public static VideoRecordingIdentifier Parse(string s, IFormatProvider? provider = null)
     {
         if (string.IsNullOrEmpty(s)) throw new ArgumentNullException(nameof(s));
 
@@ -93,14 +96,14 @@ public readonly record struct VideoRecordingIdentifier : IParsable<VideoRecordin
         if (sourceInfo.Length == 1)
         {
             var hostName = HostName.Parse(sourceInfo[0], provider);
-            var createdTime = DateTime.ParseExact(parts[1], "o", provider);
+            var createdTime = DateTimeOffset.ParseExact(parts[1], "o", provider);
             return new VideoRecordingIdentifier(hostName, createdTime);
         }
         else
         {
             var hostName = HostName.Parse(sourceInfo[0], provider);
             var cameraId = int.Parse(sourceInfo[1]);
-            var createdTime = DateTime.ParseExact(parts[1], "o", provider);
+            var createdTime = DateTimeOffset.ParseExact(parts[1], "o", provider);
 
             return new VideoRecordingIdentifier(hostName, cameraId, createdTime);
         }

@@ -142,7 +142,7 @@ public class VideoRecordingIdentifierTests
             HostName = HostName.Parse("TestHost"),
             CameraNumber = 5,
             
-            CreatedTime = new DateTimeOffset(2024, 1, 16, 12, 0, 0, TimeSpan.Zero)
+            CreatedTime = new DateTimeOffset(2024, 1, 16, 12, 0, 0,99,22, TimeSpan.Zero)
         };
 
         // Act
@@ -163,7 +163,7 @@ public class VideoRecordingIdentifierTests
         {
             HostName = HostName.Parse("TestHost"),
             CameraNumber = null,
-            CreatedTime = new DateTimeOffset(2024, 1, 16, 12, 0, 0, TimeSpan.Zero)
+            CreatedTime = new DateTimeOffset(2024, 1, 16, 12, 0, 0,99,11, TimeSpan.Zero)
         };
 
         // Act
