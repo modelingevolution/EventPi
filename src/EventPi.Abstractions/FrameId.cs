@@ -42,11 +42,13 @@ public readonly record struct FrameId : IEquatable<FrameId>, IComparable<FrameId
     {
         return Parse(frameId);
     }
-    
-    
     public override string ToString() => $"{Recording}/{FrameNumber}";
+    public string ToStringFileName()
+    {
+        string recordingPart = Recording.ToStringFileName();
+        return $"{recordingPart}.{FrameNumber}";
+    }
 
-    
 
     public int CompareTo(FrameId other)
     {
@@ -58,7 +60,29 @@ public readonly record struct FrameId : IEquatable<FrameId>, IComparable<FrameId
         if (ReferenceEquals(null, obj)) return 1;
         return obj is FrameId other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(FrameId)}");
     }
+    public static bool TryParseFileName(string fileName, out FrameId result)
+    {
+        result = default;
 
+        if (string.IsNullOrWhiteSpace(fileName))
+            return false;
+
+        int lastDotIndex = fileName.LastIndexOf('.');
+        if (lastDotIndex == -1)
+            return false;
+
+        string recordingPart = fileName[..lastDotIndex];
+        string frameNumberPart = fileName[(lastDotIndex + 1)..];
+
+        if (!VideoRecordingIdentifier.TryParseFileName(recordingPart, out var recording))
+            return false;
+
+        if (!ulong.TryParse(frameNumberPart, out var frameNumber))
+            return false;
+
+        result = new FrameId(recording, frameNumber);
+        return true;
+    }
     public static FrameId Parse(string input, IFormatProvider? formatProvider = null)
     {
         if (string.IsNullOrWhiteSpace(input))
