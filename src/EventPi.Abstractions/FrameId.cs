@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EventStore.Client;
 
 namespace EventPi.Abstractions;
 
@@ -18,6 +19,7 @@ public readonly record struct FrameId : IEquatable<FrameId>, IComparable<FrameId
     [ProtoMember(2)]
     public ulong FrameNumber { get; init; }
 
+    public static readonly FrameId Empty = new FrameId();
     public FrameId()
     {
         
