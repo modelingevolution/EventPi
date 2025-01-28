@@ -23,7 +23,7 @@ namespace EventPi.Pwm.Ui
             var services = builder.Services;
             services.AddRazorComponents()
                 .AddInteractiveServerComponents()
-                .AddInteractiveWebAssemblyComponents(); 
+                .AddInteractiveWebAssemblyComponents();
 
             services.AddOpenApi()
                 .AddSignalProcessingUi()
@@ -42,12 +42,18 @@ namespace EventPi.Pwm.Ui
                 .AddSingleton<DevicePwmService>()
                 .AddSingleton<StepMotorController>()
                 .AddSingleton<StepMotorSignalsObserver>()
-                .AddSingleton<PidService>((sp) => new PidService(0.9,0,2,20,-20,2))
-                .AddSingleton<IPwmService>(sp => sp.GetRequiredService<DevicePwmService>())
+                .AddSingleton<PidService>((sp) => new PidService(0.8,0,2,20,-20,2))
+                
                 .AddHttpClient("default", sp =>
                     sp.BaseAddress = new Uri(builder.Configuration.GetValue<string>("Urls") ?? throw new InvalidOperationException("You need to configure Urls."))
                 );
 
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                services.AddSingleton<IPwmService>(sp => sp.GetRequiredService<DevicePwmService>())
+                    .AddSingleton<IPwmService>(sp => sp.GetRequiredService<DevicePwmService>());
+            }
+            else services.AddSingleton<IPwmService>(sp => sp.GetRequiredService<NullPwmService>());
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -270,14 +276,7 @@ namespace EventPi.Pwm.Ui
         }
     }
 
-    public class PidService : PidControllerTimeWrapper<PidController>
-    {
-        
-        public PidService(double kp, double kd, double ki, double ou, double ol, double? ig) : base(new PidController(kp,kd,ki,ou,ol, ig))
-        {
-        }
-        
-    }
+    
     public class NullPwmService(ILogger<NullPwmService> logger) : IPwmService
     {
         private Stopwatch? _sw;

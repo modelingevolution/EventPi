@@ -4,10 +4,18 @@ using EventPi.SignalProcessing;
 using Microsoft.Extensions.Logging;
 
 namespace EventPi.Pid;
+public class PidService : PidControllerTimeWrapper<PidController>
+{
 
+    public PidService(double kp, double kd, double ki, double ou, double ol, double? ig) : base(new PidController(kp, kd, ki, ou, ol, ig))
+    {
+    }
+
+}
 public class StepMotorController : IDisposable
 {
     private readonly IPwmService _pwm;
+    private readonly PidService _pid;
     private readonly ILogger<StepMotorController> _logger;
     private readonly StepMotorModel _model;
     private readonly ManualResetEventSlim _manualResetEvent;
@@ -15,11 +23,12 @@ public class StepMotorController : IDisposable
     public StepMotorModel MotorModel => _model;
     public double Target { get; private set; }
     public double ProcessedValue { get; private set; }
-    public StepMotorController(IPwmService pwm, 
+    public StepMotorController(IPwmService pwm, PidService pid,
         ILogger<StepMotorController> logger)
     {
         _cts = new();
         _pwm =pwm;
+        _pid = pid;
         _logger = logger;
         _model = new StepMotorModel(1.8, 38000, 0.5, 0);
         _manualResetEvent = new ManualResetEventSlim(false);
@@ -59,6 +68,7 @@ public class StepMotorController : IDisposable
     {
         try
         {
+            _pid.Start();
             MotorDelayedAction? delayedAction = null;
             while (!_cts.IsCancellationRequested)
             {
@@ -67,9 +77,11 @@ public class StepMotorController : IDisposable
                     _logger.LogInformation("Delayed action: {action}", delayedAction.Value);
                     var waitUntil = delayedAction.Value.ValidUntil;
                     var timeToWait = waitUntil.Subtract(DateTime.Now);
-                    if (timeToWait.Ticks > 0 && timeToWait.TotalMilliseconds > 100)
+                    if (timeToWait.Ticks > 0)
                     {
-                        var wokenManually = _manualResetEvent.Wait(timeToWait.Subtract(TimeSpan.FromMilliseconds(50)));
+                        var timeSpan = timeToWait.Subtract(TimeSpan.FromMilliseconds(50));
+                        
+                        var wokenManually = timeSpan.Ticks > 0 && _manualResetEvent.Wait(timeSpan);
                         if (!wokenManually)
                         {
                             // it means we have time-out. Let's check if we don't need to spin
@@ -86,7 +98,9 @@ public class StepMotorController : IDisposable
                             if (_commands.Reader.TryRead(out var cmd))
                             {
                                 Update(cmd);
-                                var nextValidUntil = _model.MoveTo(cmd.Target, out var action, cmd.ProcessedValue);
+                                var adjustment = _pid.Compute(cmd.Target, cmd.ProcessedValue);
+                                
+                                var nextValidUntil = _model.MoveTo(cmd.Target + adjustment, out var action, cmd.ProcessedValue);
                                 if (action == StepMotorModel.MotorAction.Pause) continue;
                                 
                                 _pwm.IsReverse = _model.LastDirection == StepMotorModel.MoveDirection.Backward;
@@ -106,8 +120,8 @@ public class StepMotorController : IDisposable
                     _logger.LogInformation("Waiting for commands.");
                     var cmd = await _commands.Reader.ReadAsync(_cts.Token);
                     Update(cmd);
-                    
-                    var until = _model.MoveTo(cmd.Target, out var action, cmd.ProcessedValue);
+                    var adjustment = _pid.Compute(cmd.Target, cmd.ProcessedValue);
+                    var until = _model.MoveTo(cmd.Target + adjustment, out var action, cmd.ProcessedValue);
                     if(action == StepMotorModel.MotorAction.Pause) continue;
                     
                     delayedAction = new MotorDelayedAction(until, action, _model.LastDirection);

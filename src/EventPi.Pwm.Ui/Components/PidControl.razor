@@ -1,4 +1,5 @@
-﻿@inject PidService _pid
+﻿@using EventPi.Pid
+@inject PidService _pid
 
 <h3>PID Service Properties</h3>
 <div>
@@ -12,6 +13,10 @@
 <div>
     <label for="kd">Kd:</label>
     <input id="kd" type="number" @bind="_pid.Kd" step="0.001" />
+</div>
+<div>
+    <label for="ig">Integral Error Threshold:</label>
+    <input id="ig" type="number" @bind="_pid.IntegralErrorThreshold" step="0.01" />
 </div>
 <div>
     <label for="outputUpperLimit">Output Upper Limit:</label>

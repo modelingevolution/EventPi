@@ -27,4 +27,6 @@ public interface IPidConfig
     /// This should obviously be a numerically lesser value than the upper output limit.
     /// </summary>
     public double OutputLowerLimit { get; set; }
+
+    public double? IntegralErrorThreshold { get; set; }
 }

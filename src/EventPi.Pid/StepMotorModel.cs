@@ -53,7 +53,7 @@ public class StepMotorModel
         return ticks;
     }
 
-    public TimeSpan ComputeDuration(int steps) => TimeSpan.FromSeconds(steps * _dt);
+    public TimeSpan ComputeDuration(int steps) => TimeSpan.FromSeconds(Math.Abs(steps) * _dt);
 
     public bool IsRunning() => IsRunning(DateTime.Now);
     public bool IsRunning(DateTime n) => _started <= n && n <= _finish;

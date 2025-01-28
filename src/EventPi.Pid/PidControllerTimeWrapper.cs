@@ -19,12 +19,19 @@ public class PidControllerTimeWrapper<TPid>(TPid _pid) : IPidConfig, IController
         set => _pid.Ki = value;
     }
 
+    public double? IntegralErrorThreshold
+    {
+        get => _pid.IntegralErrorThreshold;
+        set => _pid.IntegralErrorThreshold = value;
+    }
+
     public double Kd
     {
         get => _pid.Kd;
         set => _pid.Kd = value;
     }
 
+    
     public double OutputUpperLimit
     {
         get => _pid.OutputUpperLimit;
