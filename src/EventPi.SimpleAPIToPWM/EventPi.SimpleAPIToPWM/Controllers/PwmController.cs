@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Device.Gpio;
 using System.Device.Pwm;
+using System.Diagnostics;
 
 namespace EventPi.SimpleAPIToPWM.Controllers
 {
@@ -69,8 +70,11 @@ namespace EventPi.SimpleAPIToPWM.Controllers
                 _ctr.ChangeToBackward();
             }
             _ctr.Start();
+            Stopwatch sw = Stopwatch.StartNew();
             Thread.Sleep(duration);
+            sw.Stop();
             _ctr.Stop();
+            Console.WriteLine($"time: {sw.Elapsed.TotalMicroseconds.ToString()}");
             Interlocked.Decrement(ref _ctr.IsRunning);
             Console.WriteLine($"Engine stopped");
         }

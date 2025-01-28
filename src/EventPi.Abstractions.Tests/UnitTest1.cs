@@ -1,5 +1,7 @@
-using System.Text.Json;
 using FluentAssertions;
+using System;
+using Xunit;
+using EventPi.Abstractions;
 
 namespace EventPi.Abstractions.Tests
 {
