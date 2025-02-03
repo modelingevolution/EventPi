@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Grpc.Core;
+using MicroPlumberd;
 using ProtoBuf.Meta;
 
 namespace EventPi.Abstractions;

@@ -1,6 +1,7 @@
 ﻿using ProtoBuf;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using MicroPlumberd;
 
 namespace EventPi.Abstractions;
 
