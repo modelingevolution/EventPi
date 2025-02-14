@@ -7,8 +7,8 @@ namespace EventPi.Abstractions;
 /// <summary>
 /// In the form of {HostName}/cam-{CameraNumber} or {HostName}/file-{FileName}
 /// </summary>
-/// <seealso cref="IParsable&lt;ModelingEvolution.VideoStreaming.VideoIdentifier&gt;" />
-[JsonConverter(typeof(JsonParsableConverter<VideoRecordingIdentifier>))]
+/// <seealso cref="IParsable&lt;ModelingEvolution.VideoStreaming.VideoRecordingDevice&gt;" />
+[JsonConverter(typeof(JsonParsableConverter<VideoRecordingDevice>))]
 public readonly struct VideoRecordingDevice : IParsable<VideoRecordingDevice>
 {
     public required HostName HostName { get; init; }
@@ -34,7 +34,7 @@ public readonly struct VideoRecordingDevice : IParsable<VideoRecordingDevice>
     {
         return new VideoRecordingDevice { HostName = addr.HostName, CameraNumber = addr.CameraNumber, FileName = null };
     }
-    public static VideoRecordingDevice Parse(string s, IFormatProvider? provider)
+    public static VideoRecordingDevice Parse(string s, IFormatProvider? provider = null)
     {
         if (string.IsNullOrEmpty(s))
             throw new ArgumentNullException(nameof(s));
