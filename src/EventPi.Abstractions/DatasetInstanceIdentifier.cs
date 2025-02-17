@@ -4,7 +4,7 @@ using MicroPlumberd;
 
 namespace EventPi.Abstractions;
 
-[JsonConverter(typeof(JsonParsableConverter<DatasetIdentifier>))]
+[JsonConverter(typeof(JsonParsableConverter<DatasetInstanceIdentifier>))]
 [ProtoContract]
 public readonly record struct DatasetInstanceIdentifier : IParsable<DatasetInstanceIdentifier>
 {
@@ -31,6 +31,10 @@ public readonly record struct DatasetInstanceIdentifier : IParsable<DatasetInsta
             result = default;
             return false;
         }
+    }
+    public static implicit operator Guid(DatasetInstanceIdentifier instance)
+    {
+        return instance.ToString().ToGuid();
     }
     public override string ToString()
     {
