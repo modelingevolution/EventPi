@@ -12,12 +12,15 @@ public readonly record struct DatasetInstanceIdentifier : IParsable<DatasetInsta
     public DatasetIdentifier Id { get; init; }
 
     [ProtoMember(2)]
-    public long Version { get; init; }
+    public long DatasetVersion { get; init; }
+    [ProtoMember(3)]
+    public long AnnotationVersion { get; init; }
 
-    public DatasetInstanceIdentifier(DatasetIdentifier id, long version)
+    public DatasetInstanceIdentifier(DatasetIdentifier id, long datasetVersion, long annotationVersion)
     {
         Id = id;
-        Version=version;
+        DatasetVersion=datasetVersion;
+        AnnotationVersion =annotationVersion;
     }
     public static bool TryParse(string? input, IFormatProvider? formatProvider, out DatasetInstanceIdentifier result)
     {
@@ -38,7 +41,7 @@ public readonly record struct DatasetInstanceIdentifier : IParsable<DatasetInsta
     }
     public override string ToString()
     {
-        return $"{Id.ToString()}.{Version.ToString()}";
+        return $"{Id.ToString()}.{DatasetVersion.ToString()}.{AnnotationVersion.ToString()}";
     }
     public static DatasetInstanceIdentifier Parse(string input, IFormatProvider? formatProvider = null)
     {
@@ -49,10 +52,11 @@ public readonly record struct DatasetInstanceIdentifier : IParsable<DatasetInsta
 
         try
         {
-            int lastIndex = input.LastIndexOf('.');
-            DatasetIdentifier datasetId = DatasetIdentifier.Parse(input.Remove(lastIndex));
-            long version = long.Parse(input.Substring(lastIndex + 1));
-            return new DatasetInstanceIdentifier(datasetId, version);
+            var splited = input.Split('.');
+            DatasetIdentifier datasetId = DatasetIdentifier.Parse(splited[0]);
+            long datasetVersion = long.Parse(splited[1]);
+            long annotationVersion = long.Parse(splited[2]);
+            return new DatasetInstanceIdentifier(datasetId, datasetVersion,annotationVersion);
 
         }
         catch (Exception ex) when (ex is not FormatException)
