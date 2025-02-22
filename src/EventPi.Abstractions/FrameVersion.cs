@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using MicroPlumberd;
 
 namespace EventPi.Abstractions
 {
@@ -49,6 +50,16 @@ namespace EventPi.Abstractions
         }
     }
 
+    public static class StreamEventPositionExtensions
+    {
+        public static StreamEventPosition<T> GetStreamPosition<T>(this Metadata m) where T : struct, IParsable<T>
+        {
+            var frameId = m.StreamId<T>();
+            var age = m.SourceStreamPosition;
+            var position = new StreamEventPosition<T>(frameId, age);
+            return position;
+        }
+    }
     // ToString = T:Version, we search for last ':' char in the string.
     [JsonConverter(typeof(StreamEventPositionConverterFactory))]
     public readonly record struct StreamEventPosition<T> : IParsable<StreamEventPosition<T>>
