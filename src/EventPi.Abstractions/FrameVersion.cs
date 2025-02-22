@@ -75,7 +75,7 @@ namespace EventPi.Abstractions
             Value = value;
             Version = version;
         }
-       
+        
         public long Version { get; init; }
         public T Value { get; init; }
         public static StreamEventPosition<T> Parse(string s, IFormatProvider? provider=null)
