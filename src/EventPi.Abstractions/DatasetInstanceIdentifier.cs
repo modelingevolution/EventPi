@@ -6,13 +6,14 @@ namespace EventPi.Abstractions;
 
 [JsonConverter(typeof(JsonParsableConverter<DatasetInstanceIdentifier>))]
 [ProtoContract]
-public readonly record struct DatasetInstanceIdentifier : IParsable<DatasetInstanceIdentifier>
+public readonly record struct DatasetInstanceIdentifier : IParsable<DatasetInstanceIdentifier>, IComparable<DatasetInstanceIdentifier>
 {
     [ProtoMember(1)]
     public DatasetIdentifier Id { get; init; }
 
     [ProtoMember(2)]
     public long DatasetVersion { get; init; }
+
     [ProtoMember(3)]
     public long AnnotationVersion { get; init; }
 
@@ -65,5 +66,13 @@ public readonly record struct DatasetInstanceIdentifier : IParsable<DatasetInsta
         }
     }
 
- 
+
+    public int CompareTo(DatasetInstanceIdentifier other)
+    {
+        var idComparison = Id.CompareTo(other.Id);
+        if (idComparison != 0) return idComparison;
+        var datasetVersionComparison = DatasetVersion.CompareTo(other.DatasetVersion);
+        if (datasetVersionComparison != 0) return datasetVersionComparison;
+        return AnnotationVersion.CompareTo(other.AnnotationVersion);
+    }
 }

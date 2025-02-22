@@ -7,7 +7,7 @@ namespace EventPi.Abstractions;
 
 [JsonConverter(typeof(JsonParsableConverter<DatasetIdentifier>))]
 [ProtoContract]
-public readonly record struct DatasetIdentifier : IParsable<DatasetIdentifier>
+public readonly record struct DatasetIdentifier : IParsable<DatasetIdentifier>, IComparable<DatasetIdentifier>
 {
     [ProtoMember(1)]
     public Guid Id { get; init; }
@@ -49,5 +49,10 @@ public readonly record struct DatasetIdentifier : IParsable<DatasetIdentifier>
     public static implicit operator DatasetIdentifier(Guid addr)
     {
         return new DatasetIdentifier(addr);
+    }
+
+    public int CompareTo(DatasetIdentifier other)
+    {
+        return Id.CompareTo(other.Id);
     }
 }
