@@ -27,7 +27,7 @@ namespace EventPi.Abstractions
     }
 
     public class StreamEventPositionConverter<T> : JsonConverter<StreamEventPosition<T>>
-        where T : struct, IParsable<T>
+        where T : struct, IParsable<T>, IComparable<T>
     {
         public override StreamEventPosition<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -52,7 +52,7 @@ namespace EventPi.Abstractions
 
     public static class StreamEventPositionExtensions
     {
-        public static StreamEventPosition<T> GetStreamPosition<T>(this Metadata m) where T : struct, IParsable<T>
+        public static StreamEventPosition<T> GetStreamPosition<T>(this Metadata m) where T : struct, IParsable<T>, IComparable<T>
         {
             var frameId = m.StreamId<T>();
             var age = m.SourceStreamPosition;
@@ -62,8 +62,8 @@ namespace EventPi.Abstractions
     }
     // ToString = T:Version, we search for last ':' char in the string.
     [JsonConverter(typeof(StreamEventPositionConverterFactory))]
-    public readonly record struct StreamEventPosition<T> : IParsable<StreamEventPosition<T>>
-        where T : struct, IParsable<T>
+    public readonly struct StreamEventPosition<T> : IParsable<StreamEventPosition<T>>, IEquatable<StreamEventPosition<T>>, IComparable<StreamEventPosition<T>>
+        where T : struct, IParsable<T>, IComparable<T>
     {
         public StreamEventPosition()
         {
@@ -115,9 +115,22 @@ namespace EventPi.Abstractions
             return true;
         }
 
-        public override string ToString()
+        public override string ToString() => $"{Value}:{Version}";
+
+        public bool Equals(StreamEventPosition<T> other) => Version == other.Version && Value.Equals(other.Value);
+
+        public override bool Equals(object? obj) => obj is StreamEventPosition<T> other && Equals(other);
+
+        public override int GetHashCode() => HashCode.Combine(Version, Value);
+
+        public static bool operator ==(StreamEventPosition<T> left, StreamEventPosition<T> right) => left.Equals(right);
+
+        public static bool operator !=(StreamEventPosition<T> left, StreamEventPosition<T> right) => !left.Equals(right);
+
+        public int CompareTo(StreamEventPosition<T> other)
         {
-            return $"{Value}:{Version}";
+            var valueComparison = Value.CompareTo(other.Value);
+            return valueComparison != 0 ? valueComparison : Version.CompareTo(other.Version);
         }
     }
 }
