@@ -1,8 +1,23 @@
 using System.Collections;
+using System.Collections.Immutable;
 
 
 namespace EventPi.Abstractions;
 
+public class ImmutableDictionaryBuilder<TKey, TValue> : IEnumerable
+    where TKey : notnull
+{
+    private readonly ImmutableDictionary<TKey, TValue>.Builder _builder = ImmutableDictionary.CreateBuilder<TKey, TValue>();
+
+    // Add method for inline initialization
+    public void Add(TKey key, TValue value) => _builder[key] = value;
+
+    // Implicit conversion to ImmutableDictionary<TKey, TValue>
+    public static implicit operator ImmutableDictionary<TKey, TValue>(ImmutableDictionaryBuilder<TKey, TValue> builder)
+        => builder._builder.ToImmutable();
+
+    public IEnumerator GetEnumerator() => _builder.GetEnumerator();
+}
 public class CircularBuffer<T> : IEnumerable<T>
 {
     private readonly T[] _buffer;
