@@ -1,5 +1,6 @@
 ﻿namespace EventPi.Abstractions.IO;
 
+using System;
 
 public static class UnixPath
 {
