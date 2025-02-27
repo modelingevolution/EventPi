@@ -9,10 +9,11 @@ namespace EventPi.Abstractions;
 
 public interface IVideoRecordingLocator
 {
-    bool Exists(in VideoRecordingIdentifier recording);
+    VideoRecordingIdentifier.FileNamingConvention? Resolve(in VideoRecordingIdentifier recording);
+    bool Exists(in VideoRecordingIdentifier recording, VideoRecordingIdentifier.FileNamingConvention? convention=null);
     bool Exists(in FrameId frameId);
-    RecordingPath GetPath(in VideoRecordingIdentifier recording);
-    string GetFolderFullPath(in VideoRecordingIdentifier recording);
+    RecordingPath GetPath(in VideoRecordingIdentifier recording, VideoRecordingIdentifier.FileNamingConvention? convention);
+    string GetFolderFullPath(in VideoRecordingIdentifier recording, VideoRecordingIdentifier.FileNamingConvention? convention);
     IEnumerable<VideoRecordingIdentifier> Recording();
 }
 
@@ -52,6 +53,7 @@ public static class ProtobufConfig
         _configured = true;
     }
 }
+
 
 
 [JsonConverter(typeof(JsonParsableConverter<VideoRecordingIdentifier>))]
@@ -109,10 +111,22 @@ public readonly record struct VideoRecordingIdentifier : IParsable<VideoRecordin
             return new VideoRecordingIdentifier(hostName, cameraId, createdTime);
         }
     }
-    public string ToStringFileName()
+
+    public enum FileNamingConvention
+    {
+        Iso8601,
+        ZoneOffset
+    }
+    
+    [JsonIgnore]
+    public FileNamingConvention Convention
+    {
+        get => CreatedTime.Offset == TimeSpan.Zero ? FileNamingConvention.Iso8601 : FileNamingConvention.ZoneOffset;
+    }
+    public string ToStringFileName(FileNamingConvention? convention = null)
     {
         // Convert to filename-safe ISO 8601
-        if (CreatedTime.Offset == TimeSpan.Zero)
+        if ((convention == null && CreatedTime.Offset == TimeSpan.Zero) || convention == FileNamingConvention.Iso8601)
         {
             // Use Z for UTC
             var utcStr = CreatedTime.UtcDateTime.ToString("yyyyMMddTHHmmss.ffffff") + "Z";
