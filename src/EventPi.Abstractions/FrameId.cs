@@ -10,17 +10,28 @@ namespace EventPi.Abstractions;
 
 [ProtoContract]
 [JsonConverter(typeof(JsonParsableConverter<FrameId>))]
-public readonly record struct FrameId : IEquatable<FrameId>, IComparable<FrameId>,
-    IComparable, IParsable<FrameId>
+public readonly record struct FrameId : IComparable<FrameId>,
+    IParsable<FrameId>
 {
     [ProtoMember(1)]
-    public VideoRecordingIdentifier Recording { get; init; }
+    public VideoRecordingIdentifier Recording
+    {
+        get => _recording;
+        init => _recording = value;
+    }
 
 
     [ProtoMember(2)]
-    public ulong FrameNumber { get; init; }
+    public ulong FrameNumber
+    {
+        get => _frameNumber;
+        init => _frameNumber = value;
+    }
 
     public static readonly FrameId Empty = new FrameId();
+    private readonly VideoRecordingIdentifier _recording;
+    private readonly ulong _frameNumber;
+
     public FrameId()
     {
         
@@ -53,16 +64,7 @@ public readonly record struct FrameId : IEquatable<FrameId>, IComparable<FrameId
     }
 
 
-    public int CompareTo(FrameId other)
-    {
-        return string.Compare(ToString(), other.ToString(), StringComparison.OrdinalIgnoreCase);
-    }
-
-    public int CompareTo(object obj)
-    {
-        if (ReferenceEquals(null, obj)) return 1;
-        return obj is FrameId other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(FrameId)}");
-    }
+  
     public static bool TryParseFileName(string fileName, out FrameId result)
     {
         result = default;
@@ -117,5 +119,12 @@ public readonly record struct FrameId : IEquatable<FrameId>, IComparable<FrameId
             result = default;
             return false;
         }
+    }
+
+    public int CompareTo(FrameId other)
+    {
+        var recordingComparison = _recording.CompareTo(other._recording);
+        if (recordingComparison != 0) return recordingComparison;
+        return _frameNumber.CompareTo(other._frameNumber);
     }
 }

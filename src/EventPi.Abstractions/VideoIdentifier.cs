@@ -58,7 +58,7 @@ public static class ProtobufConfig
 
 [JsonConverter(typeof(JsonParsableConverter<VideoRecordingIdentifier>))]
 [ProtoContract]
-public readonly record struct VideoRecordingIdentifier : IParsable<VideoRecordingIdentifier>
+public readonly record struct VideoRecordingIdentifier : IParsable<VideoRecordingIdentifier>, IComparable<VideoRecordingIdentifier>
 {
     [ProtoMember(1)]
     public HostName HostName { get; init;  }
@@ -270,5 +270,14 @@ public readonly record struct VideoRecordingIdentifier : IParsable<VideoRecordin
     public static implicit operator VideoRecordingIdentifier(CameraAddress addr)
     {
         return new VideoRecordingIdentifier(addr.HostName, addr.CameraNumber ?? 0, DateTimeOffset.Now);
+    }
+
+    public int CompareTo(VideoRecordingIdentifier other)
+    {
+        var hostNameComparison = HostName.CompareTo(other.HostName);
+        if (hostNameComparison != 0) return hostNameComparison;
+        var cameraNumberComparison = Nullable.Compare(CameraNumber, other.CameraNumber);
+        if (cameraNumberComparison != 0) return cameraNumberComparison;
+        return CreatedTime.CompareTo(other.CreatedTime);
     }
 }
