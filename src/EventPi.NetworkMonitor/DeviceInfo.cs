@@ -217,7 +217,23 @@ public record DeviceInfo
     public async Task<ConnectionInfo?> GetConnectionInfo()
     {
         var activeId = await Device.GetActiveConnectionAsync();
-        if (activeId == "/") return null;
+        if (activeId == "/")
+        {
+            var ipV4ConfigId2 = await Device.GetIp4ConfigAsync();
+            var ipV4Config2 = Device.Service.CreateIP4Config(ipV4ConfigId2);
+            var ips2 = await ipV4Config2.GetAddressDataAsync();
+            Ip4 ip2 = Ip4.Loopback;
+            uint prefix2= 32;
+            foreach (var i in ips2)
+            {
+                ip2 = i["address"].GetString();
+                prefix2 = i["prefix"].GetUInt32();
+            }
+
+
+            Ip4 gw2 = await ipV4Config2.GetGatewayAsync();
+            return new ConnectionInfo(Ip4Config: new Ip4Config(ip2, prefix2, gw2));
+        }
 
         var active = Device.Service.CreateActive(activeId);
         var ipV4ConfigId = await active.GetIp4ConfigAsync();
