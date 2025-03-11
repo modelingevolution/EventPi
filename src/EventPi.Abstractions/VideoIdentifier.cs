@@ -17,6 +17,7 @@ public interface IVideoRecordingLocator
     IEnumerable<VideoRecordingIdentifier> Recording();
 }
 
+
 public readonly record struct RecordingPath(string DataPath, string IndexPath)
 {
     public string Directory => Path.GetDirectoryName(DataPath)!;
