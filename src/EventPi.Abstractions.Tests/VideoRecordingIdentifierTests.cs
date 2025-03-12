@@ -1,6 +1,21 @@
 ﻿using System.Text.Json;
+using FluentAssertions;
 
 namespace EventPi.Abstractions.Tests;
+
+public class Ip4Tests
+{
+    [Fact]
+    public void IsInNetwork()
+    {
+        
+        Ip4 ip = "192.168.30.1";
+        Ip4 network = "192.168.30.0";
+
+        var n = ip.Network(24);
+        n.Should().Be(network);
+    }
+}
 
 public class VideoRecordingIdentifierTests
 {
