@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\platform\src\Submodules\EventPi\src\EventPi.Abstractions\EventPi.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
