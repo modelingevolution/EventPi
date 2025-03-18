@@ -15,7 +15,7 @@ public class UnixFile
     /// <exception cref="PlatformNotSupportedException">Thrown when hard links are not supported on the current platform</exception>
     /// <exception cref="FileNotFoundException">Thrown when the source file does not exist</exception>
     /// <exception cref="IOException">Thrown when the operation fails</exception>
-    public static void CreateHardLink(string sourceFileName, string destFileName)
+    public static bool CreateHardLink(string sourceFileName, string destFileName)
     {
         if (string.IsNullOrEmpty(sourceFileName))
             throw new ArgumentNullException(nameof(sourceFileName));
@@ -27,7 +27,7 @@ public class UnixFile
             throw new FileNotFoundException("Source file not found.", sourceFileName);
 
         if (File.Exists(destFileName))
-            throw new IOException("Destination file already exists.");
+            return false;
 
         // Use platform-specific implementation
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -38,11 +38,13 @@ public class UnixFile
                  RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             CreateHardLinkUnix(sourceFileName, destFileName);
+           
         }
         else
         {
             throw new PlatformNotSupportedException("Hard links are not supported on this platform.");
         }
+        return true;
     }
 
     // Windows implementation using P/Invoke
