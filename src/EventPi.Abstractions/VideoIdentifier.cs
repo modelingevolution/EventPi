@@ -13,7 +13,7 @@ public interface IVideoRecordingLocator
     bool Exists(in VideoRecordingIdentifier recording, VideoRecordingIdentifier.FileNamingConvention? convention=null);
     bool Exists(in FrameId frameId);
     RecordingPath GetPath(in VideoRecordingIdentifier recording, VideoRecordingIdentifier.FileNamingConvention? convention);
-    string GetFolderFullPath(in VideoRecordingIdentifier recording, VideoRecordingIdentifier.FileNamingConvention? convention);
+    string GetFolderFullPath(in VideoRecordingIdentifier recording, VideoRecordingIdentifier.FileNamingConvention? convention = null);
     IEnumerable<VideoRecordingIdentifier> Recording();
 }
 
