@@ -6,9 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="ModelingEvolution.Ipv4" Version="1.0.0" />
+    <PackageReference Include="ModelingEvolution.JsonParsableConverter" Version="1.0.0" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.3" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\EventPi.Abstractions\EventPi.Abstractions.csproj" />
   </ItemGroup>
 </Project>

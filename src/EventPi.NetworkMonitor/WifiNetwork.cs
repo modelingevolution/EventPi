@@ -1,5 +1,6 @@
 ﻿using System.Text;
-using EventPi.Abstractions;
+using System.Linq;
+
 using NetworkManager.DBus;
 using Tmds.DBus.Protocol;
 using Connection = NetworkManager.DBus.Connection;

@@ -1,8 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices.Marshalling;
-using EventPi.Abstractions;
+
+using ModelingEvolution.Ipv4;
 using NetworkManager.DBus;
 using Tmds.DBus.Protocol;
 using Connection = NetworkManager.DBus.Connection;
@@ -204,7 +206,7 @@ public class Disposables : IAsyncDisposable
     }
 }
 
-public record ConnectionInfo(Ip4Config Ip4Config);
+public record ConnectionInfo(Ipv4Configuration Ip4Config);
 
 public record DeviceInfo
 {
@@ -222,34 +224,34 @@ public record DeviceInfo
             var ipV4ConfigId2 = await Device.GetIp4ConfigAsync();
             var ipV4Config2 = Device.Service.CreateIP4Config(ipV4ConfigId2);
             var ips2 = await ipV4Config2.GetAddressDataAsync();
-            Ip4 ip2 = Ip4.Loopback;
-            uint prefix2= 32;
+            Ipv4Address ip2 = Ipv4Address.Loopback;
+            int prefix2= 32;
             foreach (var i in ips2)
             {
                 ip2 = i["address"].GetString();
-                prefix2 = i["prefix"].GetUInt32();
+                prefix2 = i["prefix"].GetInt32();
             }
 
 
-            Ip4 gw2 = await ipV4Config2.GetGatewayAsync();
-            return new ConnectionInfo(Ip4Config: new Ip4Config(ip2, prefix2, gw2));
+            Ipv4Address gw2 = await ipV4Config2.GetGatewayAsync();
+            return new ConnectionInfo(Ip4Config: new Ipv4Configuration(ip2, prefix2, gw2));
         }
 
         var active = Device.Service.CreateActive(activeId);
         var ipV4ConfigId = await active.GetIp4ConfigAsync();
         var ipV4Config = Device.Service.CreateIP4Config(ipV4ConfigId);
         var ips = await ipV4Config.GetAddressDataAsync();
-        Ip4 ip = Ip4.Loopback;
-        uint prefix = 32;
+        Ipv4Address ip = Ipv4Address.Loopback;
+        int prefix = 32;
         foreach (var i in ips)
         {
             ip  = i["address"].GetString();
-            prefix = i["prefix"].GetUInt32();
+            prefix = i["prefix"].GetInt32();
         }
         
         
-        Ip4 gw = await ipV4Config.GetGatewayAsync();
-        return new ConnectionInfo(Ip4Config: new Ip4Config(ip, prefix, gw));
+        Ipv4Address gw = await ipV4Config.GetGatewayAsync();
+        return new ConnectionInfo(Ip4Config: new Ipv4Configuration(ip, prefix, gw));
 
     }
     public async Task<ProfileInfo?> GetConnectionProfile()
