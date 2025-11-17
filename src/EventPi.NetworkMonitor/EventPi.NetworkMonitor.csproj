@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ModelingEvolution.Ipv4" Version="1.0.0" />
     <PackageReference Include="ModelingEvolution.JsonParsableConverter" Version="1.0.0" />
-    <PackageReference Include="System.Linq.Async" Version="6.0.3" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.2" />
   </ItemGroup>
 </Project>
