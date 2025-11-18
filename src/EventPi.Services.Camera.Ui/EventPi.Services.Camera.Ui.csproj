@@ -14,13 +14,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-    <PackageReference Include="MudBlazor" Version="8.2.3" />
+    <PackageReference Include="MudBlazor" Version="8.14.0" />
     <PackageReference Include="MicroPlumberd.Services" Version="1.0.77.125" />
     <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.77.125" />
     <PackageReference Include="ModelingEvolution.Observable" Version="0.0.5.4" />
     <PackageReference Include="ModelingEvolution.Observable.Blazor" Version="0.0.5.4" />
     <PackageReference Include="ModelingEvolution.Controls.Blazor.HistogramControl" Version="0.0.10.17" />
-    <PackageReference Include="SkiaSharp.Views.Blazor" Version="3.116.1" />
+    <PackageReference Include="SkiaSharp.Views.Blazor" Version="3.119.1" />
 
   </ItemGroup>
 
