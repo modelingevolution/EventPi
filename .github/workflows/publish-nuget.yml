@@ -44,7 +44,7 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Publishing version: $VERSION"
 
-    - name: Restore dependencies
+    - name: Restore EventPi.Abstractions dependencies
       run: dotnet restore src/EventPi.Abstractions/EventPi.Abstractions.csproj
 
     - name: Build EventPi.Abstractions
@@ -53,6 +53,20 @@ jobs:
     - name: Pack EventPi.Abstractions
       run: |
         dotnet pack src/EventPi.Abstractions/EventPi.Abstractions.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Restore EventPi.NetworkMonitor dependencies
+      run: dotnet restore src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj
+
+    - name: Build EventPi.NetworkMonitor
+      run: dotnet build src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj --configuration ${{ env.CONFIGURATION }} --no-restore /p:Version=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.NetworkMonitor
+      run: |
+        dotnet pack src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj \
           --configuration ${{ env.CONFIGURATION }} \
           --no-build \
           --output ./artifacts \
