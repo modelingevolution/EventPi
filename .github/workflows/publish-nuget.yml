@@ -3,7 +3,7 @@ name: Publish NuGet Packages
 on:
   push:
     tags:
-      - 'eventpi/*'
+      - 'event-pi/*'
   workflow_dispatch:
     inputs:
       version:
@@ -38,8 +38,8 @@ jobs:
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
           VERSION="${{ github.event.inputs.version }}"
         else
-          # Extract version from tag format: eventpi/1.0.11.32
-          VERSION=${GITHUB_REF#refs/tags/eventpi/}
+          # Extract version from tag format: event-pi/1.0.11.32
+          VERSION=${GITHUB_REF#refs/tags/event-pi/}
         fi
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Publishing version: $VERSION"

@@ -70,7 +70,7 @@ print_info() {
 
 # Get the latest version tag
 get_latest_version() {
-    git tag --sort=-version:refname | grep -E '^eventpi/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 | sed 's/^eventpi\///' || echo "1.0.0.0"
+    git tag --sort=-version:refname | grep -E '^event-pi/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 | sed 's/^event-pi\///' || echo "1.0.0.0"
 }
 
 # Increment version
@@ -121,8 +121,8 @@ validate_version() {
 # Check if version already exists
 check_version_exists() {
     local version=$1
-    if git tag --list | grep -q "^eventpi/$version$"; then
-        print_error "Version eventpi/$version already exists!"
+    if git tag --list | grep -q "^event-pi/$version$"; then
+        print_error "Version event-pi/$version already exists!"
         echo "Existing tags:"
         git tag --sort=-version:refname | head -5
         return 1
@@ -199,7 +199,7 @@ create_release() {
     local message=$2
     local dry_run=$3
 
-    local tag="eventpi/$version"
+    local tag="event-pi/$version"
 
     print_info "Creating release $tag..."
 
@@ -356,7 +356,7 @@ main() {
     # Show summary
     echo
     print_info "Release Summary:"
-    echo "  Version: eventpi/$version"
+    echo "  Version: event-pi/$version"
     echo "  Message: ${message:-"(none)"}"
     echo "  Branch:  $(git branch --show-current)"
     echo "  Commit:  $(git rev-parse --short HEAD)"
