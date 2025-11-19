@@ -45,12 +45,12 @@ jobs:
         echo "Publishing version: $VERSION"
 
     - name: Restore dependencies
-      run: dotnet restore src/All.sln /p:DockerBuild=true
+      run: dotnet restore src/EventPi.Abstractions/EventPi.Abstractions.csproj
 
-    - name: Build solution
-      run: dotnet build src/All.sln --configuration ${{ env.CONFIGURATION }} --no-restore /p:Version=${{ steps.get_version.outputs.VERSION }} /p:DockerBuild=true
+    - name: Build EventPi.Abstractions
+      run: dotnet build src/EventPi.Abstractions/EventPi.Abstractions.csproj --configuration ${{ env.CONFIGURATION }} --no-restore /p:Version=${{ steps.get_version.outputs.VERSION }}
 
-    - name: Pack NuGet packages
+    - name: Pack EventPi.Abstractions
       run: |
         dotnet pack src/EventPi.Abstractions/EventPi.Abstractions.csproj \
           --configuration ${{ env.CONFIGURATION }} \
