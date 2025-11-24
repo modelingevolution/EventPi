@@ -1,4 +1,5 @@
-﻿using MicroPlumberd.Services;
+﻿using MicroPlumberd;
+using MicroPlumberd.Services;
 
 namespace EventPi.Services.NetworkMonitor.Contract;
 

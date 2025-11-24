@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using EventPi.Abstractions;
+using MicroPlumberd;
 using MicroPlumberd.Services;
 
 namespace EventPi.Services.NetworkMonitor.Contract;

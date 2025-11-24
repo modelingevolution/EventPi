@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using MicroPlumberd;
 using MicroPlumberd.Encryption;
 using MicroPlumberd.Services;
 

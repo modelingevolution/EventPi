@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using MicroPlumberd;
 using MicroPlumberd.Services;
 
 namespace EventPi.Services.NetworkMonitor.Contract;

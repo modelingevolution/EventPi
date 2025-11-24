@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using EventPi.Abstractions;
+using ModelingEvolution.JsonParsableConverter;
 
 namespace EventPi.Services.Camera.Contract;
 

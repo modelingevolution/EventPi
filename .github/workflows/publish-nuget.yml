@@ -52,6 +52,7 @@ jobs:
         dotnet build src/EventPi.SharedMemory/EventPi.SharedMemory.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.Advertiser/EventPi.Advertiser.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Services.NetworkMonitor.Contract/EventPi.Services.NetworkMonitor.Contract.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.AutoUpdate/EventPi.AutoUpdate.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.SimpleAPIToPWM/EventPi.SimpleAPIToPWM/EventPi.SimpleAPIToPWM.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
 
@@ -90,6 +91,14 @@ jobs:
     - name: Pack EventPi.NetworkMonitor
       run: |
         dotnet pack src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Services.NetworkMonitor.Contract
+      run: |
+        dotnet pack src/EventPi.Services.NetworkMonitor.Contract/EventPi.Services.NetworkMonitor.Contract.csproj \
           --configuration ${{ env.CONFIGURATION }} \
           --no-build \
           --output ./artifacts \
