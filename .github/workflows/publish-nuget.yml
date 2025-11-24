@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to publish (e.g., 1.0.11.32)'
+        description: 'Version to publish (e.g., 1.0.11.35)'
         required: true
         type: string
 
@@ -38,17 +38,32 @@ jobs:
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
           VERSION="${{ github.event.inputs.version }}"
         else
-          # Extract version from tag format: event-pi/1.0.11.32
+          # Extract version from tag format: event-pi/1.0.11.35
           VERSION=${GITHUB_REF#refs/tags/event-pi/}
         fi
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Publishing version: $VERSION"
 
-    - name: Restore EventPi.Abstractions dependencies
-      run: dotnet restore src/EventPi.Abstractions/EventPi.Abstractions.csproj
-
-    - name: Build EventPi.Abstractions
-      run: dotnet build src/EventPi.Abstractions/EventPi.Abstractions.csproj --configuration ${{ env.CONFIGURATION }} --no-restore /p:Version=${{ steps.get_version.outputs.VERSION }}
+    - name: Restore and build all packages
+      run: |
+        # Build in dependency order
+        dotnet build src/EventPi.Abstractions/EventPi.Abstractions.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Threading/EventPi.Threading.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.SharedMemory/EventPi.SharedMemory.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Pid/EventPi.Pid.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.SignalProcessing/EventPi.SignalProcessing.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Advertiser/EventPi.Advertiser.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.EventStore/EventPi.EventStore.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.AutoUpdate/EventPi.AutoUpdate.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Events.MachineWork/EventPi.Events.MachineWork.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Services.Camera.Contract/EventPi.Services.Camera.Contract.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Services.Camera/EventPi.Services.Camera.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Services.MachineWorkTime/EventPi.Services.MachineWorkTime.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Services.NetworkMonitor.Contract/EventPi.Services.NetworkMonitor.Contract.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.Services.NetworkMonitor/EventPi.Services.NetworkMonitor.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.UI/EventPi.UI.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
+        dotnet build src/EventPi.SimpleAPIToPWM/EventPi.SimpleAPIToPWM/EventPi.SimpleAPIToPWM.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
 
     - name: Pack EventPi.Abstractions
       run: |
@@ -58,15 +73,129 @@ jobs:
           --output ./artifacts \
           /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
 
-    - name: Restore EventPi.NetworkMonitor dependencies
-      run: dotnet restore src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj
+    - name: Pack EventPi.Threading
+      run: |
+        dotnet pack src/EventPi.Threading/EventPi.Threading.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
 
-    - name: Build EventPi.NetworkMonitor
-      run: dotnet build src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj --configuration ${{ env.CONFIGURATION }} --no-restore /p:Version=${{ steps.get_version.outputs.VERSION }}
+    - name: Pack EventPi.SharedMemory
+      run: |
+        dotnet pack src/EventPi.SharedMemory/EventPi.SharedMemory.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Pid
+      run: |
+        dotnet pack src/EventPi.Pid/EventPi.Pid.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.SignalProcessing
+      run: |
+        dotnet pack src/EventPi.SignalProcessing/EventPi.SignalProcessing.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Advertiser
+      run: |
+        dotnet pack src/EventPi.Advertiser/EventPi.Advertiser.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
 
     - name: Pack EventPi.NetworkMonitor
       run: |
         dotnet pack src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.EventStore
+      run: |
+        dotnet pack src/EventPi.EventStore/EventPi.EventStore.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.AutoUpdate
+      run: |
+        dotnet pack src/EventPi.AutoUpdate/EventPi.AutoUpdate.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Events.MachineWork
+      run: |
+        dotnet pack src/EventPi.Events.MachineWork/EventPi.Events.MachineWork.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Services.Camera.Contract
+      run: |
+        dotnet pack src/EventPi.Services.Camera.Contract/EventPi.Services.Camera.Contract.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Services.Camera
+      run: |
+        dotnet pack src/EventPi.Services.Camera/EventPi.Services.Camera.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Services.MachineWorkTime
+      run: |
+        dotnet pack src/EventPi.Services.MachineWorkTime/EventPi.Services.MachineWorkTime.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Services.NetworkMonitor.Contract
+      run: |
+        dotnet pack src/EventPi.Services.NetworkMonitor.Contract/EventPi.Services.NetworkMonitor.Contract.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.Services.NetworkMonitor
+      run: |
+        dotnet pack src/EventPi.Services.NetworkMonitor/EventPi.Services.NetworkMonitor.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.UI
+      run: |
+        dotnet pack src/EventPi.UI/EventPi.UI.csproj \
+          --configuration ${{ env.CONFIGURATION }} \
+          --no-build \
+          --output ./artifacts \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+
+    - name: Pack EventPi.SimpleAPIToPWM
+      run: |
+        dotnet pack src/EventPi.SimpleAPIToPWM/EventPi.SimpleAPIToPWM/EventPi.SimpleAPIToPWM.csproj \
           --configuration ${{ env.CONFIGURATION }} \
           --no-build \
           --output ./artifacts \
