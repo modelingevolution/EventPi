@@ -27,7 +27,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Plumberd.EventStore" Version="2.0.0.2" />
+    <PackageReference Include="MicroPlumberd" Version="1.0.124.158" />
     <PackageReference Include="protobuf-net" Version="3.2.56" />
   </ItemGroup>
 

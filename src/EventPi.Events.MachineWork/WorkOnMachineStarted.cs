@@ -1,12 +1,11 @@
-﻿using ModelingEvolution.Plumberd;
-using ModelingEvolution.Plumberd.EventStore;
+﻿using MicroPlumberd;
 using ProtoBuf;
 
 namespace EventPi.Events.MachineWork;
 
-[Stream("Device")]
+[OutputStream("Device")]
 [ProtoContract]
-public record WorkOnMachineStarted : IEvent
+public record WorkOnMachineStarted
 {
     public WorkOnMachineStarted()
     {

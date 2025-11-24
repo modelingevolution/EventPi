@@ -1,12 +1,11 @@
-﻿using ModelingEvolution.Plumberd;
-using ModelingEvolution.Plumberd.EventStore;
+﻿using MicroPlumberd;
 using ProtoBuf;
 using EventPi.Abstractions;
 namespace EventPi.Events.MachineWork;
 
-[Stream("Device")]
+[OutputStream("Device")]
 [ProtoContract]
-public record WorkOnMachineStopped : IEvent, ICloneable<WorkOnMachineStopped>
+public record WorkOnMachineStopped : ICloneable<WorkOnMachineStopped>
 {
     public WorkOnMachineStopped()
     {

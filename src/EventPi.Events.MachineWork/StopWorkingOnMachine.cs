@@ -1,12 +1,11 @@
-﻿using ModelingEvolution.Plumberd;
-using ModelingEvolution.Plumberd.EventStore;
+﻿using MicroPlumberd;
 using ProtoBuf;
 
 namespace EventPi.Events.MachineWork;
 
 [ProtoContract]
-[Stream("Device")]
-public class StopWorkingOnMachine : ICommand
+[OutputStream("Device")]
+public class StopWorkingOnMachine
 {
     public StopWorkingOnMachine()
     {

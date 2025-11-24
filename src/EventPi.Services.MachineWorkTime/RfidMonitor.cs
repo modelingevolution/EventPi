@@ -2,7 +2,8 @@
 using EventPi.Events.MachineWork;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using ModelingEvolution.Plumberd.Collections;
+using MicroPlumberd;
+using System.Collections.Concurrent;
 
 namespace EventPi.Services.MachineWorkTime;
 
@@ -18,19 +19,19 @@ class RfidHandler : IAsyncDisposable, IRfidHandler
 {
     
     private readonly IRfidState _state;
-    private readonly IEventStoreStream _eventStoreStream;
+    private readonly IPlumberInstance _plumber;
     private readonly ILogger<RfidHandler> _logger;
-    private readonly ConcurrentHashSet<string> _uniqueRequests;
+    private readonly ConcurrentDictionary<string, byte> _uniqueRequests;
     private readonly IEnvironment _environment;
     private bool _shutdown;
     private int _postInvocationParallelCounter = 0;
-    public RfidHandler(IEventStoreStream eventStoreStream, IRfidState state, ILogger<RfidHandler> logger, IEnvironment environment)
+    public RfidHandler(IPlumberInstance plumber, IRfidState state, ILogger<RfidHandler> logger, IEnvironment environment)
     {
         _state = state;
         _logger = logger;
         _environment = environment;
-        _uniqueRequests = new ConcurrentHashSet<string>();
-        _eventStoreStream = eventStoreStream;
+        _uniqueRequests = new ConcurrentDictionary<string, byte>();
+        _plumber = plumber;
         
     }
 
@@ -151,13 +152,13 @@ class RfidHandler : IAsyncDisposable, IRfidHandler
         if(WorkOnMachineStopped != null)
             await WorkOnMachineStopped();
 
-        await _eventStoreStream.Write(DeviceStreamSuffix.Create(_environment.DeviceSN),
-            new WorkOnMachineStopped { 
+        await _plumber.AppendEvent(
+            new WorkOnMachineStopped {
                 StartedWithCard = startedWith,
                 SwipedWithCard = swipedWith,
-                DeviceSN = _environment.DeviceSN,
+                DeviceSN = _environment.HostName.ToString(),
                 Duration = DateTime.Now.Subtract(_started)
-            });
+            }, _environment.HostName);
         _state.ClearCardId();
 
     }
@@ -170,8 +171,9 @@ class RfidHandler : IAsyncDisposable, IRfidHandler
         if(WorkOnMachineStarted != null)
             await WorkOnMachineStarted();
 
-        await _eventStoreStream.Write(DeviceStreamSuffix.Create(_environment.DeviceSN),
-            new WorkOnMachineStarted { CardNumber = cardId, DeviceSN = _environment.DeviceSN });
+        await _plumber.AppendEvent(
+            new WorkOnMachineStarted { CardNumber = cardId, DeviceSN = _environment.HostName.ToString() },
+            _environment.HostName);
         _state.SetCardId(cardId);   
         _started = DateTime.Now;
     }
