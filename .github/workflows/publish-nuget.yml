@@ -53,8 +53,6 @@ jobs:
         dotnet build src/EventPi.Advertiser/EventPi.Advertiser.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.AutoUpdate/EventPi.AutoUpdate.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
-        dotnet build src/EventPi.Services.Camera.Contract/EventPi.Services.Camera.Contract.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
-        dotnet build src/EventPi.Services.Camera/EventPi.Services.Camera.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.Services.NetworkMonitor.Contract/EventPi.Services.NetworkMonitor.Contract.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.Services.NetworkMonitor/EventPi.Services.NetworkMonitor.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.SimpleAPIToPWM/EventPi.SimpleAPIToPWM/EventPi.SimpleAPIToPWM.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
@@ -102,22 +100,6 @@ jobs:
     - name: Pack EventPi.AutoUpdate
       run: |
         dotnet pack src/EventPi.AutoUpdate/EventPi.AutoUpdate.csproj \
-          --configuration ${{ env.CONFIGURATION }} \
-          --no-build \
-          --output ./artifacts \
-          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
-
-    - name: Pack EventPi.Services.Camera.Contract
-      run: |
-        dotnet pack src/EventPi.Services.Camera.Contract/EventPi.Services.Camera.Contract.csproj \
-          --configuration ${{ env.CONFIGURATION }} \
-          --no-build \
-          --output ./artifacts \
-          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
-
-    - name: Pack EventPi.Services.Camera
-      run: |
-        dotnet pack src/EventPi.Services.Camera/EventPi.Services.Camera.csproj \
           --configuration ${{ env.CONFIGURATION }} \
           --no-build \
           --output ./artifacts \
