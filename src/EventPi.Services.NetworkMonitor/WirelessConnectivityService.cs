@@ -36,7 +36,12 @@ static class WirelessConnectivityService
                 {
                     ConnectionName = ac?.FileName,
                     Ssid = accessPointInfo!.Ssid,
-                    IpConfig = connectionInfo?.Ip4Config,
+                    IpConfig = connectionInfo?.Ip4Config != null
+                        ? new Ip4Config(
+                            connectionInfo.Ip4Config.Address.ToString(),
+                            (uint)connectionInfo.Ip4Config.PrefixLength,
+                            connectionInfo.Ip4Config.Gateway.ToString())
+                        : null,
                     InterfaceName = wifiDev.InterfaceName,
                     State = st ?? (DeviceState)wifiDev.State,
                     Signal = accessPointInfo.SignalStrength

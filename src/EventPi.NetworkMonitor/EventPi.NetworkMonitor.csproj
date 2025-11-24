@@ -4,6 +4,9 @@
     <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>ModelingEvolution.EventPi.NetworkMonitor</PackageId>
+    <!-- Suppress ambiguous method call warnings in NET10 due to System.Linq.Async conflicts -->
+    <NoWarn Condition="'$(TargetFramework)' == 'net10.0'">$(NoWarn);CS0121</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ModelingEvolution.Ipv4" Version="1.0.0" />

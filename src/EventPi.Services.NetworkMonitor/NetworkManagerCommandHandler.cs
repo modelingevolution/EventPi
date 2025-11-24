@@ -48,10 +48,17 @@ public partial class NetworkManagerCommandHandler : IAsyncDisposable
 
         await Prepare(hostName);
 
+#if NET10_0_OR_GREATER
+        var ap = await _client.GetAccessPoints()
+            .Where(x => x.Ssid == data.Ssid)
+            .OrderByDescending(x=>x.SignalStrength)
+            .FirstOrDefaultAsync();
+#else
         var ap = await _client.GetAccessPoints()
             .WhereAwait(async x => x.Ssid == data.Ssid)
             .OrderByDescending(x=>x.SignalStrength)
             .FirstOrDefaultAsync();
+#endif
 
         if (ap != null)
         {
@@ -79,8 +86,13 @@ public partial class NetworkManagerCommandHandler : IAsyncDisposable
         await Prepare(hostName);
 
         _log.LogInformation($"Connect access point: {cmd.Ssid}");
+#if NET10_0_OR_GREATER
+        if (await _client!.GetProfiles().Select(x => x.Settings()).OfType<WifiProfileSettings>()
+                .AnyAsync(x => x.Ssid == cmd.Ssid))
+#else
         if (await _client!.GetProfiles().SelectAwait(async x => await x.Settings()).OfType<WifiProfileSettings>()
                 .AnyAsync(x => x.Ssid == cmd.Ssid))
+#endif
         {
             var dev = await _client.GetDevices().OfType<WifiDeviceInfo>().FirstOrDefaultAsync();
             try

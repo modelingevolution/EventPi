@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.1" />
     <PackageReference Include="MudBlazor" Version="8.14.0" />
     <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.0.124.158" />
     <PackageReference Include="MicroPlumberd.Services" Version="1.0.124.158" />

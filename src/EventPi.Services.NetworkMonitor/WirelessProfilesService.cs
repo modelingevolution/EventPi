@@ -14,10 +14,14 @@ static class WirelessProfilesService
     {
         WirelessProfilesState state = new WirelessProfilesState();
         
-        var activeConnection = await client.GetDevices().OfType<WifiDeviceInfo>()
-            .SelectAwait(async x => await x.GetConnectionProfileId())
-            .Where(x=> x != string.Empty && x != "/")
-            .ToHashSetAsync();
+        var devices = await client.GetDevices().OfType<WifiDeviceInfo>().ToListAsync();
+        var activeConnection = new HashSet<PathId?>();
+        foreach (var device in devices)
+        {
+            var profileId = await device.GetConnectionProfileId();
+            if (profileId != string.Empty && profileId != "/")
+                activeConnection.Add(profileId);
+        }
 
         bool hasChanged = false;
         var actualProfiles = await client.GetProfiles().ToArrayAsync(cancellationToken: stoppingToken);

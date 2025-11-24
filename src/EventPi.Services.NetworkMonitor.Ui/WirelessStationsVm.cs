@@ -3,6 +3,7 @@ using EventPi.Abstractions;
 using EventPi.Services.NetworkMonitor.Contract;
 using MicroPlumberd;
 using MudBlazor;
+using Metadata = MicroPlumberd.Metadata;
 
 namespace EventPi.Services.NetworkMonitor.Ui;
 
