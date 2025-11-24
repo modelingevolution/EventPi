@@ -18,8 +18,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Services.MachineWor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Abstractions", "EventPi.Abstractions\EventPi.Abstractions.csproj", "{9A9258CD-E04D-48D6-B058-C70D73176B41}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.EventStore", "EventPi.EventStore\EventPi.EventStore.csproj", "{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Services.MachineWorkTime.Tests", "EventPi.Services.MachineWorkTime.Tests\EventPi.Services.MachineWorkTime.Tests.csproj", "{602C8DFC-1F96-46D5-A923-0164806E1124}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventPi.Services.Camera", "EventPi.Services.Camera\EventPi.Services.Camera.csproj", "{5E112533-4D42-4897-A903-1DE438C62410}"
@@ -70,10 +68,6 @@ Global
 		{9A9258CD-E04D-48D6-B058-C70D73176B41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A9258CD-E04D-48D6-B058-C70D73176B41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A9258CD-E04D-48D6-B058-C70D73176B41}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FCD6EA4-4D07-46E0-8E3F-25AC639D5DE2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{602C8DFC-1F96-46D5-A923-0164806E1124}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{602C8DFC-1F96-46D5-A923-0164806E1124}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{602C8DFC-1F96-46D5-A923-0164806E1124}.Release|Any CPU.ActiveCfg = Release|Any CPU
