@@ -50,7 +50,6 @@ jobs:
         dotnet build src/EventPi.Abstractions/EventPi.Abstractions.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.Threading/EventPi.Threading.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.SharedMemory/EventPi.SharedMemory.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
-        dotnet build src/EventPi.Pid/EventPi.Pid.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.Advertiser/EventPi.Advertiser.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.NetworkMonitor/EventPi.NetworkMonitor.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
         dotnet build src/EventPi.EventStore/EventPi.EventStore.csproj --configuration ${{ env.CONFIGURATION }} /p:Version=${{ steps.get_version.outputs.VERSION }}
@@ -83,14 +82,6 @@ jobs:
     - name: Pack EventPi.SharedMemory
       run: |
         dotnet pack src/EventPi.SharedMemory/EventPi.SharedMemory.csproj \
-          --configuration ${{ env.CONFIGURATION }} \
-          --no-build \
-          --output ./artifacts \
-          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
-
-    - name: Pack EventPi.Pid
-      run: |
-        dotnet pack src/EventPi.Pid/EventPi.Pid.csproj \
           --configuration ${{ env.CONFIGURATION }} \
           --no-build \
           --output ./artifacts \
