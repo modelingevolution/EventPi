@@ -14,7 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0" />
     <PackageReference Include="SkiaSharp.Views.Blazor" Version="3.119.1" />
-    <PackageReference Include="protobuf-net" Version="3.2.52" />
+    <PackageReference Include="protobuf-net" Version="3.2.56" />
   </ItemGroup>
 
   <ItemGroup>
