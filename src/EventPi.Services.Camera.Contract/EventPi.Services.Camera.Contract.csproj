@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MicroPlumberd" Version="1.0.124.158" />
+    <PackageReference Include="MicroPlumberd" Version="1.1.6.8" />
     <PackageReference Include="ModelingEvolution.Drawing" Version="*" />
     <PackageReference Include="ModelingEvolution.JsonParsableConverter" Version="1.0.1" />
   </ItemGroup>
