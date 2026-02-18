@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EventPi.NetworkMonitor\EventPi.NetworkMonitor.csproj" />
     <ProjectReference Include="..\EventPi.Services.NetworkMonitor.Contract\EventPi.Services.NetworkMonitor.Contract.csproj" />
-    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.1.6.8" />
+    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.1.7.0" />
     <!-- Exclude System.Linq.Async for .NET 10 to avoid ambiguity with built-in AsyncEnumerable -->
     <PackageReference Include="System.Linq.Async" Version="6.0.1" Condition="'$(TargetFramework)' == 'net10.0'" ExcludeAssets="all" />
   </ItemGroup>
