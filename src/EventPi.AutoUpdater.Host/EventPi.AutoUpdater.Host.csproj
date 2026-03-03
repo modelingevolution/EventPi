@@ -15,7 +15,7 @@
     <PackageReference Include="Ductus.FluentDocker" Version="2.10.59" />
     <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
-    <PackageReference Include="ModelingEvolution.Observable.Blazor" Version="0.0.5.4" />
+    <PackageReference Include="ModelingEvolution.Observable.Blazor" Version="0.0.9.0" />
     <PackageReference Include="MudBlazor" Version="8.14.0" />
   </ItemGroup>
 
