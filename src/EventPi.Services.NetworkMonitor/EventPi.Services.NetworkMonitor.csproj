@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
@@ -11,7 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EventPi.NetworkMonitor\EventPi.NetworkMonitor.csproj" />
     <ProjectReference Include="..\EventPi.Services.NetworkMonitor.Contract\EventPi.Services.NetworkMonitor.Contract.csproj" />
-    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.1.8.0" />
+    <PackageReference Include="MicroPlumberd.SourceGenerators" Version="1.2.0.0" />
     <!-- Exclude System.Linq.Async for .NET 10 to avoid ambiguity with built-in AsyncEnumerable -->
     <PackageReference Include="System.Linq.Async" Version="6.0.1" Condition="'$(TargetFramework)' == 'net10.0'" ExcludeAssets="all" />
   </ItemGroup>
